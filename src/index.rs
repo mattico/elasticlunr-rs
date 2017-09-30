@@ -8,46 +8,47 @@ use ::document_store::DocumentStore;
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
-    fields: &'static [&'static str],
+    fields: Vec<String>,
     pipeline: Pipeline,
     #[serde(rename = "ref")]
-    reference: &'static str,
+    ref_field: String,
     version: &'static str,
-    index: InvertedIndex,
+    index: HashMap<String, InvertedIndex>,
     document_store: DocumentStore,
 }
 
 impl Index {
-    pub fn new() -> Self {
+    pub fn new(ref_field: &str, fields: &[&str]) -> Self {
+        let mut indices = HashMap::new();
+        for field in fields {
+            indices.insert((*field).into(), InvertedIndex::new());
+        }
+
         Index {
-            fields: &["title", "body"],
+            fields: fields.iter().map(ToString::to_string).collect(),
             pipeline: Pipeline::default(),
-            reference: "id",
+            ref_field: ref_field.into(),
             version: ::ELASTICLUNR_VERSION,
-            index: InvertedIndex::new(),
+            index: indices,
             document_store: DocumentStore::new(),
         }
     }
 
-    pub fn add_doc(&mut self, id: &str, title: &str, body: &str) {
-        let title_tok = self.pipeline.run(pipeline::tokenize(title));
-        let body_tok = self.pipeline.run(pipeline::tokenize(body));
-
-        self.add_tokens(id, title_tok);
-        self.add_tokens(id, body_tok);
-    }
-
-    fn add_tokens(&mut self, id: &str, tokens: Vec<String>) {
-        //documentstore.addFieldLength
-
+    pub fn add_doc(&mut self, reference: &str, doc: HashMap<String, String>) {
         let mut token_freq = HashMap::new();
+        for (field, value) in &doc {
+            let tokens = self.pipeline.run(pipeline::tokenize(value));
+            token_freq.clear();
 
-        for token in tokens {
-            token_freq.entry(token).or_insert(0u64);
-        }
+            for token in tokens {
+                token_freq.entry(token).or_insert(0u64);
+            }
 
-        for (token, count) in token_freq {
-            self.index.add_token(&token, id, (count as f32).sqrt() as i64);
+            for (token, count) in &token_freq {
+                self.index.get_mut(field)
+                    .expect("Invalid HashMap") // TODO: better API
+                    .add_token(&token, reference, (*count as f32).sqrt() as i64);
+            }
         }
     }
 }
