@@ -1,0 +1,1112 @@
+/* Index created using:
+var index = elasticlunr(function () {
+    this.addField('title');
+    this.addField('body');
+    this.setRef('id');
+});
+
+var doc1 = {
+    "id": 1,
+    "title": "Oracle released its latest database Oracle 12g",
+    "body": "Yestaday Oracle has released its new database Oracle 12g, this would make more money for this company and lead to a nice profit report of annual year."
+}
+
+var doc2 = {
+    "id": 2,
+    "title": "Oracle released its profit report of 2015",
+    "body": "As expected, Oracle released its profit report of 2015, during the good sales of database and hardware, Oracle's profit of 2015 reached 12.5 Billion."
+}
+
+index.addDoc(doc1);
+index.addDoc(doc2);
+*/
+
+{
+  "version": "0.9.5",
+  "fields": [
+    "title",
+    "body"
+  ],
+  "ref": "id",
+  "documentStore": {
+    "docs": {
+      "1": {
+        "id": 1,
+        "title": "Oracle released its latest database Oracle 12g",
+        "body": "Yestaday Oracle has released its new database Oracle 12g, this would make more money for this company and lead to a nice profit report of annual year."
+      },
+      "2": {
+        "id": 2,
+        "title": "Oracle released its profit report of 2015",
+        "body": "As expected, Oracle released its profit report of 2015, during the good sales of database and hardware, Oracle's profit of 2015 reached 12.5 Billion."
+      }
+    },
+    "docInfo": {
+      "1": {
+        "title": 6,
+        "body": 17
+      },
+      "2": {
+        "title": 5,
+        "body": 17
+      }
+    },
+    "length": 2,
+    "save": true
+  },
+  "index": {
+    "title": {
+      "root": {
+        "1": {
+          "2": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "g": {
+              "docs": {
+                "1": {
+                  "tf": 1
+                }
+              },
+              "df": 1
+            }
+          },
+          "docs": {
+            
+          },
+          "df": 0
+        },
+        "2": {
+          "0": {
+            "1": {
+              "5": {
+                "docs": {
+                  "2": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              },
+              "docs": {
+                
+              },
+              "df": 0
+            },
+            "docs": {
+              
+            },
+            "df": 0
+          },
+          "docs": {
+            
+          },
+          "df": 0
+        },
+        "docs": {
+          
+        },
+        "df": 0,
+        "o": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "r": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "a": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "c": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "l": {
+                  "docs": {
+                    "1": {
+                      "tf": 1.4142135623731
+                    },
+                    "2": {
+                      "tf": 1
+                    }
+                  },
+                  "df": 2
+                }
+              }
+            }
+          }
+        },
+        "r": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "e": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "l": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "a": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "s": {
+                    "docs": {
+                      "1": {
+                        "tf": 1
+                      },
+                      "2": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 2
+                  }
+                }
+              }
+            },
+            "p": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "o": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "r": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "t": {
+                    "docs": {
+                      "2": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "l": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "a": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "t": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "s": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "t": {
+                    "docs": {
+                      "1": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "d": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "a": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "t": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "a": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "b": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "a": {
+                    "docs": {
+                      
+                    },
+                    "df": 0,
+                    "s": {
+                      "docs": {
+                        "1": {
+                          "tf": 1
+                        }
+                      },
+                      "df": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "p": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "r": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "o": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "f": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "i": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "t": {
+                    "docs": {
+                      "2": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "body": {
+      "root": {
+        "1": {
+          "2": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "g": {
+              "docs": {
+                "1": {
+                  "tf": 1
+                }
+              },
+              "df": 1
+            },
+            ".": {
+              "5": {
+                "docs": {
+                  "2": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              },
+              "docs": {
+                
+              },
+              "df": 0
+            }
+          },
+          "docs": {
+            
+          },
+          "df": 0
+        },
+        "2": {
+          "0": {
+            "1": {
+              "5": {
+                "docs": {
+                  "2": {
+                    "tf": 1.4142135623731
+                  }
+                },
+                "df": 1
+              },
+              "docs": {
+                
+              },
+              "df": 0
+            },
+            "docs": {
+              
+            },
+            "df": 0
+          },
+          "docs": {
+            
+          },
+          "df": 0
+        },
+        "docs": {
+          
+        },
+        "df": 0,
+        "y": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "e": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "s": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "t": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "a": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "d": {
+                    "docs": {
+                      
+                    },
+                    "df": 0,
+                    "a": {
+                      "docs": {
+                        
+                      },
+                      "df": 0,
+                      "y": {
+                        "docs": {
+                          "1": {
+                            "tf": 1
+                          }
+                        },
+                        "df": 1
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "a": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "r": {
+                "docs": {
+                  "1": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            }
+          }
+        },
+        "o": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "r": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "a": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "c": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "l": {
+                  "docs": {
+                    "1": {
+                      "tf": 1.4142135623731
+                    },
+                    "2": {
+                      "tf": 1
+                    }
+                  },
+                  "df": 2,
+                  "e": {
+                    "docs": {
+                      
+                    },
+                    "df": 0,
+                    "'": {
+                      "docs": {
+                        "2": {
+                          "tf": 1
+                        }
+                      },
+                      "df": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "r": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "e": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "l": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "a": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "s": {
+                    "docs": {
+                      "1": {
+                        "tf": 1
+                      },
+                      "2": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 2
+                  }
+                }
+              }
+            },
+            "p": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "o": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "r": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "t": {
+                    "docs": {
+                      "1": {
+                        "tf": 1
+                      },
+                      "2": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 2
+                  }
+                }
+              }
+            },
+            "a": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "c": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "h": {
+                  "docs": {
+                    "2": {
+                      "tf": 1
+                    }
+                  },
+                  "df": 1
+                }
+              }
+            }
+          }
+        },
+        "n": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "e": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "w": {
+              "docs": {
+                "1": {
+                  "tf": 1
+                }
+              },
+              "df": 1
+            }
+          },
+          "i": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "c": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  "1": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            }
+          }
+        },
+        "d": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "a": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "t": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "a": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "b": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "a": {
+                    "docs": {
+                      
+                    },
+                    "df": 0,
+                    "s": {
+                      "docs": {
+                        "1": {
+                          "tf": 1
+                        },
+                        "2": {
+                          "tf": 1
+                        }
+                      },
+                      "df": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "u": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "r": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  "2": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            }
+          }
+        },
+        "m": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "a": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "k": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  "1": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            }
+          },
+          "o": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "r": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  "1": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            },
+            "n": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "y": {
+                  "docs": {
+                    "1": {
+                      "tf": 1
+                    }
+                  },
+                  "df": 1
+                }
+              }
+            }
+          }
+        },
+        "c": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "o": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "m": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "p": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "a": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "n": {
+                    "docs": {
+                      
+                    },
+                    "df": 0,
+                    "i": {
+                      "docs": {
+                        "1": {
+                          "tf": 1
+                        }
+                      },
+                      "df": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "l": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "e": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "a": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "d": {
+                "docs": {
+                  "1": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            }
+          }
+        },
+        "p": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "r": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "o": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "f": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "i": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "t": {
+                    "docs": {
+                      "1": {
+                        "tf": 1
+                      },
+                      "2": {
+                        "tf": 1.4142135623731
+                      }
+                    },
+                    "df": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "a": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "n": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "n": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "u": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "a": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "l": {
+                    "docs": {
+                      "1": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "e": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "x": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "p": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "c": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "t": {
+                    "docs": {
+                      "2": {
+                        "tf": 1
+                      }
+                    },
+                    "df": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "g": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "o": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "o": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "d": {
+                "docs": {
+                  "2": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            }
+          }
+        },
+        "s": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "a": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "l": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "e": {
+                "docs": {
+                  "2": {
+                    "tf": 1
+                  }
+                },
+                "df": 1
+              }
+            }
+          }
+        },
+        "h": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "a": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "r": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "d": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "w": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "a": {
+                    "docs": {
+                      
+                    },
+                    "df": 0,
+                    "r": {
+                      "docs": {
+                        "2": {
+                          "tf": 1
+                        }
+                      },
+                      "df": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "b": {
+          "docs": {
+            
+          },
+          "df": 0,
+          "i": {
+            "docs": {
+              
+            },
+            "df": 0,
+            "l": {
+              "docs": {
+                
+              },
+              "df": 0,
+              "l": {
+                "docs": {
+                  
+                },
+                "df": 0,
+                "i": {
+                  "docs": {
+                    
+                  },
+                  "df": 0,
+                  "o": {
+                    "docs": {
+                      
+                    },
+                    "df": 0,
+                    "n": {
+                      "docs": {
+                        "2": {
+                          "tf": 1
+                        }
+                      },
+                      "df": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "pipeline": [
+    "trimmer",
+    "stopWordFilter",
+    "stemmer"
+  ]
+}
+

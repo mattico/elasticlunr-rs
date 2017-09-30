@@ -1,5 +1,6 @@
 use std::ascii::AsciiExt;
 use rust_stemmers;
+use serde::ser::{Serialize, Serializer, SerializeSeq};
 
 pub fn tokenize(text: &str) -> Vec<String> {
     text.split_whitespace()
@@ -9,19 +10,31 @@ pub fn tokenize(text: &str) -> Vec<String> {
 
 pub type PipelineFn = fn(String) -> Option<String>;
 
-#[derive(Serialize)]
+#[derive(Debug)]
 pub struct Pipeline {
-    #[serde(skip)]
-    queue_fns: Vec<PipelineFn>,
-    #[serde(rename = "_queue")]
-    queue_names: Vec<String>,
+    queue: Vec<(String, PipelineFn)>,
+}
+
+impl Serialize for Pipeline {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        let mut seq = serializer.serialize_seq(Some(self.queue.len()))?;
+        for &(ref name, _) in &self.queue {
+            seq.serialize_element(&name)?;
+        }
+        seq.end()
+    }
 }
 
 impl Default for Pipeline {
     fn default() -> Self {
         Pipeline {
-            queue_fns: vec![trimmer, stop_word_filter, stemmer],
-            queue_names: vec!["trimmer".into(), "stopWordFilter".into(), "stemmer".into()],
+            queue: vec![
+                ("trimmer".into(), trimmer),
+                ("stopWordFilter".into(), stop_word_filter), 
+                ("stemmer".into(), stemmer),
+            ],
         }
     }
 }
@@ -29,16 +42,14 @@ impl Default for Pipeline {
 impl Pipeline {
     pub fn empty() -> Self {
         Pipeline {
-            queue_fns: vec![],
-            queue_names: vec![],
+            queue: vec![],
         }
     }
 
     // TODO: before() after(), etc.
 
     pub fn register_function(&mut self, name: String, func: PipelineFn) {
-        self.queue_fns.push(func);
-        self.queue_names.push(name);
+        self.queue.push((name, func));
     }
 
     // Could return impl Iterator<Item=String>
@@ -46,7 +57,7 @@ impl Pipeline {
         let mut ret = vec![];
         for token in tokens {
             let mut token = Some(token);
-            for &func in &self.queue_fns {
+            for &(_, func) in &self.queue {
                 if let Some(t) = token {
                     token = func(t);
                 } else {

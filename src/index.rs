@@ -1,13 +1,12 @@
 
-use std::collections::BTreeMap;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Index {
     fields: &'static [&'static str],
-    pipeline: &'static [&'static str],
+    pipeline: ::pipeline::Pipeline,
     #[serde(rename = "ref")]
     reference: &'static str,
     version: &'static str,
-    index: BTreeMap<String, String>,
-    //document_store
+    index: ::inverted_index::InvertedIndex,
+    document_store: ::document_store::DocumentStore,
 }

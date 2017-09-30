@@ -13,8 +13,9 @@ extern crate serde;
 
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
 
-pub mod documentstore;
+pub mod document_store;
 pub mod index;
+pub mod inverted_index;
 pub mod pipeline;
 
 pub struct IndexBuilder {
