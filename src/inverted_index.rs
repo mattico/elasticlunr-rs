@@ -2,14 +2,13 @@
 use std::collections::HashMap;
 
 // TODO: manually implement serialize so children are inline
+// and docs values are objects
 #[derive(Serialize, Debug, Clone)]
 pub struct IndexItem {
-    docs: HashMap<String, String>,
+    docs: HashMap<String, f32>,
     df: usize,
     children: HashMap<String, IndexItem>,
 }
-
-pub struct TokenInfo {}
 
 impl IndexItem {
     pub fn new() -> Self {
@@ -20,12 +19,15 @@ impl IndexItem {
         }
     }
 
-    pub fn add_token(&mut self, token: &str) 
+    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: f32) 
     {
         if let Some((idx, char)) = token.char_indices().next() {
             let item = self.children.entry(char.to_string()).or_insert(IndexItem::new());
-            item.add_token(&token[idx..]);
+            item.add_token(&token[idx..], doc_ref, freq);
         }
+
+        if self.docs.contains_key(doc_ref) { self.df += 1; }
+        self.docs.insert(doc_ref.into(), freq);
     }
 }
 
@@ -41,10 +43,9 @@ impl InvertedIndex {
         }
     }
 
-    pub fn add_token(&mut self, token: &str, token_info: TokenInfo) 
+    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: f32) 
     {
-        self.root.add_token(token);
-        // TODO: handle docs, tokeninfo
+        self.root.add_token(token, doc_ref, freq);
     }
 }
 

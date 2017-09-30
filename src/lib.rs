@@ -20,24 +20,21 @@ pub mod pipeline;
 
 pub struct IndexBuilder {
     index: index::Index,
+    doc_count: usize,
 }
 
 impl IndexBuilder {
-    // pub fn new() -> Self {
-    //     IndexBuilder {
-    //         index: index::Index {
-    //             fields: &["title", "body"],
-    //             pipeline: &["trimmer", "stopWordFilter", "stemmer"],
-    //             reference: "id",
-    //             version: ELASTICLUNR_VERSION,
-    //             index: BTreeMap::new(),
-    //         },
-    //     }
-    // }
+    pub fn new() -> Self {
+        IndexBuilder {
+            index: index::Index::new(),
+            doc_count: 1,
+        }
+    }
 
-    // pub fn add_document<T: Into<String>>(&mut self, title: T, body: T) {
-    //     self.index.index.insert(title.into(), body.into());
-    // }
+    pub fn add_document(&mut self, title: &str, body: &str) {
+        self.index.add_doc(&self.doc_count.to_string(), title, body);
+        self.doc_count += 1;
+    }
 
     pub fn to_json(&self) -> String {
         serde_json::to_string(&self.index).unwrap()
