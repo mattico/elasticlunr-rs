@@ -21,9 +21,12 @@ impl IndexItem {
 
     pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: i64) 
     {
-        if let Some((idx, char)) = token.char_indices().next() {
+        let mut char_indices = token.char_indices();
+        if let Some((_, char)) = char_indices.next() {
             let item = self.children.entry(char.to_string()).or_insert(IndexItem::new());
-            item.add_token(&token[idx..], doc_ref, freq);
+            if let Some((idx, _)) = char_indices.next() {
+                item.add_token(&token[idx..], doc_ref, freq);
+            }
         }
 
         if self.docs.contains_key(doc_ref) { self.df += 1; }

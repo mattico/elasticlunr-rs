@@ -6,6 +6,7 @@ use ::inverted_index::InvertedIndex;
 use ::document_store::DocumentStore;
 
 #[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Index {
     fields: &'static [&'static str],
     pipeline: Pipeline,
