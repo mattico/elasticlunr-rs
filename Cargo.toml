@@ -1,9 +1,14 @@
 [package]
+authors = ["Matt Ickstadt <mattico8@gmail.com>"]
+license = "MIT/Apache-2.0"
 name = "elasticlunr"
 version = "0.1.0"
-authors = ["Matt Ickstadt <mattico8@gmail.com>"]
 
 [dependencies]
+lazy_static = "0.2"
+phf = "0.7"
+phf_macros = "0.7"
+rust-stemmers = "1.0"
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
