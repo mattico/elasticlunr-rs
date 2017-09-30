@@ -2,8 +2,8 @@
 use std::collections::HashMap;
 
 use ::pipeline::{self, Pipeline};
-use ::inverted_index::{self, InvertedIndex};
-use ::document_store::{self, DocumentStore};
+use ::inverted_index::InvertedIndex;
+use ::document_store::DocumentStore;
 
 #[derive(Serialize, Debug)]
 pub struct Index {
@@ -46,7 +46,7 @@ impl Index {
         }
 
         for (token, count) in token_freq {
-            self.index.add_token(&token, id, (count as f32).sqrt());
+            self.index.add_token(&token, id, (count as f32).sqrt() as i64);
         }
     }
 }
