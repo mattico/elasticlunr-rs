@@ -1,6 +1,8 @@
 
 use std::collections::HashMap;
 
+// TODO: port tests
+
 use serde::ser::{Serialize, Serializer, SerializeMap};
 
 #[derive(Debug, Copy, Clone, Serialize)]
@@ -24,16 +26,20 @@ impl IndexItem {
         }
     }
 
-    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: f32) {
+    fn update_children(&mut self, token: &str, doc_ref: &str, freq: f32) {
         let mut char_indices = token.char_indices();
         if let Some((_, char)) = char_indices.next() {
             let item = self.children.entry(char.to_string()).or_insert(
                 IndexItem::new(),
             );
             if let Some((idx, _)) = char_indices.next() {
-                item.add_token(&token[idx..], doc_ref, freq);
+                item.update_children(&token[idx..], doc_ref, freq);
             }
         }
+    }
+
+    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: f32) {
+        self.update_children(token, doc_ref, freq);
 
         if self.docs.contains_key(doc_ref) {
             self.df += 1;
