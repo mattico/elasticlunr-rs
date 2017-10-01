@@ -43,8 +43,7 @@ impl Index {
 
             let tokens = self.pipeline.run(pipeline::tokenize(value));
             self.document_store.add_field_length(doc_ref, field, tokens.len());
-            
-            token_freq.clear();
+
             for token in tokens {
                 *token_freq.entry(token).or_insert(0u64) += 1;
             }

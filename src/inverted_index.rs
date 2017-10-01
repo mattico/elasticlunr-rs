@@ -3,9 +3,12 @@ use std::collections::HashMap;
 
 use serde::ser::{Serialize, Serializer, SerializeMap};
 
+#[derive(Debug, Copy, Clone, Serialize)]
+struct TermFrequency { tf: f32 }
+
 #[derive(Debug, Clone)]
 pub struct IndexItem {
-    docs: HashMap<String, f32>,
+    docs: HashMap<String, TermFrequency>,
     df: usize,
     children: HashMap<String, IndexItem>,
 }
@@ -30,7 +33,7 @@ impl IndexItem {
         }
 
         if self.docs.contains_key(doc_ref) { self.df += 1; }
-        self.docs.insert(doc_ref.into(), freq);
+        self.docs.insert(doc_ref.into(), TermFrequency { tf: freq });
     }
 }
 
@@ -44,7 +47,7 @@ impl Serialize for IndexItem {
         state.serialize_entry("docs", &self.docs)?;
         
         for (key, value) in &self.children {
-            state.serialize_entry(key, value)?;
+            state.serialize_entry(key, &value)?;
         }
 
         state.end()
