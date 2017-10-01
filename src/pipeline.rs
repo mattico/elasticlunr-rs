@@ -3,7 +3,7 @@ use rust_stemmers;
 use serde::ser::{Serialize, Serializer, SerializeSeq};
 
 pub fn tokenize(text: &str) -> Vec<String> {
-    text.split_whitespace()
+    text.split(|c: char| c.is_whitespace() || c == '-')
         .map(|s| String::from(s.to_ascii_lowercase()))
         .collect()
 }
@@ -72,7 +72,7 @@ impl Pipeline {
 }
 
 fn trimmer(token: String) -> Option<String> {
-    Some(token.trim().into())
+    Some(token.trim_matches(|c: char| !c.is_digit(36) && c != '_').into())
 }
 
 // TODO: languages
@@ -93,8 +93,7 @@ fn stop_word_filter(token: String) -> Option<String> {
     }
 }
 
-static STOP_WORDS: ::phf::Set<&'static str> =
-    phf_set! {
+static STOP_WORDS: ::phf::Set<&'static str> = phf_set! {
   "",
   "a",
   "able",
