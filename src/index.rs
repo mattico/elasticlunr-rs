@@ -46,13 +46,13 @@ impl Index {
             
             token_freq.clear();
             for token in tokens {
-                token_freq.entry(token).or_insert(0u64);
+                *token_freq.entry(token).or_insert(0u64) += 1;
             }
 
             for (token, count) in &token_freq {
                 self.index.get_mut(field)
                     .expect("Invalid HashMap") // TODO: better API
-                    .add_token(&token, doc_ref, (*count as f32).sqrt() as i64);
+                    .add_token(&token, doc_ref, (*count as f32).sqrt());
             }
         }
     }

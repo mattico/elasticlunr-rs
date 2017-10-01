@@ -5,7 +5,7 @@ use serde::ser::{Serialize, Serializer, SerializeMap};
 
 #[derive(Debug, Clone)]
 pub struct IndexItem {
-    docs: HashMap<String, i64>,
+    docs: HashMap<String, f32>,
     df: usize,
     children: HashMap<String, IndexItem>,
 }
@@ -19,7 +19,7 @@ impl IndexItem {
         }
     }
 
-    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: i64) 
+    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: f32) 
     {
         let mut char_indices = token.char_indices();
         if let Some((_, char)) = char_indices.next() {
@@ -63,7 +63,7 @@ impl InvertedIndex {
         }
     }
 
-    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: i64) 
+    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: f32) 
     {
         self.root.add_token(token, doc_ref, freq);
     }
