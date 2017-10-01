@@ -1,32 +1,19 @@
 
 use std::collections::HashMap;
 
-#[derive(Serialize, Debug)]
-pub struct Document {
-    pub id: usize,
-    pub title: String,
-    pub body: String,
-}
-
-#[derive(Serialize, Debug)]
-pub struct DocumentInfo {
-    pub title: String,
-    pub body: String,
-}
-
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentStore {
     save: bool,
-    docs: HashMap<String, Document>,
-    doc_info: HashMap<String, DocumentInfo>,
+    docs: HashMap<String, HashMap<String, String>>,
+    doc_info: HashMap<String, HashMap<String, usize>>,
     length: usize,
 }
 
 impl DocumentStore {
     pub fn new() -> Self {
         DocumentStore {
-            save: false,
+            save: true,
             docs: HashMap::new(),
             doc_info: HashMap::new(),
             length: 0,
@@ -37,15 +24,26 @@ impl DocumentStore {
         self.save
     }
 
-    pub fn add_doc(&mut self, reference: String, title: String, body: String) {
-        // TODO: only insert if self.save
-        self.docs.insert(reference, Document {
-            id: self.length + 1,
-            title,
-            body,
-        });
-        // TODO: docInfo
-        // TODO: only increment length when doc isn't already existing
-        self.length += 1;
+    pub fn has_doc(&self, doc_ref: &str) -> bool {
+        self.docs.contains_key(doc_ref)
+    }
+
+    pub fn add_doc(&mut self, doc_ref: &str, doc: &HashMap<String, String>) {
+        if !self.has_doc(doc_ref) {
+            self.length += 1;
+        }
+        
+        self.docs.insert(doc_ref.into(), if self.save { doc.clone() } else { HashMap::new() });
+    }
+
+    pub fn get_doc(&self, doc_ref: &str) -> Option<HashMap<String, String>> {
+        self.docs.get(doc_ref.into()).cloned()
+    }
+
+    pub fn add_field_length(&mut self, doc_ref: &str, field: &str, length: usize) {
+        if !self.has_doc(doc_ref) { return; }
+        self.doc_info.entry(doc_ref.into())
+            .or_insert(HashMap::new())
+            .insert(field.into(), length);
     }
 }

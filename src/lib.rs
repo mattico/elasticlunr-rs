@@ -35,6 +35,7 @@ impl IndexBuilder {
 
     pub fn add_document(&mut self, title: &str, body: &str) {
         let mut map = HashMap::new();
+        map.insert("id".into(), self.doc_count.to_string());
         map.insert("title".into(), title.into());
         map.insert("body".into(), body.into());
         self.index.add_doc(&self.doc_count.to_string(), map);

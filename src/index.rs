@@ -34,12 +34,17 @@ impl Index {
         }
     }
 
-    pub fn add_doc(&mut self, reference: &str, doc: HashMap<String, String>) {
+    pub fn add_doc(&mut self, doc_ref: &str, doc: HashMap<String, String>) {
+        self.document_store.add_doc(doc_ref, &doc);
+        
         let mut token_freq = HashMap::new();
         for (field, value) in &doc {
-            let tokens = self.pipeline.run(pipeline::tokenize(value));
-            token_freq.clear();
+            if field == &self.ref_field { continue; }
 
+            let tokens = self.pipeline.run(pipeline::tokenize(value));
+            self.document_store.add_field_length(doc_ref, field, tokens.len());
+            
+            token_freq.clear();
             for token in tokens {
                 token_freq.entry(token).or_insert(0u64);
             }
@@ -47,7 +52,7 @@ impl Index {
             for (token, count) in &token_freq {
                 self.index.get_mut(field)
                     .expect("Invalid HashMap") // TODO: better API
-                    .add_token(&token, reference, (*count as f32).sqrt() as i64);
+                    .add_token(&token, doc_ref, (*count as f32).sqrt() as i64);
             }
         }
     }
