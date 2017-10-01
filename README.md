@@ -1,6 +1,6 @@
 # elasticlunr-rs
 
-A partial rust port of [elasticlunr](https://github.com/weixsong/elasticlunr.js) to Rust. Intended to be used for generating compatible search indices.
+A partial port of [elasticlunr](https://github.com/weixsong/elasticlunr.js) to Rust. Intended to be used for generating compatible search indices.
 
 ## License
 

@@ -19,18 +19,18 @@ impl IndexItem {
         }
     }
 
-    pub fn add_token(&mut self, token: &str, reference: &str, freq: i64) 
+    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: i64) 
     {
         let mut char_indices = token.char_indices();
         if let Some((_, char)) = char_indices.next() {
             let item = self.children.entry(char.to_string()).or_insert(IndexItem::new());
             if let Some((idx, _)) = char_indices.next() {
-                item.add_token(&token[idx..], reference, freq);
+                item.add_token(&token[idx..], doc_ref, freq);
             }
         }
 
-        if self.docs.contains_key(reference) { self.df += 1; }
-        self.docs.insert(reference.into(), freq);
+        if self.docs.contains_key(doc_ref) { self.df += 1; }
+        self.docs.insert(doc_ref.into(), freq);
     }
 }
 
@@ -63,9 +63,9 @@ impl InvertedIndex {
         }
     }
 
-    pub fn add_token(&mut self, token: &str, reference: &str, freq: i64) 
+    pub fn add_token(&mut self, token: &str, doc_ref: &str, freq: i64) 
     {
-        self.root.add_token(token, reference, freq);
+        self.root.add_token(token, doc_ref, freq);
     }
 }
 

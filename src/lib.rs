@@ -43,7 +43,7 @@ impl IndexBuilder {
     }
 
     pub fn to_json(&self) -> String {
-        serde_json::to_string_pretty(&self.index).unwrap()
+        serde_json::to_string(&self.index).unwrap()
     }
 }
 
