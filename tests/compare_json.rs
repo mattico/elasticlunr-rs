@@ -8,5 +8,8 @@ fn compare_json() {
     index_builder.add_document("Oracle released its profit report of 2015",
         "As expected, Oracle released its profit report of 2015, during the good sales of database and hardware, Oracle's profit of 2015 reached 12.5 Billion.");
     //assert_eq!(index_builder.to_json(), include_str!("example.json"));
-    panic!(index_builder.to_json());
+    use std::fs;
+    use std::io::Write;
+    let mut file = fs::File::create("out.json").unwrap();
+    file.write_all(index_builder.to_json().as_bytes());
 }

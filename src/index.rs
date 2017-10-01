@@ -1,9 +1,9 @@
 
 use std::collections::HashMap;
 
-use ::pipeline::{self, Pipeline};
-use ::inverted_index::InvertedIndex;
-use ::document_store::DocumentStore;
+use pipeline::{self, Pipeline};
+use inverted_index::InvertedIndex;
+use document_store::DocumentStore;
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -36,13 +36,19 @@ impl Index {
 
     pub fn add_doc(&mut self, doc_ref: &str, doc: HashMap<String, String>) {
         self.document_store.add_doc(doc_ref, &doc);
-        
+
         let mut token_freq = HashMap::new();
         for (field, value) in &doc {
-            if field == &self.ref_field { continue; }
+            if field == &self.ref_field {
+                continue;
+            }
 
             let tokens = self.pipeline.run(pipeline::tokenize(value));
-            self.document_store.add_field_length(doc_ref, field, tokens.len());
+            self.document_store.add_field_length(
+                doc_ref,
+                field,
+                tokens.len(),
+            );
 
             for token in tokens {
                 *token_freq.entry(token).or_insert(0u64) += 1;

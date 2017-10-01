@@ -17,7 +17,8 @@ pub struct Pipeline {
 
 impl Serialize for Pipeline {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         let mut seq = serializer.serialize_seq(Some(self.queue.len()))?;
         for &(ref name, _) in &self.queue {
@@ -32,7 +33,7 @@ impl Default for Pipeline {
         Pipeline {
             queue: vec![
                 ("trimmer".into(), trimmer),
-                ("stopWordFilter".into(), stop_word_filter), 
+                ("stopWordFilter".into(), stop_word_filter),
                 ("stemmer".into(), stemmer),
             ],
         }
@@ -41,9 +42,7 @@ impl Default for Pipeline {
 
 impl Pipeline {
     pub fn empty() -> Self {
-        Pipeline {
-            queue: vec![],
-        }
+        Pipeline { queue: vec![] }
     }
 
     // TODO: before() after(), etc.
@@ -94,7 +93,8 @@ fn stop_word_filter(token: String) -> Option<String> {
     }
 }
 
-static STOP_WORDS: ::phf::Set<&'static str> = phf_set! {
+static STOP_WORDS: ::phf::Set<&'static str> =
+    phf_set! {
   "",
   "a",
   "able",

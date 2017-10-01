@@ -32,8 +32,15 @@ impl DocumentStore {
         if !self.has_doc(doc_ref) {
             self.length += 1;
         }
-        
-        self.docs.insert(doc_ref.into(), if self.save { doc.clone() } else { HashMap::new() });
+
+        self.docs.insert(
+            doc_ref.into(),
+            if self.save {
+                doc.clone()
+            } else {
+                HashMap::new()
+            },
+        );
     }
 
     pub fn get_doc(&self, doc_ref: &str) -> Option<HashMap<String, String>> {
@@ -41,8 +48,11 @@ impl DocumentStore {
     }
 
     pub fn add_field_length(&mut self, doc_ref: &str, field: &str, length: usize) {
-        if !self.has_doc(doc_ref) { return; }
-        self.doc_info.entry(doc_ref.into())
+        if !self.has_doc(doc_ref) {
+            return;
+        }
+        self.doc_info
+            .entry(doc_ref.into())
             .or_insert(HashMap::new())
             .insert(field.into(), length);
     }
