@@ -1,7 +1,3 @@
-// TODO: codegen
-#![feature(plugin)]
-#![plugin(phf_macros)]
-
 #[macro_use]
 extern crate lazy_static;
 extern crate phf;
@@ -43,7 +39,7 @@ impl IndexBuilder {
     }
 
     pub fn to_json(&self) -> String {
-        serde_json::to_string(&self.index).unwrap()
+        serde_json::to_string_pretty(&self.index).unwrap()
     }
 }
 
