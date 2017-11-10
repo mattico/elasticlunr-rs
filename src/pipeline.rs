@@ -4,6 +4,7 @@ use serde::ser::{Serialize, Serializer, SerializeSeq};
 
 pub fn tokenize(text: &str) -> Vec<String> {
     text.split(|c: char| c.is_whitespace() || c == '-')
+        .filter(|s| s.len() > 0)
         .map(|s| String::from(s.to_ascii_lowercase()))
         .collect()
 }
@@ -101,9 +102,33 @@ fn stop_word_filter(token: String) -> Option<String> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn split_simple_strings() {
+        let string = "this is a simple string";
+        assert_eq!(&tokenize(string), &["this", "is", "a", "simple", "string"]);
+    }
+
+    #[test]
+    fn multiple_white_space() {
+        let string = "  foo    bar  ";
+        assert_eq!(&tokenize(string), &["foo", "bar"]);
+    }
+
+    #[test]
+    fn hyphens() {
+        let string = "take the New York-San Francisco flight";
+        assert_eq!(&tokenize(string), &["take", "the", "new", "york", "san", "francisco", "flight"]);
+    }
+
+    #[test]
+    fn splitting_strings_with_hyphens() {
+        let string = "Solve for A - B";
+        assert_eq!(&tokenize(string), &["solve", "for", "a", "b"]);
+    }
+
     macro_rules! pipeline_eq {
         ($func:expr, $input:expr, $output:expr) => {
-            assert_eq!($func($input.to_string()), Some($output.to_string()));
+            assert_eq!(&$func($input.to_string()).unwrap(), $output);
         }
     }
 

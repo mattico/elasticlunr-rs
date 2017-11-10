@@ -10,6 +10,6 @@ fn compare_json() {
     //assert_eq!(index_builder.to_json(), include_str!("example.json"));
     use std::fs;
     use std::io::Write;
-    let mut file = fs::File::create("out.json").unwrap();
+    let mut file = fs::File::create("tests/out.json").unwrap();
     file.write_all(index_builder.to_json().as_bytes());
 }
