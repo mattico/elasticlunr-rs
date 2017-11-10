@@ -30,7 +30,7 @@ impl Index {
             ref_field: ref_field.into(),
             version: ::ELASTICLUNR_VERSION,
             index: indices,
-            document_store: DocumentStore::new(),
+            document_store: DocumentStore::new(true),
         }
     }
 

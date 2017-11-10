@@ -1,5 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate maplit;
 extern crate phf;
 extern crate rust_stemmers;
 #[macro_use]
