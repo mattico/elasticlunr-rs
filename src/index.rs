@@ -55,9 +55,10 @@ impl Index {
             }
 
             for (token, count) in &token_freq {
+                let freq = (*count as f32).sqrt();
                 self.index.get_mut(field)
                     .expect("Invalid HashMap") // TODO: better API
-                    .add_token(&token, doc_ref, (*count as f32).sqrt());
+                    .add_token(doc_ref, token, freq);
             }
         }
     }

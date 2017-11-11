@@ -1,13 +1,15 @@
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate maplit;
 extern crate phf;
 extern crate rust_stemmers;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate serde;
+
+#[cfg(test)]
+#[macro_use]
+extern crate maplit;
 
 use std::collections::HashMap;
 
