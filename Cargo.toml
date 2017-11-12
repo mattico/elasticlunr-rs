@@ -14,11 +14,9 @@ name = "elasticlunr"
 [build-dependencies]
 phf_codegen = "0.7"
 
-[dev-dependencies]
-maplit = "1.0.0"
-
 [dependencies]
 lazy_static = "0.2"
+maplit = "1.0.0"
 phf = "0.7"
 rust-stemmers = "1.0"
 serde = "1.0"
