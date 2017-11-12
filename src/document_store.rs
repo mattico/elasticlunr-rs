@@ -7,6 +7,8 @@ pub struct DocumentStore {
     save: bool,
     docs: HashMap<String, HashMap<String, String>>,
     doc_info: HashMap<String, HashMap<String, usize>>,
+    // Redundant with docs.len(), but needed for serialization
+    length: usize,
 }
 
 impl DocumentStore {
@@ -15,6 +17,7 @@ impl DocumentStore {
             save: save,
             docs: HashMap::new(),
             doc_info: HashMap::new(),
+            length: 0,
         }
     }
 
@@ -31,6 +34,10 @@ impl DocumentStore {
     }
 
     pub fn add_doc(&mut self, doc_ref: &str, doc: &HashMap<String, String>) {
+        if !self.has_doc(doc_ref) {
+            self.length += 1;
+        }
+
         self.docs.insert(
             doc_ref.into(),
             if self.save {
@@ -47,6 +54,10 @@ impl DocumentStore {
 
     pub fn remove_doc(&mut self, doc_ref: &str)
     {
+        if self.has_doc(doc_ref) {
+            self.length -= 1;
+        }
+
         self.docs.remove(doc_ref.into());
     }
 
