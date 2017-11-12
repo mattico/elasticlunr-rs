@@ -28,7 +28,7 @@ pub struct IndexBuilder {
 impl IndexBuilder {
     pub fn new() -> Self {
         IndexBuilder {
-            index: index::Index::new("id", &["title".into(), "body".into()]),
+            index: index::Index::new("id", &["title".into(), "body".into()], true),
             doc_count: 1,
         }
     }

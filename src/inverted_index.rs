@@ -7,11 +7,11 @@ pub struct TermFrequency {
     #[serde(rename = "tf")] pub term_freq: f64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IndexItem {
-    docs: HashMap<String, TermFrequency>,
-    doc_freq: i64,
-    children: HashMap<String, IndexItem>,
+    pub(crate) docs: HashMap<String, TermFrequency>,
+    pub(crate) doc_freq: i64,
+    pub(crate) children: HashMap<String, IndexItem>,
 }
 
 impl IndexItem {
@@ -119,7 +119,7 @@ impl Serialize for IndexItem {
     }
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, PartialEq)]
 pub struct InvertedIndex {
     root: IndexItem,
 }
@@ -141,6 +141,10 @@ impl InvertedIndex {
 
     pub fn remove_token(&mut self, doc_ref: &str, token: &str) {
         self.root.remove_token(doc_ref, token)
+    }
+
+    pub fn get_node(&self, token: &str) -> Option<&IndexItem> {
+        self.root.get_node(token)
     }
 
     // TODO: map TermFrequency => f64
