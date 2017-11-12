@@ -4,10 +4,10 @@ extern crate lazy_static;
 extern crate maplit;
 extern crate phf;
 extern crate rust_stemmers;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-extern crate serde;
 
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
@@ -17,7 +17,7 @@ pub mod index;
 pub mod inverted_index;
 pub mod pipeline;
 
-/// A helper for creating an `Index` with a title and a body field.
+/// A helper for creating an `Index` for documents with a title and a body field.
 pub struct IndexBuilder {
     index: index::Index,
     doc_count: usize,
@@ -26,18 +26,19 @@ pub struct IndexBuilder {
 impl IndexBuilder {
     pub fn new() -> Self {
         IndexBuilder {
-            index: index::Index::new("id", &["title".into(), "body".into()], true),
+            index: index::Index::new("id", &["title", "body"], true),
             doc_count: 1,
         }
     }
 
     pub fn add_document(&mut self, title: &str, body: &str) {
+        let doc_count = self.doc_count.to_string();
         let map = hashmap!{
-            "id".into() => self.doc_count.to_string(),
+            "id".into() => doc_count.clone(),
             "title".into() => title.into(),
             "body".into() => body.into(),
         };
-        self.index.add_doc(&self.doc_count.to_string(), map);
+        self.index.add_doc(&doc_count, map);
         self.doc_count += 1;
     }
 
