@@ -4,7 +4,7 @@ use serde::ser::{Serialize, SerializeMap, Serializer};
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq)]
 pub struct TermFrequency {
-    #[serde(rename = "tf")] pub term_freq: f32,
+    #[serde(rename = "tf")] pub term_freq: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -23,7 +23,7 @@ impl IndexItem {
         }
     }
 
-    pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f32) {
+    pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
         let mut iter = token.char_indices();
         if let Some((_, char)) = iter.next() {
             let item = self.children
@@ -131,7 +131,7 @@ impl InvertedIndex {
         }
     }
 
-    pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f32) {
+    pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
         self.root.add_token(doc_ref, token, term_freq)
     }
 
@@ -143,12 +143,12 @@ impl InvertedIndex {
         self.root.remove_token(doc_ref, token)
     }
 
-    // TODO: map TermFrequency => f32
+    // TODO: map TermFrequency => f64
     pub fn get_docs(&self, token: &str) -> Option<&HashMap<String, TermFrequency>> {
         self.root.get_node(token).and_then(|node| Some(&node.docs))
     }
 
-    pub fn get_term_frequency(&self, doc_ref: &str, token: &str) -> f32 {
+    pub fn get_term_frequency(&self, doc_ref: &str, token: &str) -> f64 {
         self.root
             .get_node(token)
             .and_then(|node| node.docs.get(doc_ref.into()))
