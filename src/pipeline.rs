@@ -1,8 +1,8 @@
 // TODO: remove this when (https://github.com/rust-lang/rust/pull/44042) is stable
 #[allow(unused_imports)]
 use std::ascii::AsciiExt;
-use rust_stemmers;
 use serde::ser::{Serialize, Serializer, SerializeSeq};
+pub use stemmer::stemmer;
 
 pub fn tokenize(text: &str) -> Vec<String> {
     text.split(|c: char| c.is_whitespace() || c == '-')
@@ -78,18 +78,8 @@ fn trimmer(token: String) -> Option<String> {
     Some(token.trim_matches(|c: char| !c.is_digit(36) && c != '_').into())
 }
 
-// TODO: languages
-fn stemmer(token: String) -> Option<String> {
-    lazy_static! {
-        static ref STEMMER: rust_stemmers::Stemmer = 
-            rust_stemmers::Stemmer::create(rust_stemmers::Algorithm::English);
-    }
-
-    Some(STEMMER.stem(&token).into())
-}
-
 mod phf_set {
-    include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+    include!(concat!(env!("OUT_DIR"), "/stop_words.rs"));
 }
 
 // TODO: languages
@@ -151,95 +141,5 @@ mod tests {
         pipeline_eq!(trimmer, "[[[tag]]]", "tag");
         pipeline_eq!(trimmer, "[[!@#@!hello]]]}}}", "hello");
         pipeline_eq!(trimmer, "~!@@@hello***()()()]]", "hello");
-    }
-
-    #[test]
-    fn test_stemmer() {
-        let cases = [
-            ("consign", "consign"),
-            ("consigned", "consign"),
-            ("consigning", "consign"),
-            ("consignment", "consign"),
-            ("consist", "consist"),
-            ("consisted", "consist"),
-            ("consistency", "consist"),
-            ("consistent", "consist"),
-            ("consistently", "consist"),
-            ("consisting", "consist"),
-            ("consists", "consist"),
-            ("consolation", "consol"),
-            ("consolations", "consol"),
-            ("consolatory", "consolatori"),
-            ("console", "consol"),
-            ("consoled", "consol"),
-            ("consoles", "consol"),
-            ("consolidate", "consolid"),
-            ("consolidated", "consolid"),
-            ("consolidating", "consolid"),
-            ("consoling", "consol"),
-            ("consols", "consol"),
-            ("consonant", "conson"),
-            ("consort", "consort"),
-            ("consorted", "consort"),
-            ("consorting", "consort"),
-            ("conspicuous", "conspicu"),
-            ("conspicuously", "conspicu"),
-            ("conspiracy", "conspiraci"),
-            ("conspirator", "conspir"),
-            ("conspirators", "conspir"),
-            ("conspire", "conspir"),
-            ("conspired", "conspir"),
-            ("conspiring", "conspir"),
-            ("constable", "constabl"),
-            ("constables", "constabl"),
-            ("constance", "constanc"),
-            ("constancy", "constanc"),
-            ("constant", "constant"),
-            ("knack", "knack"),
-            ("knackeries", "knackeri"),
-            ("knacks", "knack"),
-            ("knag", "knag"),
-            ("knave", "knave"),
-            ("knaves", "knave"),
-            ("knavish", "knavish"),
-            ("kneaded", "knead"),
-            ("kneading", "knead"),
-            ("knee", "knee"),
-            ("kneel", "kneel"),
-            ("kneeled", "kneel"),
-            ("kneeling", "kneel"),
-            ("kneels", "kneel"),
-            ("knees", "knee"),
-            ("knell", "knell"),
-            ("knelt", "knelt"),
-            ("knew", "knew"),
-            ("knick", "knick"),
-            ("knif", "knif"),
-            ("knife", "knife"),
-            ("knight", "knight"),
-            ("knights", "knight"),
-            ("knit", "knit"),
-            ("knits", "knit"),
-            ("knitted", "knit"),
-            ("knitting", "knit"),
-            ("knives", "knive"),
-            ("knob", "knob"),
-            ("knobs", "knob"),
-            ("knock", "knock"),
-            ("knocked", "knock"),
-            ("knocker", "knocker"),
-            ("knockers", "knocker"),
-            ("knocking", "knock"),
-            ("knocks", "knock"),
-            ("knopp", "knopp"),
-            ("knot", "knot"),
-            ("knots", "knot"),
-            ("lay", "lay"),
-            ("try", "tri"),
-        ];
-
-        for &(input, output) in cases.iter() {
-            pipeline_eq!(stemmer, input, output);
-        }
     }
 }

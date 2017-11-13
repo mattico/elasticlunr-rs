@@ -6,10 +6,18 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 
 fn main() {
-    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("codegen.rs");
+    generate_stop_word_phf();
+    generate_stemmer_phfs();
+}
+
+fn generate_stop_word_phf() {
+    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("stop_words.rs");
     let mut file = BufWriter::new(File::create(&path).unwrap());
 
-    write!(&mut file, "pub static STOP_WORDS: ::phf::Set<&'static str> = ").unwrap();
+    write!(
+        &mut file,
+        "pub static STOP_WORDS: ::phf::Set<&'static str> = "
+    ).unwrap();
     let mut set = phf_codegen::Set::new();
 
     for word in STOP_WORDS {
@@ -18,6 +26,41 @@ fn main() {
 
     set.build(&mut file).unwrap();
     write!(&mut file, ";\n").unwrap();
+}
+
+fn generate_stemmer_phfs() {
+    let path = Path::new(&env::var("OUT_DIR").unwrap()).join("stemmer_maps.rs");
+    let mut file = BufWriter::new(File::create(&path).unwrap());
+
+    {
+        write!(
+            &mut file,
+            "pub static STEMMER_STEP_2: ::phf::Map<&'static str, &'static str> = "
+        ).unwrap();
+        let mut map = phf_codegen::Map::new();
+
+        for &(w1, w2) in STEMMER_STEP_2 {
+            map.entry(w1, w2);
+        }
+
+        map.build(&mut file).unwrap();
+        write!(&mut file, ";\n").unwrap();
+    }
+
+    {
+        write!(
+            &mut file,
+            "pub static STEMMER_STEP_3: ::phf::Map<&'static str, &'static str> = "
+        ).unwrap();
+        let mut map = phf_codegen::Map::new();
+
+        for &(w1, w2) in STEMMER_STEP_3 {
+            map.entry(w1, w2);
+        }
+
+        map.build(&mut file).unwrap();
+        write!(&mut file, ";\n").unwrap();
+    }
 }
 
 static STOP_WORDS: &[&str] = &[
@@ -141,4 +184,41 @@ static STOP_WORDS: &[&str] = &[
     "yet",
     "you",
     "your",
+];
+
+// Need to surround values with \" because phf_codegen doesn't do it for us
+// in the output file.
+
+static STEMMER_STEP_2: &[(&str, &str)] = &[
+    ("ational", "\"ate\""),
+    ("tional", "\"tion\""),
+    ("enci", "\"ence\""),
+    ("anci", "\"ance\""),
+    ("izer", "\"ize\""),
+    ("bli", "\"ble\""),
+    ("alli", "\"al\""),
+    ("entli", "\"ent\""),
+    ("eli", "\"e\""),
+    ("ousli", "\"ous\""),
+    ("ization", "\"ize\""),
+    ("ation", "\"ate\""),
+    ("ator", "\"ate\""),
+    ("alism", "\"al\""),
+    ("iveness", "\"ive\""),
+    ("fulness", "\"ful\""),
+    ("ousness", "\"ous\""),
+    ("aliti", "\"al\""),
+    ("iviti", "\"ive\""),
+    ("biliti", "\"ble\""),
+    ("logi", "\"log\""),
+];
+
+static STEMMER_STEP_3: &[(&str, &str)] = &[
+    ("icate", "\"ic\""),
+    ("ative", "\"\""),
+    ("alize", "\"al\""),
+    ("iciti", "\"ic\""),
+    ("ical", "\"ic\""),
+    ("ful", "\"\""),
+    ("ness", "\"\""),
 ];

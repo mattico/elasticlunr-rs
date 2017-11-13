@@ -3,7 +3,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate maplit;
 extern crate phf;
-extern crate rust_stemmers;
+extern crate regex;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -16,6 +16,7 @@ pub mod document_store;
 pub mod index;
 pub mod inverted_index;
 pub mod pipeline;
+mod stemmer;
 
 /// A helper for creating an `Index` for documents with a title and a body field.
 pub struct IndexBuilder {
