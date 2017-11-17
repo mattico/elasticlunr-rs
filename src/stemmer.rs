@@ -71,7 +71,7 @@ impl Stemmer {
         let re2_1b = Regex::new("^(.+?)(ed|ing)$").unwrap();
         let re_1b_2 = Regex::new(".$").unwrap();
         let re2_1b_2 = Regex::new("(at|bl|iz)$").unwrap();
-        let re3_1b_2 = Regex::new("([^aeiouylsz])\\1$").unwrap();
+        let re3_1b_2 = Regex::new("([^aeiouylsz]{2})$").unwrap();
         let re4_1b_2 = Regex::new(&concat_buf!("^", C, v, "[^aeiouwxy]$")).unwrap();
 
         let re_1c = Regex::new("^(.+?[^aeiou])y$").unwrap();
@@ -123,6 +123,9 @@ impl Stemmer {
             w.insert(0, 'Y');
         }
 
+        // TODO: There's probably a better way to handle the
+        // borrowchecker than cloning w a million times
+
         // Step 1a
         if let Some(caps) = self.re_1a.captures(&w.clone()) {
             w = concat_buf!(caps.get(1).unwrap().as_str(), caps.get(2).unwrap().as_str());
@@ -142,7 +145,13 @@ impl Stemmer {
             if self.re_s_v.is_match(&stem) {
                 w = stem.into();
                 if self.re2_1b_2.is_match(&w) {  w.push('e'); }
-                else if self.re3_1b_2.is_match(&w) { w = self.re_1b_2.replace(&w, "").into(); }
+                else if let Some(caps) = self.re3_1b_2.captures(&w.clone()) {
+                    let suffix = caps.get(0).unwrap().as_str();
+                    // Make sure the two characters are the same since we can't use backreferences
+                    if suffix[0..1] == suffix[1..2] {
+                        w = self.re_1b_2.replace(&w, "").into();
+                    }
+                }
                 else if self.re4_1b_2.is_match(&w) { w.push('e'); }
             }
         }
@@ -285,8 +294,8 @@ mod tests {
             ("knights", "knight"),
             ("knit", "knit"),
             ("knits", "knit"),
-            //("knitted", "knit"), // these are broken for some reason
-            //("knitting", "knit"),
+            ("knitted", "knit"),
+            ("knitting", "knit"),
             ("knives", "knive"),
             ("knob", "knob"),
             ("knobs", "knob"),
