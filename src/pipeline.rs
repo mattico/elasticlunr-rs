@@ -1,3 +1,5 @@
+#![cfg_attr(not(test), allow(dead_code))]
+
 // TODO: remove this when (https://github.com/rust-lang/rust/pull/44042) is stable
 #[allow(unused_imports)]
 use std::ascii::AsciiExt;
@@ -44,17 +46,6 @@ impl Default for Pipeline {
 }
 
 impl Pipeline {
-    pub fn empty() -> Self {
-        Pipeline { queue: vec![] }
-    }
-
-    // TODO: before() after(), etc.
-
-    pub fn register_function(&mut self, name: String, func: PipelineFn) {
-        self.queue.push((name, func));
-    }
-
-    // Could return impl Iterator<Item=String>
     pub fn run(&self, tokens: Vec<String>) -> Vec<String> {
         let mut ret = vec![];
         for token in tokens {
@@ -75,14 +66,17 @@ impl Pipeline {
 }
 
 fn trimmer(token: String) -> Option<String> {
-    Some(token.trim_matches(|c: char| !c.is_digit(36) && c != '_').into())
+    Some(
+        token
+            .trim_matches(|c: char| !c.is_digit(36) && c != '_')
+            .into(),
+    )
 }
 
 mod phf_set {
     include!(concat!(env!("OUT_DIR"), "/stop_words.rs"));
 }
 
-// TODO: languages
 fn stop_word_filter(token: String) -> Option<String> {
     match phf_set::STOP_WORDS.contains(token.as_str()) {
         true => None,
@@ -109,7 +103,10 @@ mod tests {
     #[test]
     fn hyphens() {
         let string = "take the New York-San Francisco flight";
-        assert_eq!(&tokenize(string), &["take", "the", "new", "york", "san", "francisco", "flight"]);
+        assert_eq!(
+            &tokenize(string),
+            &["take", "the", "new", "york", "san", "francisco", "flight"]
+        );
     }
 
     #[test]

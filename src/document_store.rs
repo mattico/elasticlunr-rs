@@ -1,3 +1,4 @@
+#![cfg_attr(not(test), allow(dead_code))]
 
 use std::collections::HashMap;
 
@@ -33,18 +34,14 @@ impl DocumentStore {
         self.docs.contains_key(doc_ref)
     }
 
-    pub fn add_doc(&mut self, doc_ref: &str, doc: &HashMap<String, String>) {
+    pub fn add_doc(&mut self, doc_ref: &str, doc: HashMap<String, String>) {
         if !self.has_doc(doc_ref) {
             self.length += 1;
         }
 
         self.docs.insert(
             doc_ref.into(),
-            if self.save {
-                doc.clone()
-            } else {
-                HashMap::new()
-            },
+            if self.save { doc } else { HashMap::new() },
         );
     }
 
@@ -52,8 +49,7 @@ impl DocumentStore {
         self.docs.get(doc_ref.into()).cloned()
     }
 
-    pub fn remove_doc(&mut self, doc_ref: &str)
-    {
+    pub fn remove_doc(&mut self, doc_ref: &str) {
         if self.has_doc(doc_ref) {
             self.length -= 1;
         }
@@ -80,7 +76,7 @@ impl DocumentStore {
                 .unwrap_or(0)
         } else {
             0
-        }        
+        }
     }
 }
 
@@ -91,16 +87,16 @@ mod tests {
     #[test]
     fn add_doc_tokens() {
         let mut store = DocumentStore::new(true);
-        let doc = &hashmap!{ "title".into() => "eggs bread".into() };
+        let doc = hashmap!{ "title".into() => "eggs bread".into() };
 
-        store.add_doc("1", doc);
-        assert_eq!(&store.get_doc("1").unwrap(), doc);
+        store.add_doc("1", doc.clone());
+        assert_eq!(store.get_doc("1").unwrap(), doc);
     }
 
     #[test]
     fn create_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc = &hashmap!{ "title".into() => "eggs bread".into() };
+        let doc = hashmap!{ "title".into() => "eggs bread".into() };
 
         store.add_doc("1", doc);
         assert_eq!(store.len(), 1);
@@ -111,8 +107,8 @@ mod tests {
     #[test]
     fn add_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = &hashmap!{ "title".into() => "eggs bread".into() };
-        let doc2 = &hashmap!{ "title".into() => "hello world".into() };
+        let doc1 = hashmap!{ "title".into() => "eggs bread".into() };
+        let doc2 = hashmap!{ "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -137,8 +133,8 @@ mod tests {
     #[test]
     fn get_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = &hashmap!{ "title".into() => "eggs bread".into() };
-        let doc2 = &hashmap!{ "title".into() => "hello world".into() };
+        let doc1 = hashmap!{ "title".into() => "eggs bread".into() };
+        let doc2 = hashmap!{ "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -151,8 +147,8 @@ mod tests {
     #[test]
     fn get_nonexistant_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = &hashmap!{ "title".into() => "eggs bread".into() };
-        let doc2 = &hashmap!{ "title".into() => "hello world".into() };
+        let doc1 = hashmap!{ "title".into() => "eggs bread".into() };
+        let doc2 = hashmap!{ "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -165,8 +161,8 @@ mod tests {
     #[test]
     fn remove_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = &hashmap!{ "title".into() => "eggs bread".into() };
-        let doc2 = &hashmap!{ "title".into() => "hello world".into() };
+        let doc1 = hashmap!{ "title".into() => "eggs bread".into() };
+        let doc2 = hashmap!{ "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -180,8 +176,8 @@ mod tests {
     #[test]
     fn remove_nonexistant_doc() {
         let mut store = DocumentStore::new(false);
-        let doc1 = &hashmap!{ "title".into() => "eggs bread".into() };
-        let doc2 = &hashmap!{ "title".into() => "hello world".into() };
+        let doc1 = hashmap!{ "title".into() => "eggs bread".into() };
+        let doc2 = hashmap!{ "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -197,7 +193,7 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("1", hashmap!{ "title".into() => "eggs bread".into() });
         assert_eq!(store.len(), 1);
     }
 
@@ -206,8 +202,11 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", &hashmap!{ "title".into() => "eggs bread".into() });
-        assert_eq!(&store.get_doc("1").unwrap(), &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("1", hashmap!{ "title".into() => "eggs bread".into() });
+        assert_eq!(
+            store.get_doc("1").unwrap(),
+            hashmap!{ "title".into() => "eggs bread".into() }
+        );
     }
 
     #[test]
@@ -215,10 +214,20 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", &hashmap!{ "title".into() => "eggs bread".into() });
-        store.add_doc("2", &hashmap!{ "title".into() => "boo bar".into() });
-        store.add_doc("3", &hashmap!{ "title".into() => "oracle".into(), "body".into() => "Oracle is demonspawn".into() });
-        assert_eq!(&store.get_doc("3").unwrap(), &hashmap!{ "title".into() => "oracle".into(), "body".into() => "Oracle is demonspawn".into() });
+        store.add_doc("1", hashmap!{ 
+            "title".into() => "eggs bread".into() 
+        });
+        store.add_doc("2", hashmap!{ 
+            "title".into() => "boo bar".into() 
+        });
+        store.add_doc("3", hashmap!{ 
+            "title".into() => "oracle".into(), 
+            "body".into() => "Oracle is demonspawn".into() 
+        });
+        assert_eq!(store.get_doc("3").unwrap(), hashmap!{ 
+            "title".into() => "oracle".into(), 
+            "body".into() => "Oracle is demonspawn".into() 
+        });
         assert_eq!(store.len(), 3);
     }
 
@@ -227,9 +236,16 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", &hashmap!{ "title".into() => "eggs bread".into() });
-        store.add_doc("2", &hashmap!{ "title".into() => "boo bar".into() });
-        store.add_doc("3", &hashmap!{ "title".into() => "oracle".into(), "body".into() => "Oracle is demonspawn".into() });
+        store.add_doc("1", hashmap!{ 
+            "title".into() => "eggs bread".into() 
+        });
+        store.add_doc("2", hashmap!{ 
+            "title".into() => "boo bar".into()
+        });
+        store.add_doc("3", hashmap!{ 
+            "title".into() => "oracle".into(), 
+            "body".into() => "Oracle is demonspawn".into() 
+        });
         assert_eq!(store.get_doc("4"), None);
         assert_eq!(store.get_doc("0"), None);
         assert_eq!(store.len(), 3);
@@ -240,7 +256,7 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert!(!store.has_doc("foo"));
-        store.add_doc("foo", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
         assert!(store.has_doc("foo"));
     }
 
@@ -248,7 +264,7 @@ mod tests {
     fn remove_doc() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
         assert!(store.has_doc("foo"));
         assert_eq!(store.len(), 1);
         store.remove_doc("foo");
@@ -260,7 +276,7 @@ mod tests {
     fn remove_nonexistant_store() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
         assert!(store.has_doc("foo"));
         assert_eq!(store.len(), 1);
         store.remove_doc("bar");
@@ -272,7 +288,7 @@ mod tests {
     fn add_field_length_nonexistant() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
         store.add_field_length("bar", "title", 2);
         assert_eq!(&store.doc_info, &HashMap::new());
     }
@@ -281,7 +297,7 @@ mod tests {
     fn add_field_length_nonexistant_title() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
         store.add_field_length("bar", "title", 2);
         assert_eq!(&store.doc_info, &HashMap::new());
     }
@@ -290,7 +306,7 @@ mod tests {
     fn add_field_len() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
         store.add_field_length("foo", "title", 2);
         assert_eq!(store.get_field_length("foo", "title"), 2);
     }
@@ -299,7 +315,7 @@ mod tests {
     fn add_field_length_multiple() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", &hashmap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
         store.add_field_length("foo", "title", 2);
         store.add_field_length("foo", "body", 10);
         assert_eq!(store.get_field_length("foo", "title"), 2);

@@ -1,21 +1,23 @@
+#![cfg_attr(not(test), allow(dead_code))]
 
 use std::collections::HashMap;
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq)]
-pub struct TermFrequency {
-    #[serde(rename = "tf")] pub term_freq: f64,
+struct TermFrequency {
+    #[serde(rename = "tf")]
+    term_freq: f64,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct IndexItem {
-    pub(crate) docs: HashMap<String, TermFrequency>,
-    pub(crate) doc_freq: i64,
-    pub(crate) children: HashMap<String, IndexItem>,
+struct IndexItem {
+    docs: HashMap<String, TermFrequency>,
+    doc_freq: i64,
+    children: HashMap<String, IndexItem>,
 }
 
 impl IndexItem {
-    pub fn new() -> Self {
+    fn new() -> Self {
         IndexItem {
             docs: HashMap::new(),
             doc_freq: 0,
@@ -23,7 +25,7 @@ impl IndexItem {
         }
     }
 
-    pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
+    fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
         let mut iter = token.char_indices();
         if let Some((_, char)) = iter.next() {
             let item = self.children
@@ -36,26 +38,15 @@ impl IndexItem {
                 if !item.docs.contains_key(doc_ref.into()) {
                     item.doc_freq += 1;
                 }
-                item.docs
-                    .insert(doc_ref.into(), TermFrequency { term_freq });
+                item.docs.insert(
+                    doc_ref.into(),
+                    TermFrequency { term_freq },
+                );
             }
         }
     }
 
-    pub fn has_token(&self, token: &str) -> bool {
-        let mut root = self;
-        for char in token.chars() {
-            if let Some(item) = root.children.get(&char.to_string()) {
-                root = item;
-            } else {
-                return false;
-            }
-        }
-
-        true
-    }
-
-    pub fn get_node(&self, token: &str) -> Option<&IndexItem> {
+    fn get_node(&self, token: &str) -> Option<&IndexItem> {
         let mut root = self;
         for char in token.chars() {
             if let Some(item) = root.children.get(&char.to_string()) {
@@ -68,7 +59,7 @@ impl IndexItem {
         Some(root)
     }
 
-    pub fn remove_token(&mut self, doc_ref: &str, token: &str) {
+    fn remove_token(&mut self, doc_ref: &str, token: &str) {
         let mut iter = token.char_indices();
         if let Some((_, char)) = iter.next() {
             if let Some(item) = self.children.get_mut(&char.to_string()) {
@@ -109,9 +100,7 @@ pub struct InvertedIndex {
 
 impl InvertedIndex {
     pub fn new() -> Self {
-        InvertedIndex {
-            root: IndexItem::new(),
-        }
+        InvertedIndex { root: IndexItem::new() }
     }
 
     pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
@@ -126,13 +115,13 @@ impl InvertedIndex {
         self.root.remove_token(doc_ref, token)
     }
 
-    pub fn get_node(&self, token: &str) -> Option<&IndexItem> {
-        self.root.get_node(token)
-    }
-
-    // TODO: map TermFrequency => f64
-    pub fn get_docs(&self, token: &str) -> Option<&HashMap<String, TermFrequency>> {
-        self.root.get_node(token).and_then(|node| Some(&node.docs))
+    pub fn get_docs(&self, token: &str) -> Option<HashMap<String, f64>> {
+        self.root.get_node(token).map(|node| {
+            node.docs
+                .iter()
+                .map(|(k, &v)| (k.clone(), v.term_freq))
+                .collect()
+        })
     }
 
     pub fn get_term_frequency(&self, doc_ref: &str, token: &str) -> f64 {
@@ -243,20 +232,20 @@ mod tests {
         inverted_index.add_token("123", token, 1.);
         assert_eq!(
             inverted_index.get_docs(token).unwrap(),
-            &hashmap!{
-                "123".into() => TermFrequency { term_freq: 1., },
+            hashmap!{
+                "123".into() => 1.
             }
         );
 
-        assert_eq!(inverted_index.get_docs(""), Some(&HashMap::new()));
+        assert_eq!(inverted_index.get_docs(""), Some(HashMap::new()));
 
         inverted_index.add_token("234", "boo", 100.);
         inverted_index.add_token("345", "too", 101.);
 
         assert_eq!(
             inverted_index.get_docs(token).unwrap(),
-            &hashmap!{
-                "123".into() => TermFrequency { term_freq: 1. },
+            hashmap!{
+                "123".into() => 1.
             }
         );
 
@@ -265,10 +254,10 @@ mod tests {
 
         assert_eq!(
             inverted_index.get_docs(token).unwrap(),
-            &hashmap!{
-                "123".into() => TermFrequency { term_freq: 1., },
-                "234".into() => TermFrequency { term_freq: 100., },
-                "345".into() => TermFrequency { term_freq: 101., },
+            hashmap!{
+                "123".into() => 1.,
+                "234".into() => 100.,
+                "345".into() => 101.,
             }
         );
     }
@@ -306,13 +295,13 @@ mod tests {
         inverted_index.add_token("123", "foo", 1.);
         assert_eq!(
             inverted_index.get_docs("foo").unwrap(),
-            &hashmap!{
-                "123".into() => TermFrequency { term_freq: 1. },
+            hashmap!{
+                "123".into() => 1.,
             }
         );
 
         inverted_index.remove_token("123", "foo");
-        assert_eq!(inverted_index.get_docs("foo"), Some(&HashMap::new()));
+        assert_eq!(inverted_index.get_docs("foo"), Some(HashMap::new()));
         assert_eq!(inverted_index.get_doc_frequency("foo"), 0);
         assert_eq!(inverted_index.has_token("foo"), true);
     }
@@ -327,8 +316,8 @@ mod tests {
 
         assert_eq!(
             inverted_index.get_docs("foo").unwrap(),
-            &hashmap!{
-                "123".into() => TermFrequency { term_freq: 1. }
+            hashmap!{
+                "123".into() => 1.
             }
         );
         assert_eq!(inverted_index.get_doc_frequency("foo"), 1);

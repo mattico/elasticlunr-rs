@@ -75,7 +75,8 @@ impl Stemmer {
         let re4_1b_2 = Regex::new(&concat_buf!("^", C, v, "[^aeiouwxy]$")).unwrap();
 
         let re_1c = Regex::new("^(.+?[^aeiou])y$").unwrap();
-        let re_2 = Regex::new("^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$").unwrap();
+        let re_2 = Regex::new("^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|\
+            ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$").unwrap();
 
         let re_3 = Regex::new("^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$").unwrap();
 
@@ -115,7 +116,9 @@ impl Stemmer {
         let step2list = &phf_maps::STEMMER_STEP_2;
         let step3list = &phf_maps::STEMMER_STEP_3;
 
-        if w.len() < 3 { return w; }
+        if w.len() < 3 {
+            return w;
+        }
 
         let firstch = &w[..1].to_string();
         if firstch == "y" {
@@ -144,15 +147,17 @@ impl Stemmer {
             let stem = caps.get(1).unwrap().as_str();
             if self.re_s_v.is_match(&stem) {
                 w = stem.into();
-                if self.re2_1b_2.is_match(&w) {  w.push('e'); }
-                else if let Some(caps) = self.re3_1b_2.captures(&w.clone()) {
+                if self.re2_1b_2.is_match(&w) {
+                    w.push('e');
+                } else if let Some(caps) = self.re3_1b_2.captures(&w.clone()) {
                     let suffix = caps.get(0).unwrap().as_str();
                     // Make sure the two characters are the same since we can't use backreferences
                     if suffix[0..1] == suffix[1..2] {
                         w = self.re_1b_2.replace(&w, "").into();
                     }
+                } else if self.re4_1b_2.is_match(&w) {
+                    w.push('e');
                 }
-                else if self.re4_1b_2.is_match(&w) { w.push('e'); }
             }
         }
 
@@ -197,7 +202,9 @@ impl Stemmer {
         // Step 5
         if let Some(caps) = self.re_5.captures(&w.clone()) {
             let stem = caps.get(1).unwrap().as_str();
-            if self.re_mgr1.is_match(&stem) || (self.re_meq1.is_match(&stem) && !(self.re3_5.is_match(&stem))) {
+            if self.re_mgr1.is_match(&stem) ||
+                (self.re_meq1.is_match(&stem) && !(self.re3_5.is_match(&stem)))
+            {
                 w = stem.into();
             }
         }
