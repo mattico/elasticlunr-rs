@@ -85,23 +85,6 @@ impl IndexItem {
             }
         }
     }
-
-    pub fn expand_token(&self, token: String, expanded: &mut Vec<String>) {
-        if token.len() == 0 {
-            return;
-        }
-
-        if let Some(root) = self.get_node(&token) {
-            if root.doc_freq > 0 {
-                expanded.push(token.clone());
-            }
-            let mut token = token;
-            for (key, val) in &root.children {
-                token.push_str(&key);
-                val.expand_token(token.clone(), expanded);
-            }
-        }
-    }
 }
 
 // Manually implement serialize so `children` are inline
@@ -161,12 +144,6 @@ impl InvertedIndex {
 
     pub fn get_doc_frequency(&self, token: &str) -> i64 {
         self.root.get_node(token).map_or(0, |node| node.doc_freq)
-    }
-
-    pub fn expand_token(&self, token: &str) -> Vec<String> {
-        let mut buf = vec![];
-        self.root.expand_token(token.into(), &mut buf);
-        buf
     }
 }
 
@@ -366,65 +343,6 @@ mod tests {
         assert_eq!(inverted_index.get_doc_frequency("foo"), 0);
     }
 
-    // TODO: expand_token doesn't quite work
-    #[ignore]
-    #[test]
-    fn expand_token_descendants() {
-        let mut inverted_index = InvertedIndex::new();
-
-        inverted_index.add_token("123", "hell", 1.);
-        inverted_index.add_token("123", "hello", 1.);
-        inverted_index.add_token("123", "help", 1.);
-        inverted_index.add_token("123", "held", 1.);
-        inverted_index.add_token("123", "foo", 1.);
-        inverted_index.add_token("123", "bar", 1.);
-
-        let mut tokens = inverted_index.expand_token("hel");
-        assert_eq!(tokens, vec!["hell", "hello", "help", "held"]);
-
-        tokens = inverted_index.expand_token("hell");
-        assert_eq!(tokens, vec!["hell", "hello"]);
-
-        tokens = inverted_index.expand_token("he");
-        assert_eq!(tokens, vec!["hell", "hello", "help", "held"]);
-
-        tokens = inverted_index.expand_token("h");
-        assert_eq!(tokens, vec!["hell", "hello", "help", "held"]);
-    }
-
-    #[test]
-    fn expand_nonexistant_token() {
-        let mut inverted_index = InvertedIndex::new();
-
-        inverted_index.add_token("123", "hell", 1.);
-        inverted_index.add_token("123", "hello", 1.);
-        inverted_index.add_token("123", "help", 1.);
-        inverted_index.add_token("123", "held", 1.);
-        inverted_index.add_token("123", "foo", 1.);
-        inverted_index.add_token("123", "bar", 1.);
-
-        let tokens = inverted_index.expand_token("wax");
-        assert_eq!(tokens.len(), 0);
-    }
-
-    #[test]
-    fn expand_token() {
-        let mut inverted_index = InvertedIndex::new();
-
-        inverted_index.add_token("123", "hello", 1.);
-        inverted_index.add_token("123", "hellp", 1.);
-        inverted_index.add_token("123", "helld", 1.);
-        inverted_index.add_token("123", "helldd", 1.);
-        inverted_index.add_token("123", "hellddda", 1.);
-        inverted_index.add_token("123", "hell", 1.);
-        inverted_index.add_token("123", "help", 1.);
-        inverted_index.add_token("123", "held", 1.);
-        inverted_index.add_token("123", "foo", 1.);
-        inverted_index.add_token("123", "bar", 1.);
-
-        let tokens = inverted_index.expand_token("hello");
-        assert_eq!(tokens, vec!["hello"]);
-    }
 
     #[test]
     fn get_term_frequency() {

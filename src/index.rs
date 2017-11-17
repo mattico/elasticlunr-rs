@@ -78,31 +78,6 @@ impl Index {
         }
     }
 
-    pub fn remove_doc(&mut self, doc_ref: &str) {
-        if doc_ref.len() == 0 
-            || !self.document_store.is_stored()
-            || !self.document_store.has_doc(doc_ref)
-        {
-            return;
-        }
-
-        self.document_store.remove_doc(doc_ref);
-
-        for field in &self.fields {
-            let tokens = self.pipeline.run(pipeline::tokenize(field));
-            for token in &tokens {
-                self.index
-                    .get_mut(field.into())
-                    .map(|item| item.remove_token(doc_ref, token));
-            }
-        }
-    }
-
-    pub fn update_doc(&mut self, doc_ref: &str, doc: HashMap<String, String>) {
-        self.remove_doc(doc_ref);
-        self.add_doc(doc_ref, doc);
-    }
-
     pub fn inverse_doc_freq(&self, term: &str, field: &str) -> f64 {
         let df = self.index.get(field).map_or(0, |item| item.get_doc_frequency(term));
         
@@ -149,92 +124,5 @@ mod tests {
         idx.add_doc("1", doc);
         assert_eq!(idx.index["body"].get_doc_frequency("test"), 1);
         assert_eq!(idx.index["body"].get_docs("test").unwrap()["1"].term_freq, 1.);
-    }
-
-    // This isn't really used
-    #[ignore]
-    #[test]
-    fn removing_document_from_index() {
-        let mut idx = Index::default();
-        let doc = hashmap!{ "id".into() => "1".into(), "body".into() => "this is a test".into() };
-
-        idx = idx.add_field("body");
-        assert_eq!(idx.document_store.len(), 0);
-
-        idx.add_doc("1", doc);
-        assert_eq!(idx.document_store.len(), 1);
-
-        idx.remove_doc("1");
-        assert_eq!(idx.document_store.len(), 0);
-
-        assert_eq!(idx.index["body"].has_token("this"), true);
-        assert_eq!(idx.index["body"].has_token("test"), true);
-        assert_eq!(idx.index["body"].get_node("this"), None);
-        assert_eq!(idx.index["body"].get_node("test"), None);
-    }
-
-    // This also isn't really used
-    #[ignore]
-    #[test]
-    fn removing_document_from_index_with_more_than_one_document() {
-        let mut idx = Index::default();
-        let doc1 = hashmap!{ "id".into() => "1".into(), "body".into() => "this is a test".into() };
-        let doc2 = hashmap!{ "id".into() => "2".into(), "body".into() => "this is an apple".into() };
-
-        let docs = hashmap!{ "1".into() => TermFrequency{ term_freq: 1. },
-                             "2".into() => TermFrequency{ term_freq: 1. }};
-
-        idx = idx.add_field("body");
-        assert_eq!(idx.document_store.len(), 0);
-
-        idx.add_doc("1", doc1);
-        assert_eq!(idx.document_store.len(), 1);
-
-        idx.add_doc("2", doc2);
-        assert_eq!(idx.document_store.len(), 2);
-
-        assert_eq!(idx.index["body"].get_node("this").unwrap().docs, docs);
-
-        idx.remove_doc("1");
-        assert_eq!(idx.document_store.len(), 1);
-
-        assert_eq!(idx.index["body"].has_token("this"), true);
-        assert_eq!(idx.index["body"].has_token("test"), true);
-        assert_eq!(idx.index["body"].has_token("apple"), true);
-        assert_eq!(idx.index["body"].get_node("this").unwrap().doc_freq, 1);
-        assert_eq!(idx.index["body"].get_node("apple").unwrap().docs, hashmap!{ "2".into() => TermFrequency{ term_freq: 1. } });
-        assert_eq!(idx.index["body"].get_node("this").unwrap().docs, hashmap!{ "2".into() => TermFrequency{ term_freq: 1. } });
-    }
-
-    #[test]
-    fn removing_nonexistant_document_from_index() {
-        let mut idx = Index::default();
-        let doc = hashmap!{ "id".into() => "1".into(), "body".into() => "this is a test".into()};
-
-        idx = idx.add_field("body");
-        assert_eq!(idx.document_store.len(), 0);
-
-        idx.add_doc("1", doc);
-        assert_eq!(idx.document_store.len(), 1);
-
-        idx.remove_doc("2");
-        assert_eq!(idx.document_store.len(), 1);
-    }
-
-    #[test]
-    fn updating_document() {
-        let mut idx = Index::default();
-        let mut doc = hashmap!{ "id".into() => "1".into(), "body".into() => "foo".into()};
-
-        idx = idx.add_field("body");
-        idx.add_doc("1", doc.clone());
-        assert_eq!(idx.document_store.len(), 1);
-        assert!(idx.index["body"].has_token("foo"));
-
-        doc.insert("body".into(), "bar".into());
-        idx.update_doc("1", doc);
-
-        assert_eq!(idx.document_store.len(), 1);
-        assert!(idx.index["body"].has_token("bar"));
     }
 }
