@@ -58,9 +58,6 @@ impl DocumentStore {
     }
 
     pub fn add_field_length(&mut self, doc_ref: &str, field: &str, length: usize) {
-        if !self.has_doc(doc_ref) {
-            return;
-        }
         self.doc_info
             .entry(doc_ref.into())
             .or_insert(HashMap::new())
@@ -214,19 +211,19 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", hashmap!{ 
-            "title".into() => "eggs bread".into() 
+        store.add_doc("1", hashmap!{
+            "title".into() => "eggs bread".into()
         });
-        store.add_doc("2", hashmap!{ 
-            "title".into() => "boo bar".into() 
+        store.add_doc("2", hashmap!{
+            "title".into() => "boo bar".into()
         });
-        store.add_doc("3", hashmap!{ 
-            "title".into() => "oracle".into(), 
-            "body".into() => "Oracle is demonspawn".into() 
+        store.add_doc("3", hashmap!{
+            "title".into() => "oracle".into(),
+            "body".into() => "Oracle is demonspawn".into()
         });
-        assert_eq!(store.get_doc("3").unwrap(), hashmap!{ 
-            "title".into() => "oracle".into(), 
-            "body".into() => "Oracle is demonspawn".into() 
+        assert_eq!(store.get_doc("3").unwrap(), hashmap!{
+            "title".into() => "oracle".into(),
+            "body".into() => "Oracle is demonspawn".into()
         });
         assert_eq!(store.len(), 3);
     }
@@ -236,15 +233,15 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", hashmap!{ 
-            "title".into() => "eggs bread".into() 
+        store.add_doc("1", hashmap!{
+            "title".into() => "eggs bread".into()
         });
-        store.add_doc("2", hashmap!{ 
+        store.add_doc("2", hashmap!{
             "title".into() => "boo bar".into()
         });
-        store.add_doc("3", hashmap!{ 
-            "title".into() => "oracle".into(), 
-            "body".into() => "Oracle is demonspawn".into() 
+        store.add_doc("3", hashmap!{
+            "title".into() => "oracle".into(),
+            "body".into() => "Oracle is demonspawn".into()
         });
         assert_eq!(store.get_doc("4"), None);
         assert_eq!(store.get_doc("0"), None);
