@@ -1,5 +1,3 @@
-#![cfg_attr(not(test), allow(dead_code))]
-
 use std::collections::HashMap;
 
 #[derive(Serialize, Debug, Clone)]
@@ -22,10 +20,12 @@ impl DocumentStore {
         }
     }
 
+    #[cfg(test)]
     pub fn len(&self) -> usize {
         self.docs.len()
     }
 
+    #[cfg(test)]
     pub fn is_stored(&self) -> bool {
         self.save
     }
@@ -45,10 +45,12 @@ impl DocumentStore {
         );
     }
 
+    #[cfg(test)]
     pub fn get_doc(&self, doc_ref: &str) -> Option<HashMap<String, String>> {
         self.docs.get(doc_ref.into()).cloned()
     }
 
+    #[cfg(test)]
     pub fn remove_doc(&mut self, doc_ref: &str) {
         if self.has_doc(doc_ref) {
             self.length -= 1;
@@ -64,6 +66,7 @@ impl DocumentStore {
             .insert(field.into(), length);
     }
 
+    #[cfg(test)]
     pub fn get_field_length(&self, doc_ref: &str, field: &str) -> usize {
         if self.has_doc(doc_ref) {
             self.doc_info

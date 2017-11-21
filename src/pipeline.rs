@@ -1,5 +1,3 @@
-#![cfg_attr(not(test), allow(dead_code))]
-
 // TODO: remove this when (https://github.com/rust-lang/rust/pull/44042) is stable
 #[allow(unused_imports)]
 use std::ascii::AsciiExt;
