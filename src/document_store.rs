@@ -282,24 +282,6 @@ mod tests {
     }
 
     #[test]
-    fn add_field_length_nonexistant() {
-        let mut store = DocumentStore::new(true);
-
-        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
-        store.add_field_length("bar", "title", 2);
-        assert_eq!(&store.doc_info, &HashMap::new());
-    }
-
-    #[test]
-    fn add_field_length_nonexistant_title() {
-        let mut store = DocumentStore::new(true);
-
-        store.add_doc("foo", hashmap!{ "title".into() => "eggs bread".into() });
-        store.add_field_length("bar", "title", 2);
-        assert_eq!(&store.doc_info, &HashMap::new());
-    }
-
-    #[test]
     fn add_field_len() {
         let mut store = DocumentStore::new(true);
 
