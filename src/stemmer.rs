@@ -18,7 +18,6 @@ struct Stemmer {
     re2_1a: Regex,
     re_1b: Regex,
     re2_1b: Regex,
-    re_1b_2: Regex,
     re2_1b_2: Regex,
     re3_1b_2: Regex,
     re4_1b_2: Regex,
@@ -32,7 +31,6 @@ struct Stemmer {
     re2_4: Regex,
 
     re_5: Regex,
-    re_5_1: Regex,
     re3_5: Regex,
 }
 
@@ -69,7 +67,6 @@ impl Stemmer {
         let re2_1a = Regex::new("^(.+?)([^s])s$").unwrap();
         let re_1b = Regex::new("^(.+?)eed$").unwrap();
         let re2_1b = Regex::new("^(.+?)(ed|ing)$").unwrap();
-        let re_1b_2 = Regex::new(".$").unwrap();
         let re2_1b_2 = Regex::new("(at|bl|iz)$").unwrap();
         let re3_1b_2 = Regex::new("([^aeiouylsz]{2})$").unwrap();
         let re4_1b_2 = Regex::new(&concat_buf!("^", C, v, "[^aeiouwxy]$")).unwrap();
@@ -88,7 +85,6 @@ impl Stemmer {
         let re2_4 = Regex::new("^(.+?)(s|t)(ion)$").unwrap();
 
         let re_5 = Regex::new("^(.+?)e$").unwrap();
-        let re_5_1 = Regex::new("ll$").unwrap();
         let re3_5 = Regex::new(&concat_buf!("^", C, v, "[^aeiouwxy]$")).unwrap();
 
         Stemmer {
@@ -100,7 +96,6 @@ impl Stemmer {
             re2_1a,
             re_1b,
             re2_1b,
-            re_1b_2,
             re2_1b_2,
             re3_1b_2,
             re4_1b_2,
@@ -110,7 +105,6 @@ impl Stemmer {
             re_4,
             re2_4,
             re_5,
-            re_5_1,
             re3_5,
         }
     }
@@ -145,7 +139,7 @@ impl Stemmer {
         if let Some(caps) = self.re_1b.captures(&w.clone()) {
             let stem = &caps[1];
             if self.re_mgr0.is_match(stem) {
-                w = self.re_1b_2.replace(&w, "").into();
+                w.pop();
             }
         } else if let Some(caps) = self.re2_1b.captures(&w.clone()) {
             let stem = &caps[1];
@@ -161,7 +155,7 @@ impl Stemmer {
                     // Make sure the two characters are the same since we can't use backreferences
                     if suffix[0..1] == suffix[1..2] {
                         re3_1b_2_matched = true;
-                        w = self.re_1b_2.replace(&w, "").into();
+                        w.pop();
                     }
                 }
 
@@ -221,8 +215,8 @@ impl Stemmer {
             }
         }
 
-        if self.re_5_1.is_match(&w) && self.re_mgr1.is_match(&w) {
-            w = self.re_1b_2.replace(&w, "").into();
+        if w.ends_with("ll") && self.re_mgr1.is_match(&w) {
+            w.pop();
         }
 
         // and turn initial Y back to y
