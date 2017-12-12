@@ -151,15 +151,23 @@ impl Stemmer {
             let stem = &caps[1];
             if self.re_s_v.is_match(&stem) {
                 w = stem.into();
+
+                let mut re3_1b_2_matched = false;
+
                 if self.re2_1b_2.is_match(&w) {
                     w.push('e');
                 } else if let Some(m) = self.re3_1b_2.find(&w.clone()) {
                     let suffix = m.as_str();
                     // Make sure the two characters are the same since we can't use backreferences
                     if suffix[0..1] == suffix[1..2] {
+                        re3_1b_2_matched = true;
                         w = self.re_1b_2.replace(&w, "").into();
                     }
-                } else if self.re4_1b_2.is_match(&w) {
+                }
+
+                // re4_1b_2 still runs if re3_1b_2 matches but
+                // the matched chcaracters are not the same
+                if !re3_1b_2_matched && self.re4_1b_2.is_match(&w) {
                     w.push('e');
                 }
             }
