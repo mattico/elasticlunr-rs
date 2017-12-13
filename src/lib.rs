@@ -20,6 +20,8 @@
 //!file.write_all(index.to_json_pretty().as_bytes());
 //!```
 
+#![cfg_attr(all(test, feature = "bench"), feature(test))]
+
 #[macro_use]
 extern crate lazy_static;
 extern crate phf;
