@@ -335,9 +335,13 @@ mod tests {
     #[cfg(feature = "bench")]
     #[bench]
     fn bench_stem(b: &mut test::Bencher) {
-        b.iter(|| 
-            test::black_box(stemmer(String::from(TEXT)))
-        );
+        let data = ::pipeline::tokenize(TEXT);
+        b.iter(|| {
+            let d = data.clone();
+            for word in d {
+                test::black_box(stemmer(word));
+            }
+        });
 
         const TEXT: &str = "
             I am already far north of London, and as I walk in the streets of Petersburgh, I feel a cold 
