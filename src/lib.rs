@@ -116,9 +116,10 @@ pub struct Index {
 
 impl Index {
     /// Create a new index with the provided fields.
-    pub fn new<S, I: IntoIterator<Item = S>>(fields: I) -> Self
+    pub fn new<I>(fields: I) -> Self
     where
-        S: AsRef<str>,
+        I: IntoIterator,
+        I::Item: AsRef<str>,
     {
         let mut indices = HashMap::new();
         let mut field_vec = Vec::new();
@@ -149,9 +150,10 @@ impl Index {
     /// let mut index = Index::new(&["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
-    pub fn add_doc<S, I: IntoIterator<Item = S>>(&mut self, doc_ref: &str, data: I)
+    pub fn add_doc<I>(&mut self, doc_ref: &str, data: I)
     where
-        S: AsRef<str>,
+        I: IntoIterator,
+        I::Item: AsRef<str>,
     {
         let mut doc = HashMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());
