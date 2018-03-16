@@ -38,6 +38,7 @@ extern crate maplit;
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
 
+pub mod config;
 mod document_store;
 mod inverted_index;
 mod pipeline;
