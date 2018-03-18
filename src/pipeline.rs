@@ -1,8 +1,4 @@
-// TODO: remove this when (https://github.com/rust-lang/rust/pull/44042) is stable
-#[allow(unused_imports)]
-use std::ascii::AsciiExt;
 use serde::ser::{Serialize, Serializer, SerializeSeq};
-pub use stemmer::stemmer;
 
 pub fn tokenize(text: &str) -> Vec<String> {
     text.split(|c: char| c.is_whitespace() || c == '-')
@@ -15,7 +11,7 @@ pub type PipelineFn = fn(String) -> Option<String>;
 
 #[derive(Debug)]
 pub struct Pipeline {
-    queue: Vec<(String, PipelineFn)>,
+    pub(crate) queue: Vec<(String, PipelineFn)>,
 }
 
 impl Serialize for Pipeline {
@@ -33,13 +29,7 @@ impl Serialize for Pipeline {
 
 impl Default for Pipeline {
     fn default() -> Self {
-        Pipeline {
-            queue: vec![
-                ("trimmer".into(), trimmer),
-                ("stopWordFilter".into(), stop_word_filter),
-                ("stemmer".into(), stemmer),
-            ],
-        }
+        ::lang::en::make_pipeline()
     }
 }
 
@@ -60,81 +50,5 @@ impl Pipeline {
             }
         }
         ret
-    }
-}
-
-fn trimmer(token: String) -> Option<String> {
-    Some(
-        token
-            .trim_matches(|c: char| !c.is_digit(36) && c != '_')
-            .into(),
-    )
-}
-
-mod phf_set {
-    include!(concat!(env!("OUT_DIR"), "/stop_words.rs"));
-}
-
-fn stop_word_filter(token: String) -> Option<String> {
-    match phf_set::STOP_WORDS.contains(token.as_str()) {
-        true => None,
-        false => Some(token),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn split_simple_strings() {
-        let string = "this is a simple string";
-        assert_eq!(&tokenize(string), &["this", "is", "a", "simple", "string"]);
-    }
-
-    #[test]
-    fn multiple_white_space() {
-        let string = "  foo    bar  ";
-        assert_eq!(&tokenize(string), &["foo", "bar"]);
-    }
-
-    #[test]
-    fn hyphens() {
-        let string = "take the New York-San Francisco flight";
-        assert_eq!(
-            &tokenize(string),
-            &["take", "the", "new", "york", "san", "francisco", "flight"]
-        );
-    }
-
-    #[test]
-    fn splitting_strings_with_hyphens() {
-        let string = "Solve for A - B";
-        assert_eq!(&tokenize(string), &["solve", "for", "a", "b"]);
-    }
-
-    macro_rules! pipeline_eq {
-        ($func:expr, $input:expr, $output:expr) => {
-            assert_eq!(&$func($input.to_string()).unwrap(), $output);
-        }
-    }
-
-    #[test]
-    fn latin_characters() {
-        pipeline_eq!(trimmer, "hello", "hello");
-    }
-
-    #[test]
-    fn removing_punctuation() {
-        pipeline_eq!(trimmer, "hello.", "hello");
-        pipeline_eq!(trimmer, "it's", "it's");
-        pipeline_eq!(trimmer, "james'", "james");
-        pipeline_eq!(trimmer, "stop!", "stop");
-        pipeline_eq!(trimmer, "first,", "first");
-        pipeline_eq!(trimmer, "", "");
-        pipeline_eq!(trimmer, "[tag]", "tag");
-        pipeline_eq!(trimmer, "[[[tag]]]", "tag");
-        pipeline_eq!(trimmer, "[[!@#@!hello]]]}}}", "hello");
-        pipeline_eq!(trimmer, "~!@@@hello***()()()]]", "hello");
     }
 }

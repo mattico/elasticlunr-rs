@@ -39,10 +39,10 @@ extern crate maplit;
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
 
 pub mod config;
+pub mod lang;
 mod document_store;
 mod inverted_index;
 mod pipeline;
-mod stemmer;
 
 use std::collections::HashMap;
 
