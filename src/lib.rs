@@ -24,8 +24,8 @@
 
 #[macro_use]
 extern crate lazy_static;
-extern crate phf;
 extern crate regex;
+extern crate rust_stemmers;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -42,7 +42,7 @@ pub mod config;
 pub mod lang;
 mod document_store;
 mod inverted_index;
-mod pipeline;
+pub mod pipeline;
 
 use std::collections::HashMap;
 

@@ -1,6 +1,5 @@
-
 use regex::Regex;
-use ::pipeline::Pipeline;
+use pipeline::Pipeline;
 
 pub fn make_pipeline() -> Pipeline {
     Pipeline {
@@ -20,17 +19,52 @@ pub fn trimmer(token: String) -> Option<String> {
     )
 }
 
-mod phf {
-    include!(concat!(env!("OUT_DIR"), "/stop_words.rs"));
-    include!(concat!(env!("OUT_DIR"), "/stemmer_maps.rs"));
-}
+make_stop_word_filter!([
+    "", "a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an",
+    "and", "any", "are", "as", "at", "be", "because", "been", "but", "by", "can", "cannot",
+    "could", "dear", "did", "do", "does", "either", "else", "ever", "every", "for", "from", "get",
+    "got", "had", "has", "have", "he", "her", "hers", "him", "his", "how", "however", "i", "if",
+    "in", "into", "is", "it", "its", "just", "least", "let", "like", "likely", "may", "me",
+    "might", "most", "must", "my", "neither", "no", "nor", "not", "of", "off", "often", "on",
+    "only", "or", "other", "our", "own", "rather", "said", "say", "says", "she", "should", "since",
+    "so", "some", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this",
+    "tis", "to", "too", "twas", "us", "wants", "was", "we", "were", "what", "when", "where",
+    "which", "while", "who", "whom", "why", "will", "with", "would", "yet", "you", "your",
+]);
 
-pub fn stop_word_filter(token: String) -> Option<String> {
-    match phf::STOP_WORDS.contains(token.as_str()) {
-        true => None,
-        false => Some(token),
-    }
-}
+static STEP_2: &[(&str, &str)] = &[
+    ("ational", "ate"),
+    ("tional", "tion"),
+    ("enci", "ence"),
+    ("anci", "ance"),
+    ("izer", "ize"),
+    ("bli", "ble"),
+    ("alli", "al"),
+    ("entli", "ent"),
+    ("eli", "e"),
+    ("ousli", "ous"),
+    ("ization", "ize"),
+    ("ation", "ate"),
+    ("ator", "ate"),
+    ("alism", "al"),
+    ("iveness", "ive"),
+    ("fulness", "ful"),
+    ("ousness", "ous"),
+    ("aliti", "al"),
+    ("iviti", "ive"),
+    ("biliti", "ble"),
+    ("logi", "log"),
+];
+
+static STEP_3: &[(&str, &str)] = &[
+    ("icate", "ic"),
+    ("ative", ""),
+    ("alize", "al"),
+    ("iciti", "ic"),
+    ("ical", "ic"),
+    ("ful", ""),
+    ("ness", ""),
+];
 
 // This is a direct port of the stemmer from elasticlunr.js
 // It's not very efficient and very not-rusty, but it
@@ -139,9 +173,6 @@ impl Stemmer {
 
     /// Implements the Porter stemming algorithm
     pub fn stem(&self, mut w: String) -> String {
-        let step2list = &phf::STEMMER_STEP_2;
-        let step3list = &phf::STEMMER_STEP_3;
-
         if w.len() < 3 {
             return w;
         }
@@ -207,7 +238,7 @@ impl Stemmer {
             let stem = &caps[1];
             let suffix = &caps[2];
             if self.re_mgr0.is_match(&stem) {
-                w = concat_buf!(stem, step2list.get(suffix).unwrap());
+                w = concat_buf!(stem, STEP_2.iter().find(|&&(k, _)| k == suffix).unwrap().1);
             }
         }
 
@@ -216,7 +247,7 @@ impl Stemmer {
             let stem = &caps[1];
             let suffix = &caps[2];
             if self.re_mgr0.is_match(&stem) {
-                w = concat_buf!(stem, step3list.get(suffix).unwrap());
+                w = concat_buf!(stem, STEP_3.iter().find(|&&(k, _)| k == suffix).unwrap().1);
             }
         }
 
@@ -269,7 +300,7 @@ mod tests {
     #[cfg(feature = "bench")]
     extern crate test;
     use super::*;
-    use ::pipeline::tokenize;
+    use pipeline::tokenize;
 
     #[test]
     fn split_simple_strings() {
@@ -322,7 +353,7 @@ mod tests {
         pipeline_eq!(trimmer, "[[!@#@!hello]]]}}}", "hello");
         pipeline_eq!(trimmer, "~!@@@hello***()()()]]", "hello");
     }
-  
+
     #[test]
     fn test_stemmer() {
         let cases = [
@@ -413,6 +444,10 @@ mod tests {
         }
     }
 
+    // # Results
+    // PHF:           2,507,473 ns/iter (+/- 197,005)
+    // Linear search: 2,481,133 ns/iter (+/- 216,998)
+
     #[cfg(feature = "bench")]
     #[bench]
     fn bench_stem(b: &mut test::Bencher) {
@@ -452,5 +487,3 @@ mod tests {
             ";
     }
 }
-
-
