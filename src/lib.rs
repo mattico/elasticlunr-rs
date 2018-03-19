@@ -72,11 +72,23 @@ pub mod pipeline;
 use std::collections::HashMap;
 
 pub use lang::Language;
-use pipeline::Pipeline;
+pub use pipeline::Pipeline;
 use inverted_index::InvertedIndex;
 use document_store::DocumentStore;
 
 /// A builder for an `Index` with custom parameters.
+/// 
+/// # Example
+/// ```
+/// # use elasticlunr::{Index, IndexBuilder, Language, Pipeline};
+/// let mut index = IndexBuilder::new()
+///     .save_docs(false)
+///     .add_fields(&["title", "subtitle", "body"])
+///     .set_pipeline(Pipeline::for_language(Language::Danish))
+///     .set_ref("doc_id")
+///     .build();
+/// index.add_doc("doc_a", &["Kapitel 1", "Velkommen til København", "..."]);
+/// ```
 pub struct IndexBuilder {
     save: bool,
     fields: Vec<String>,
@@ -94,7 +106,7 @@ impl IndexBuilder {
         }
     }
 
-    /// Set whether or not documents should be saved in the `Index`.
+    /// Set whether or not documents should be saved in the `Index`'s document store.
     pub fn save_docs(mut self, save: bool) -> Self {
         self.save = save;
         self
@@ -103,6 +115,16 @@ impl IndexBuilder {
     /// Add a document field to the `Index`.
     pub fn add_field(mut self, field: &str) -> Self {
         self.fields.push(field.into());
+        self
+    }
+
+    /// Add the document fields to the `Index`.
+    pub fn add_fields<I>(mut self, fields: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        self.fields.extend(fields.into_iter().map(|f| f.as_ref().into()));
         self
     }
 
@@ -151,6 +173,13 @@ pub struct Index {
 
 impl Index {
     /// Create a new index with the provided fields.
+    /// 
+    /// # Example
+    /// ```
+    /// # use elasticlunr::Index;
+    /// let mut index = Index::new(&["title", "body", "breadcrumbs"]);
+    /// index.add_doc("1", &["How to Foo", "First, you need to `bar`.", "Chapter 1 > How to Foo"]);
+    /// ```
     pub fn new<I>(fields: I) -> Self
     where
         I: IntoIterator,
@@ -176,7 +205,14 @@ impl Index {
 
     /// Create a new index with the provided fields for the given
     /// [`Language`](lang/enum.Language.html).
-    pub fn new_for_language<I>(lang: Language, fields: I) -> Self
+    /// 
+    /// # Example
+    /// ```
+    /// # use elasticlunr::{Index, Language};
+    /// let mut index = Index::with_language(Language::English, &["title", "body"]);
+    /// index.add_doc("1", &["this is a title", "this is body text"]);
+    /// ```
+    pub fn with_language<I>(lang: Language, fields: I) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
@@ -206,7 +242,7 @@ impl Index {
     ///
     /// # Example
     /// ```
-    /// use elasticlunr::Index;
+    /// # use elasticlunr::Index;
     /// let mut index = Index::new(&["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
