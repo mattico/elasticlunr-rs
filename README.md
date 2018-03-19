@@ -14,7 +14,7 @@ use elasticlunr::Index;
 
 let mut index = Index::new(&["title", "body"]);
 index.add_doc("1", &["This is a title", "This is body text!"]);
-// Add more docs...
+// Add more documents...
 let mut file = File::create("out.json").unwrap();
 file.write_all(index.to_json_pretty().as_bytes());
 ```
