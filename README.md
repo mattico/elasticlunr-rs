@@ -33,10 +33,10 @@ for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 
 Includes code ported from [elasticlunr.js][eljs] Copyright (C) 2017 by Wei Song, 
-used under license.
+used under license. See LICENSE-JS for details.
 
 Includes stop word lists ported from [stopwords-filter][swft] Copyright (C) 2012 
-David J. Brenes, used under license.
+David J. Brenes, used under license. See LICENSE-WORDS for details.
 
 [eljs]: https://github.com/weixsong/elasticlunr.js
 [swft]: https://github.com/brenes/stopwords-filter

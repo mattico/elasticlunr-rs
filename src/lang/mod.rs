@@ -1,30 +1,6 @@
-//! Intended to be compatible with <https://github.com/weixsong/lunr-languages>. Each supported 
+//! Intended to be compatible with <https://github.com/MihaiValentin/lunr-languages>. Each supported 
 //! language has a trimmer, a stop word filter, and a stemmer. Most users will not need to use 
 //! these modules directly.
-
-// Word lists originally from https://github.com/brenes/stopwords-filter
-// Used under the terms of the MIT license.
-// 
-// Copyright (c) 2012 David J. Brenes
-//
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 macro_rules! make_trimmer {
     ($reg:expr) => {
@@ -75,6 +51,7 @@ macro_rules! make_stemmer {
     };
 }
 
+/// Used to configure the `Index` for a specific lanugage.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, EnumString, ToString, EnumIter)]
 pub enum Language {
     Danish,
@@ -100,11 +77,16 @@ impl Language {
     /// Returns the `Language` for the given two-character [ISO 639-1][iso] language code if the 
     /// language is supported. Returns `None` if not supported.
     /// 
+    /// *Note:*
+    /// 
+    /// The ISO 639-1 code for Dutch is "nl". However "du" is used for the module name
+    /// and pipeline suffix in order to match lunr-languages.
+    /// 
     /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
     pub fn from_code(code: &str) -> Option<Language> {
         match code.to_ascii_lowercase().as_str() {
             "da" => Some(Language::Danish),
-            "du" => Some(Language::Dutch),
+            "nl" => Some(Language::Dutch),
             "en" => Some(Language::English),
             "fi" => Some(Language::Finnish),
             "fr" => Some(Language::French),
@@ -123,11 +105,16 @@ impl Language {
 
     /// Returns the two-character [ISO 639-1][iso] language code for the `Language`.
     /// 
+    /// *Note:*
+    /// 
+    /// The ISO 639-1 code for Dutch is "nl". However "du" is used for the module name
+    /// and pipeline suffix in order to match lunr-languages.
+    /// 
     /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
     pub fn to_code(&self) -> &'static str {
         match *self {
             Language::Danish => "da",
-            Language::Dutch => "du",
+            Language::Dutch => "nl",
             Language::English => "en",
             Language::Finnish => "fi",
             Language::French => "fr",
