@@ -2,9 +2,10 @@
 
 [![Build Status](https://travis-ci.org/mattico/elasticlunr-rs.svg?branch=master)](https://travis-ci.org/mattico/elasticlunr-rs) [![Documentation](https://docs.rs/elasticlunr-rs/badge.svg)](https://docs.rs/elasticlunr-rs) [![Crates.io](https://img.shields.io/crates/v/elasticlunr-rs.svg)](https://crates.io/crates/elasticlunr-rs)
 
-A partial port of [elasticlunr](https://github.com/weixsong/elasticlunr.js) to Rust. Intended to be used for generating compatible search indices.
+A partial port of [elasticlunr.js][eljs] to Rust. Intended to be used for 
+generating compatible search indices.
 
-## Usage
+## Example
 
 ```Rust
 use std::fs::File;
@@ -27,4 +28,15 @@ This repository is offered under the terms of the
 
 at your option.
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted 
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+
+Includes code ported from [elasticlunr.js][eljs] Copyright (C) 2017 by Wei Song, 
+used under license.
+
+Includes stop word lists ported from [stopwords-filter][swft] Copyright (C) 2012 
+David J. Brenes, used under license.
+
+[eljs]: https://github.com/weixsong/elasticlunr.js
+[swft]: https://github.com/brenes/stopwords-filter
