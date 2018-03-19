@@ -79,18 +79,3 @@ impl Pipeline {
         ret
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_make_pipeline() {
-        for lang in ::lang::SUPPORTED_LANGUAGES {
-            assert!(Pipeline::for_language(lang).is_some());
-        }
-        for lang in &["jp", "zh", "kr", "tw", "tu"] {
-            assert!(Pipeline::for_language(lang).is_none());
-        }
-    }
-}

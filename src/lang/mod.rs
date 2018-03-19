@@ -1,7 +1,7 @@
 //! # Language Support
 //!
 //! Ported from <https://github.com/weixsong/lunr-languages>. Each supported language has a trimmer,
-//! a stop word filter, and a stemmer. Most users will not need to use these submodules directly.
+//! a stop word filter, and a stemmer. Most users will not need to use these modules directly.
 
 macro_rules! make_trimmer {
     ($reg:expr) => {
