@@ -1,5 +1,9 @@
+//! Implements an elasticlunr.js document store. Most users do not need to use this module directly.
+
 use std::collections::HashMap;
 
+/// The document store saves the complete text of each item saved to the index, if enabled.
+/// Most users do not need to use this type directly.
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentStore {
@@ -20,12 +24,10 @@ impl DocumentStore {
         }
     }
 
-    #[cfg(test)]
     pub fn len(&self) -> usize {
         self.docs.len()
     }
 
-    #[cfg(test)]
     pub fn is_stored(&self) -> bool {
         self.save
     }
@@ -39,18 +41,14 @@ impl DocumentStore {
             self.length += 1;
         }
 
-        self.docs.insert(
-            doc_ref.into(),
-            if self.save { doc } else { HashMap::new() },
-        );
+        self.docs
+            .insert(doc_ref.into(), if self.save { doc } else { HashMap::new() });
     }
 
-    #[cfg(test)]
     pub fn get_doc(&self, doc_ref: &str) -> Option<HashMap<String, String>> {
         self.docs.get(doc_ref.into()).cloned()
     }
 
-    #[cfg(test)]
     pub fn remove_doc(&mut self, doc_ref: &str) {
         if self.has_doc(doc_ref) {
             self.length -= 1;
@@ -66,7 +64,6 @@ impl DocumentStore {
             .insert(field.into(), length);
     }
 
-    #[cfg(test)]
     pub fn get_field_length(&self, doc_ref: &str, field: &str) -> usize {
         if self.has_doc(doc_ref) {
             self.doc_info
@@ -214,20 +211,32 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", hashmap!{
-            "title".into() => "eggs bread".into()
-        });
-        store.add_doc("2", hashmap!{
-            "title".into() => "boo bar".into()
-        });
-        store.add_doc("3", hashmap!{
-            "title".into() => "oracle".into(),
-            "body".into() => "Oracle is demonspawn".into()
-        });
-        assert_eq!(store.get_doc("3").unwrap(), hashmap!{
-            "title".into() => "oracle".into(),
-            "body".into() => "Oracle is demonspawn".into()
-        });
+        store.add_doc(
+            "1",
+            hashmap!{
+                "title".into() => "eggs bread".into()
+            },
+        );
+        store.add_doc(
+            "2",
+            hashmap!{
+                "title".into() => "boo bar".into()
+            },
+        );
+        store.add_doc(
+            "3",
+            hashmap!{
+                "title".into() => "oracle".into(),
+                "body".into() => "Oracle is demonspawn".into()
+            },
+        );
+        assert_eq!(
+            store.get_doc("3").unwrap(),
+            hashmap!{
+                "title".into() => "oracle".into(),
+                "body".into() => "Oracle is demonspawn".into()
+            }
+        );
         assert_eq!(store.len(), 3);
     }
 
@@ -236,16 +245,25 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", hashmap!{
-            "title".into() => "eggs bread".into()
-        });
-        store.add_doc("2", hashmap!{
-            "title".into() => "boo bar".into()
-        });
-        store.add_doc("3", hashmap!{
-            "title".into() => "oracle".into(),
-            "body".into() => "Oracle is demonspawn".into()
-        });
+        store.add_doc(
+            "1",
+            hashmap!{
+                "title".into() => "eggs bread".into()
+            },
+        );
+        store.add_doc(
+            "2",
+            hashmap!{
+                "title".into() => "boo bar".into()
+            },
+        );
+        store.add_doc(
+            "3",
+            hashmap!{
+                "title".into() => "oracle".into(),
+                "body".into() => "Oracle is demonspawn".into()
+            },
+        );
         assert_eq!(store.get_doc("4"), None);
         assert_eq!(store.get_doc("0"), None);
         assert_eq!(store.len(), 3);

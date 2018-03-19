@@ -1,24 +1,28 @@
 //!# elasticlunr-rs
 //!
-//![![Build Status](https://travis-ci.org/mattico/elasticlunr-rs.svg?branch=master)](https://travis-ci.org/mattico/elasticlunr-rs)
-//![![Documentation](https://docs.rs/elasticlunr-rs/badge.svg)](https://docs.rs/elasticlunr-rs)
-//![![Crates.io](https://img.shields.io/crates/v/elasticlunr-rs.svg)](https://crates.io/crates/elasticlunr-rs)
+//! [![Build Status](https://travis-ci.org/mattico/elasticlunr-rs.svg?branch=master)](https://travis-ci.org/mattico/elasticlunr-rs)
+//! [![Documentation](https://docs.rs/elasticlunr-rs/badge.svg)](https://docs.rs/elasticlunr-rs)
+//! [![Crates.io](https://img.shields.io/crates/v/elasticlunr-rs.svg)](https://crates.io/crates/elasticlunr-rs)
 //!
-//!A partial port of [elasticlunr](https://github.com/weixsong/elasticlunr.js) to Rust. Intended to be used for generating compatible search indices.
+//! A partial port of [elasticlunr](https://github.com/weixsong/elasticlunr.js) to Rust. Intended to 
+//! be used for generating compatible search indices.
+//! 
+//! Access to all index-generating functionality is provided. Most users will only need to use the
+//! [`Index`](struct.Index.html) or [`IndexBuilder`](struct.IndexBuilder.html) types.
 //!
-//!## Usage
+//! ## Example
 //!
-//!```
-//!use std::fs::File;
-//!use std::io::Write;
-//!use elasticlunr::Index;
+//! ```
+//! use std::fs::File;
+//! use std::io::Write;
+//! use elasticlunr::Index;
 //!
-//!let mut index = Index::new(&["title", "body"]);
-//!index.add_doc("1", &["This is a title", "This is body text!"]);
-//!// Add more docs...
-//!let mut file = File::create("out.json").unwrap();
-//!file.write_all(index.to_json_pretty().as_bytes());
-//!```
+//! let mut index = Index::new(&["title", "body"]);
+//! index.add_doc("1", &["This is a title", "This is body text!"]);
+//! // Add more docs...
+//! let mut file = File::create("out.json").unwrap();
+//! file.write_all(index.to_json_pretty().as_bytes());
+//! ```
 
 #![cfg_attr(all(test, feature = "bench"), feature(test))]
 
@@ -43,8 +47,8 @@ pub const ELASTICLUNR_VERSION: &str = "0.9.5";
 
 pub mod config;
 pub mod lang;
-mod document_store;
-mod inverted_index;
+pub mod document_store;
+pub mod inverted_index;
 pub mod pipeline;
 
 use std::collections::HashMap;
