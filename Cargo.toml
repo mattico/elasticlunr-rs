@@ -11,19 +11,18 @@ keywords = ["search", "index", "indexing", "lunr", "elasticlunrjs"]
 [lib]
 name = "elasticlunr"
 
-[build-dependencies]
-phf_codegen = "0.7"
-
 [dev-dependencies]
 maplit = "1"
 
 [dependencies]
 lazy_static = "1"
-phf = "0.7"
-regex = "0.2"
+regex = "0.2.7" # First version to include unicode escape sequences
+rust-stemmers = "1"
 serde = "1"
 serde_derive = "1"
 serde_json = "1"
+strum = "0.9"
+strum_macros = "0.9"
 
 [features]
 default = []

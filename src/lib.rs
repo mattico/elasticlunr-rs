@@ -24,12 +24,15 @@
 
 #[macro_use]
 extern crate lazy_static;
-extern crate phf;
 extern crate regex;
+extern crate rust_stemmers;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
 
 #[cfg(test)]
 #[macro_use]
@@ -39,22 +42,36 @@ extern crate maplit;
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
 
 pub mod config;
+pub mod lang;
 mod document_store;
 mod inverted_index;
-mod pipeline;
-mod stemmer;
+pub mod pipeline;
 
 use std::collections::HashMap;
 
-use pipeline::Pipeline;
+pub use lang::Language;
+pub use pipeline::Pipeline;
 use inverted_index::InvertedIndex;
 use document_store::DocumentStore;
 
 /// A builder for an `Index` with custom parameters.
+/// 
+/// # Example
+/// ```
+/// # use elasticlunr::{Index, IndexBuilder, Language, Pipeline};
+/// let mut index = IndexBuilder::new()
+///     .save_docs(false)
+///     .add_fields(&["title", "subtitle", "body"])
+///     .set_pipeline(Pipeline::for_language(Language::Danish))
+///     .set_ref("doc_id")
+///     .build();
+/// index.add_doc("doc_a", &["Kapitel 1", "Velkommen til København", "..."]);
+/// ```
 pub struct IndexBuilder {
     save: bool,
     fields: Vec<String>,
     ref_field: String,
+    pipeline: Option<Pipeline>,
 }
 
 impl IndexBuilder {
@@ -63,10 +80,11 @@ impl IndexBuilder {
             save: true,
             fields: Vec::new(),
             ref_field: "id".into(),
+            pipeline: None,
         }
     }
 
-    /// Set whether or not documents should be saved in the `Index`.
+    /// Set whether or not documents should be saved in the `Index`'s document store.
     pub fn save_docs(mut self, save: bool) -> Self {
         self.save = save;
         self
@@ -78,9 +96,25 @@ impl IndexBuilder {
         self
     }
 
+    /// Add the document fields to the `Index`.
+    pub fn add_fields<I>(mut self, fields: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        self.fields.extend(fields.into_iter().map(|f| f.as_ref().into()));
+        self
+    }
+
     /// Set the key used to store the document reference field.
     pub fn set_ref(mut self, ref_field: &str) -> Self {
         self.ref_field = ref_field.into();
+        self
+    }
+
+    /// Set the pipeline used by the `Index`.
+    pub fn set_pipeline(mut self, pipeline: Pipeline) -> Self {
+        self.pipeline = Some(pipeline);
         self
     }
 
@@ -96,7 +130,7 @@ impl IndexBuilder {
             fields: self.fields,
             ref_field: self.ref_field,
             document_store: DocumentStore::new(self.save),
-            pipeline: Pipeline::default(),
+            pipeline: self.pipeline.unwrap_or_default(),
             version: ::ELASTICLUNR_VERSION,
         }
     }
@@ -117,6 +151,13 @@ pub struct Index {
 
 impl Index {
     /// Create a new index with the provided fields.
+    /// 
+    /// # Example
+    /// ```
+    /// # use elasticlunr::Index;
+    /// let mut index = Index::new(&["title", "body", "breadcrumbs"]);
+    /// index.add_doc("1", &["How to Foo", "First, you need to `bar`.", "Chapter 1 > How to Foo"]);
+    /// ```
     pub fn new<I>(fields: I) -> Self
     where
         I: IntoIterator,
@@ -140,6 +181,38 @@ impl Index {
         }
     }
 
+    /// Create a new index with the provided fields for the given
+    /// [`Language`](lang/enum.Language.html).
+    /// 
+    /// # Example
+    /// ```
+    /// # use elasticlunr::{Index, Language};
+    /// let mut index = Index::with_language(Language::English, &["title", "body"]);
+    /// index.add_doc("1", &["this is a title", "this is body text"]);
+    /// ```
+    pub fn with_language<I>(lang: Language, fields: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        let mut indices = HashMap::new();
+        let mut field_vec = Vec::new();
+        for field in fields {
+            let field = field.as_ref().to_string();
+            field_vec.push(field.clone());
+            indices.insert(field, InvertedIndex::new());
+        }
+
+        Index {
+            fields: field_vec,
+            index: indices,
+            pipeline: Pipeline::for_language(lang),
+            ref_field: "id".into(),
+            version: ::ELASTICLUNR_VERSION,
+            document_store: DocumentStore::new(true),
+        }
+    }
+
     /// Add the data from a document to the index.
     ///
     /// *NOTE: The elements of `data` should be provided in the same order as
@@ -147,7 +220,7 @@ impl Index {
     ///
     /// # Example
     /// ```
-    /// use elasticlunr::Index;
+    /// # use elasticlunr::Index;
     /// let mut index = Index::new(&["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```

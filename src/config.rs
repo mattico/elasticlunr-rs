@@ -1,5 +1,3 @@
-//! # Configuration Structs
-//! 
 //! These types are not used for generating `Index`es. They are provided to help with
 //! creating compatible JSON structures for configuring the JavaScript search
 //! function.
