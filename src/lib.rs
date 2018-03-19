@@ -30,6 +30,9 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
 
 #[cfg(test)]
 #[macro_use]
@@ -46,6 +49,7 @@ pub mod pipeline;
 
 use std::collections::HashMap;
 
+pub use lang::Language;
 use pipeline::Pipeline;
 use inverted_index::InvertedIndex;
 use document_store::DocumentStore;
@@ -55,6 +59,7 @@ pub struct IndexBuilder {
     save: bool,
     fields: Vec<String>,
     ref_field: String,
+    pipeline: Option<Pipeline>,
 }
 
 impl IndexBuilder {
@@ -63,6 +68,7 @@ impl IndexBuilder {
             save: true,
             fields: Vec::new(),
             ref_field: "id".into(),
+            pipeline: None,
         }
     }
 
@@ -84,6 +90,12 @@ impl IndexBuilder {
         self
     }
 
+    /// Set the pipeline used by the `Index`.
+    pub fn set_pipeline(mut self, pipeline: Pipeline) -> Self {
+        self.pipeline = Some(pipeline);
+        self
+    }
+
     /// Build an `Index` from this builder.
     pub fn build(self) -> Index {
         let index = self.fields
@@ -96,7 +108,7 @@ impl IndexBuilder {
             fields: self.fields,
             ref_field: self.ref_field,
             document_store: DocumentStore::new(self.save),
-            pipeline: Pipeline::default(),
+            pipeline: self.pipeline.unwrap_or_default(),
             version: ::ELASTICLUNR_VERSION,
         }
     }
@@ -134,6 +146,31 @@ impl Index {
             fields: field_vec,
             index: indices,
             pipeline: Pipeline::default(),
+            ref_field: "id".into(),
+            version: ::ELASTICLUNR_VERSION,
+            document_store: DocumentStore::new(true),
+        }
+    }
+
+    /// Create a new index with the provided fields for the given
+    /// [`Language`](lang/enum.Language.html).
+    pub fn new_for_language<I>(lang: Language, fields: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        let mut indices = HashMap::new();
+        let mut field_vec = Vec::new();
+        for field in fields {
+            let field = field.as_ref().to_string();
+            field_vec.push(field.clone());
+            indices.insert(field, InvertedIndex::new());
+        }
+
+        Index {
+            fields: field_vec,
+            index: indices,
+            pipeline: Pipeline::for_language(lang),
             ref_field: "id".into(),
             version: ::ELASTICLUNR_VERSION,
             document_store: DocumentStore::new(true),

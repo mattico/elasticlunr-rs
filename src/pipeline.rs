@@ -1,4 +1,5 @@
 use serde::ser::{Serialize, Serializer, SerializeSeq};
+use lang::Language;
 
 /// Splits a text string into a vector of individual tokens.
 pub fn tokenize(text: &str) -> Vec<String> {
@@ -37,28 +38,24 @@ impl Default for Pipeline {
 }
 
 impl Pipeline {
-    /// Returns a pipeline for the given [ISO 639-1][iso] language code if the language is supported.
-    /// Returns `None` if the language is not supported. See 
-    /// [`SUPPORTED_LANGUAGES`](../lang/static.SUPPORTED_LANGUAGES.html) for a list of the supported languages.
-    /// 
-    /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
-    pub fn for_language(lang: &str) -> Option<Pipeline> {
+    /// Returns a pipeline for the given [`Language`](../lang/enum.Language.html).
+    pub fn for_language(lang: Language) -> Pipeline {
         match lang {
-            "da" => Some(::lang::da::make_pipeline()),
-            "de" => Some(::lang::de::make_pipeline()),
-            "du" => Some(::lang::du::make_pipeline()),
-            "en" => Some(::lang::en::make_pipeline()),
-            "es" => Some(::lang::es::make_pipeline()),
-            "fi" => Some(::lang::fi::make_pipeline()),
-            "fr" => Some(::lang::fr::make_pipeline()),
-            "hu" => Some(::lang::hu::make_pipeline()),
-            "it" => Some(::lang::it::make_pipeline()),
-            "pt" => Some(::lang::pt::make_pipeline()),
-            "ro" => Some(::lang::ro::make_pipeline()),
-            "ru" => Some(::lang::ru::make_pipeline()),
-            "sv" => Some(::lang::sv::make_pipeline()),
-            "tr" => Some(::lang::tr::make_pipeline()),
-            _ => None,
+            Language::Danish => ::lang::da::make_pipeline(),
+            Language::Dutch => ::lang::du::make_pipeline(),
+            Language::English => ::lang::en::make_pipeline(),
+            Language::Finnish => ::lang::fi::make_pipeline(),
+            Language::French => ::lang::fr::make_pipeline(),
+            Language::German => ::lang::de::make_pipeline(),
+            Language::Hungarian => ::lang::hu::make_pipeline(),
+            Language::Italian => ::lang::it::make_pipeline(),
+            Language::Portuguese => ::lang::pt::make_pipeline(),
+            Language::Romanian => ::lang::ro::make_pipeline(),
+            Language::Russian => ::lang::ru::make_pipeline(),
+            Language::Spanish => ::lang::es::make_pipeline(),
+            Language::Swedish => ::lang::sv::make_pipeline(),
+            Language::Turkish => ::lang::tr::make_pipeline(),
+            _ => panic!("Dont use the `__NonExhaustive` variant!"),
         }
     }
 

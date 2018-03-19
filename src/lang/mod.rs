@@ -1,8 +1,7 @@
 //! # Language Support
 //!
 //! Ported from <https://github.com/weixsong/lunr-languages>. Each supported language has a trimmer,
-//! a stop word filter, and a stemmer. Use [`Pipeline::for_language`](../pipeline/struct.Pipeline.html#for_language)
-//! to create a corresponding pipeline.
+//! a stop word filter, and a stemmer. Most users will not need to use these submodules directly.
 
 macro_rules! make_trimmer {
     ($reg:expr) => {
@@ -53,11 +52,75 @@ macro_rules! make_stemmer {
     };
 }
 
-/// A list of the currently supported languages by their [ISO 639-1][iso] code.
-/// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
-pub static SUPPORTED_LANGUAGES: &'static [&'static str] = &[
-    "da", "de", "du", "en", "es", "fi", "fr", "hu", "it", "pt", "ro", "ru", "sv", "tr"
-];
+#[derive(Copy, Clone, Eq, PartialEq, Debug, EnumString, ToString, EnumIter)]
+pub enum Language {
+    Danish,
+    Dutch,
+    English,
+    Finnish,
+    French,
+    German,
+    Hungarian,
+    Italian,
+    Portuguese,
+    Romanian,
+    Russian,
+    Spanish,
+    Swedish,
+    Turkish,
+    #[doc(hidden)]
+    #[strum(disabled = "true")]
+    __NonExhaustive,
+}
+
+impl Language {
+    /// Returns the `Language` for the given two-character [ISO 639-1][iso] language code if the 
+    /// language is supported. Returns `None` if not supported.
+    /// 
+    /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
+    pub fn from_code(code: &str) -> Option<Language> {
+        match code.to_ascii_lowercase().as_str() {
+            "da" => Some(Language::Danish),
+            "du" => Some(Language::Dutch),
+            "en" => Some(Language::English),
+            "fi" => Some(Language::Finnish),
+            "fr" => Some(Language::French),
+            "de" => Some(Language::German),
+            "hu" => Some(Language::Hungarian),
+            "it" => Some(Language::Italian),
+            "pt" => Some(Language::Portuguese),
+            "ro" => Some(Language::Romanian),
+            "ru" => Some(Language::Russian),
+            "es" => Some(Language::Spanish),
+            "sv" => Some(Language::Swedish),
+            "tr" => Some(Language::Turkish),
+            _ => None,
+        }
+    }
+
+    /// Returns the two-character [ISO 639-1][iso] language code for the `Language`.
+    /// 
+    /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
+    pub fn to_code(&self) -> &'static str {
+        match *self {
+            Language::Danish => "da",
+            Language::Dutch => "du",
+            Language::English => "en",
+            Language::Finnish => "fi",
+            Language::French => "fr",
+            Language::German => "de",
+            Language::Hungarian => "hu",
+            Language::Italian => "it",
+            Language::Portuguese => "pt",
+            Language::Romanian => "ro",
+            Language::Russian => "ru",
+            Language::Spanish => "es",
+            Language::Swedish => "sv",
+            Language::Turkish => "tr",
+            _ => panic!("Don't use the __NonExhaustive variant!"),
+        }
+    }
+}
 
 pub mod da;
 pub mod de;
