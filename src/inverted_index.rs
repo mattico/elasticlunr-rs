@@ -36,15 +36,12 @@ impl IndexItem {
                 if !item.docs.contains_key(doc_ref.into()) {
                     item.doc_freq += 1;
                 }
-                item.docs.insert(
-                    doc_ref.into(),
-                    TermFrequency { term_freq },
-                );
+                item.docs
+                    .insert(doc_ref.into(), TermFrequency { term_freq });
             }
         }
     }
 
-    #[cfg(test)]
     fn get_node(&self, token: &str) -> Option<&IndexItem> {
         let mut root = self;
         for char in token.chars() {
@@ -58,7 +55,6 @@ impl IndexItem {
         Some(root)
     }
 
-    #[cfg(test)]
     fn remove_token(&mut self, doc_ref: &str, token: &str) {
         let mut iter = token.char_indices();
         if let Some((_, char)) = iter.next() {
@@ -98,26 +94,26 @@ pub struct InvertedIndex {
     root: IndexItem,
 }
 
+/// Implements an elasticlunr.js inverted index. Most users do not need to use this type directly.
 impl InvertedIndex {
     pub fn new() -> Self {
-        InvertedIndex { root: IndexItem::new() }
+        InvertedIndex {
+            root: IndexItem::new(),
+        }
     }
 
     pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
         self.root.add_token(doc_ref, token, term_freq)
     }
 
-    #[cfg(test)]
     pub fn has_token(&self, token: &str) -> bool {
         self.root.get_node(token).map_or(false, |_| true)
     }
 
-    #[cfg(test)]
     pub fn remove_token(&mut self, doc_ref: &str, token: &str) {
         self.root.remove_token(doc_ref, token)
     }
 
-    #[cfg(test)]
     pub fn get_docs(&self, token: &str) -> Option<HashMap<String, f64>> {
         self.root.get_node(token).map(|node| {
             node.docs
@@ -127,7 +123,6 @@ impl InvertedIndex {
         })
     }
 
-    #[cfg(test)]
     pub fn get_term_frequency(&self, doc_ref: &str, token: &str) -> f64 {
         self.root
             .get_node(token)
@@ -135,7 +130,6 @@ impl InvertedIndex {
             .map_or(0., |docs| docs.term_freq)
     }
 
-    #[cfg(test)]
     pub fn get_doc_frequency(&self, token: &str) -> i64 {
         self.root.get_node(token).map_or(0, |node| node.doc_freq)
     }
@@ -336,7 +330,6 @@ mod tests {
         assert!(!inverted_index.has_token("foo"));
         assert_eq!(inverted_index.get_doc_frequency("foo"), 0);
     }
-
 
     #[test]
     fn get_term_frequency() {
