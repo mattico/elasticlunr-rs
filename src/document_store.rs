@@ -1,3 +1,5 @@
+//! Implements an elasticlunr.js document store. Most users do not need to use this module directly.
+
 use std::collections::HashMap;
 
 /// The document store saves the complete text of each item saved to the index, if enabled.

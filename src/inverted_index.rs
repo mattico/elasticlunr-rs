@@ -1,3 +1,5 @@
+//! Implements an elasticlunr.js inverted index. Most users do not need to use this module directly.
+
 use std::collections::HashMap;
 use serde::ser::{Serialize, SerializeMap, Serializer};
 
@@ -89,12 +91,12 @@ impl Serialize for IndexItem {
     }
 }
 
+/// Implements an elasticlunr.js inverted index. Most users do not need to use this type directly.
 #[derive(Serialize, Debug, PartialEq)]
 pub struct InvertedIndex {
     root: IndexItem,
 }
 
-/// Implements an elasticlunr.js inverted index. Most users do not need to use this type directly.
 impl InvertedIndex {
     pub fn new() -> Self {
         InvertedIndex {

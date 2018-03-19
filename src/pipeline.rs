@@ -1,3 +1,6 @@
+//! Defines the pipeline which processes text for inclusion in the index. Most users do not need
+//! to use this module directly.
+
 use serde::ser::{Serialize, Serializer, SerializeSeq};
 use lang::Language;
 
