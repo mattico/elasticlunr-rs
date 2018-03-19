@@ -5,7 +5,7 @@ use lang::Language;
 pub fn tokenize(text: &str) -> Vec<String> {
     text.split(|c: char| c.is_whitespace() || c == '-')
         .filter(|s| s.len() > 0)
-        .map(|s| String::from(s.to_ascii_lowercase()))
+        .map(|s| s.trim().to_lowercase())
         .collect()
 }
 
@@ -47,7 +47,6 @@ impl Pipeline {
             Language::Finnish => ::lang::fi::make_pipeline(),
             Language::French => ::lang::fr::make_pipeline(),
             Language::German => ::lang::de::make_pipeline(),
-            Language::Hungarian => ::lang::hu::make_pipeline(),
             Language::Italian => ::lang::it::make_pipeline(),
             Language::Portuguese => ::lang::pt::make_pipeline(),
             Language::Romanian => ::lang::ro::make_pipeline(),

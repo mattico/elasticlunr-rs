@@ -60,7 +60,6 @@ pub enum Language {
     Finnish,
     French,
     German,
-    Hungarian,
     Italian,
     Portuguese,
     Romanian,
@@ -91,7 +90,6 @@ impl Language {
             "fi" => Some(Language::Finnish),
             "fr" => Some(Language::French),
             "de" => Some(Language::German),
-            "hu" => Some(Language::Hungarian),
             "it" => Some(Language::Italian),
             "pt" => Some(Language::Portuguese),
             "ro" => Some(Language::Romanian),
@@ -119,7 +117,6 @@ impl Language {
             Language::Finnish => "fi",
             Language::French => "fr",
             Language::German => "de",
-            Language::Hungarian => "hu",
             Language::Italian => "it",
             Language::Portuguese => "pt",
             Language::Romanian => "ro",
@@ -139,7 +136,6 @@ pub mod en;
 pub mod es;
 pub mod fi;
 pub mod fr;
-pub mod hu;
 pub mod it;
 pub mod pt;
 pub mod ro;
