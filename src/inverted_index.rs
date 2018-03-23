@@ -1,7 +1,6 @@
 //! Implements an elasticlunr.js inverted index. Most users do not need to use this module directly.
 
 use std::collections::HashMap;
-use serde::ser::{Serialize, SerializeMap, Serializer};
 
 #[derive(Debug, Copy, Clone, Serialize, PartialEq)]
 struct TermFrequency {
@@ -9,10 +8,12 @@ struct TermFrequency {
     term_freq: f64,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Serialize, Debug, Clone, PartialEq)]
 struct IndexItem {
     docs: HashMap<String, TermFrequency>,
+    #[serde(rename = "df")]
     doc_freq: i64,
+    #[serde(flatten)]
     children: HashMap<String, IndexItem>,
 }
 
@@ -73,21 +74,6 @@ impl IndexItem {
                 return;
             }
         }
-    }
-}
-
-// Manually implement serialize so `children` are inline
-impl Serialize for IndexItem {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_map(Some(2 + self.children.len()))?;
-        state.serialize_entry("df", &self.doc_freq)?;
-        state.serialize_entry("docs", &self.docs)?;
-
-        for (key, value) in &self.children {
-            state.serialize_entry(key, &value)?;
-        }
-
-        state.end()
     }
 }
 
