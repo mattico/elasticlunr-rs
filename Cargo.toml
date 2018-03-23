@@ -11,7 +11,7 @@ exclude = ["tests/lunr-fixture-gen/**"]
 readme = "README.md"
 
 [badges]
-travis-ci = { repository = "https://github.com/mattico/elasticlunr-rs" }
+travis-ci = { repository = "mattico/elasticlunr-rs" }
 
 [lib]
 name = "elasticlunr"
