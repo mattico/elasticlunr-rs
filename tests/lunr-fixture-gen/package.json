@@ -1,0 +1,11 @@
+{
+  "name": "lunr-fixture-gen",
+  "main": "index.js",
+  "dependencies": {
+    "lunr": "^2.1.6",
+    "lunr-languages": "^1.0.0"
+  },
+  "scripts": {
+    "test": "node index.js"
+  }
+}
