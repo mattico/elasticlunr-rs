@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 /// The document store saves the complete text of each item saved to the index, if enabled.
 /// Most users do not need to use this type directly.
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentStore {
     save: bool,

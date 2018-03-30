@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 /// When `expand` or `bool` is `None`, elasticlunr.js will use the value from
 /// the global configuration. The `boost` field, if present,
 /// increases the importance of this field when ordering search results.
-#[derive(Serialize, Default, Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Default, Debug, Copy, Clone, Eq, PartialEq)]
 pub struct SearchOptionsField {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub boost: Option<u8>,
@@ -27,7 +27,7 @@ pub struct SearchOptionsField {
 /// - *AND* requires every search term to be present in results
 /// - *OR* accepts results which have at least one term
 ///
-#[derive(Serialize, Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, Eq, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SearchBool {
     Or,
@@ -47,7 +47,7 @@ impl Default for SearchBool {
 /// |--------|-------|
 /// |`bool`  |`OR`   |
 /// |`expand`|`false`|
-#[derive(Serialize, Default, Debug, Clone, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, Eq, PartialEq)]
 pub struct SearchOptions {
     pub bool: SearchBool,
     pub expand: bool,

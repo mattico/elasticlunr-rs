@@ -2,13 +2,13 @@
 
 use std::collections::HashMap;
 
-#[derive(Debug, Copy, Clone, Serialize, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 struct TermFrequency {
     #[serde(rename = "tf")]
     term_freq: f64,
 }
 
-#[derive(Serialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 struct IndexItem {
     docs: HashMap<String, TermFrequency>,
     #[serde(rename = "df")]
@@ -78,7 +78,7 @@ impl IndexItem {
 }
 
 /// Implements an elasticlunr.js inverted index. Most users do not need to use this type directly.
-#[derive(Serialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct InvertedIndex {
     root: IndexItem,
 }

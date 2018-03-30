@@ -16,8 +16,9 @@ pub fn tokenize(text: &str) -> Vec<String> {
 pub type PipelineFn = fn(String) -> Option<String>;
 
 /// A sequence of `PipelineFn`s which are run on tokens to prepare them for searching.
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Pipeline {
+    #[serde(skip_deserializing)]
     pub(crate) queue: Vec<(String, PipelineFn)>,
 }
 
