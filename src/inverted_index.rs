@@ -5,16 +5,16 @@ use std::collections::HashMap;
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 struct TermFrequency {
     #[serde(rename = "tf")]
-    term_freq: f64,
+    pub term_freq: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 struct IndexItem {
-    docs: HashMap<String, TermFrequency>,
+    pub docs: HashMap<String, TermFrequency>,
     #[serde(rename = "df")]
-    doc_freq: i64,
+    pub doc_freq: i64,
     #[serde(flatten)]
-    children: HashMap<String, IndexItem>,
+    pub children: HashMap<String, IndexItem>,
 }
 
 impl IndexItem {

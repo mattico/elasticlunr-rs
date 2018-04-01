@@ -7,11 +7,11 @@ use std::collections::HashMap;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentStore {
-    save: bool,
-    docs: HashMap<String, HashMap<String, String>>,
-    doc_info: HashMap<String, HashMap<String, usize>>,
+    pub save: bool,
+    pub docs: HashMap<String, HashMap<String, String>>,
+    pub doc_info: HashMap<String, HashMap<String, usize>>,
     // Redundant with docs.len(), but needed for serialization
-    length: usize,
+    pub length: usize,
 }
 
 impl DocumentStore {

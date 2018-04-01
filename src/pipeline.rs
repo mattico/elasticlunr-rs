@@ -19,7 +19,7 @@ pub type PipelineFn = fn(String) -> Option<String>;
 #[derive(Debug, Deserialize)]
 pub struct Pipeline {
     #[serde(skip_deserializing)]
-    pub(crate) queue: Vec<(String, PipelineFn)>,
+    pub queue: Vec<(String, PipelineFn)>,
 }
 
 impl Serialize for Pipeline {
