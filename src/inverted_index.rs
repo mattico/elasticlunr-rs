@@ -27,21 +27,24 @@ impl IndexItem {
     }
 
     fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
-        let mut iter = token.char_indices();
-        if let Some((_, char)) = iter.next() {
-            let item = self.children
-                .entry(char.to_string())
+        let mut iter = token.chars();
+        if let Some(character) = iter.next() {
+            let mut item = self.children
+                .entry(character.to_string())
                 .or_insert(IndexItem::new());
-            if let Some((index, _)) = iter.next() {
-                item.add_token(doc_ref, &token[index..], term_freq);
-            } else {
-                // We're at the end of the token, now update info
-                if !item.docs.contains_key(doc_ref.into()) {
-                    item.doc_freq += 1;
-                }
-                item.docs
-                    .insert(doc_ref.into(), TermFrequency { term_freq });
+
+            for character in iter {
+                let tmp = item;
+                item = tmp.children
+                    .entry(character.to_string())
+                    .or_insert(IndexItem::new());
             }
+
+            if !item.docs.contains_key(doc_ref.into()) {
+                item.doc_freq += 1;
+            }
+            item.docs
+                .insert(doc_ref.into(), TermFrequency { term_freq });
         }
     }
 
