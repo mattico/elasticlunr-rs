@@ -1,6 +1,6 @@
 //! Implements an elasticlunr.js inverted index. Most users do not need to use this module directly.
 
-use std::collections::HashMap;
+use fnv::FnvHashMap as HashMap;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
 struct TermFrequency {
@@ -20,9 +20,9 @@ struct IndexItem {
 impl IndexItem {
     fn new() -> Self {
         IndexItem {
-            docs: HashMap::new(),
+            docs: HashMap::default(),
             doc_freq: 0,
-            children: HashMap::new(),
+            children: HashMap::default(),
         }
     }
 
@@ -227,7 +227,7 @@ mod tests {
             }
         );
 
-        assert_eq!(inverted_index.get_docs(""), Some(HashMap::new()));
+        assert_eq!(inverted_index.get_docs(""), Some(HashMap::default()));
 
         inverted_index.add_token("234", "boo", 100.);
         inverted_index.add_token("345", "too", 101.);
@@ -291,7 +291,7 @@ mod tests {
         );
 
         inverted_index.remove_token("123", "foo");
-        assert_eq!(inverted_index.get_docs("foo"), Some(HashMap::new()));
+        assert_eq!(inverted_index.get_docs("foo"), Some(HashMap::default()));
         assert_eq!(inverted_index.get_doc_frequency("foo"), 0);
         assert_eq!(inverted_index.has_token("foo"), true);
     }

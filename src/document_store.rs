@@ -1,6 +1,6 @@
 //! Implements an elasticlunr.js document store. Most users do not need to use this module directly.
 
-use std::collections::HashMap;
+use fnv::FnvHashMap as HashMap;
 
 /// The document store saves the complete text of each item saved to the index, if enabled.
 /// Most users do not need to use this type directly.
@@ -18,8 +18,8 @@ impl DocumentStore {
     pub fn new(save: bool) -> Self {
         DocumentStore {
             save: save,
-            docs: HashMap::new(),
-            doc_info: HashMap::new(),
+            docs: HashMap::default(),
+            doc_info: HashMap::default(),
             length: 0,
         }
     }
@@ -42,7 +42,7 @@ impl DocumentStore {
         }
 
         self.docs
-            .insert(doc_ref.into(), if self.save { doc } else { HashMap::new() });
+            .insert(doc_ref.into(), if self.save { doc } else { HashMap::default() });
     }
 
     pub fn get_doc(&self, doc_ref: &str) -> Option<HashMap<String, String>> {
@@ -60,7 +60,7 @@ impl DocumentStore {
     pub fn add_field_length(&mut self, doc_ref: &str, field: &str, length: usize) {
         self.doc_info
             .entry(doc_ref.into())
-            .or_insert(HashMap::new())
+            .or_insert(HashMap::default())
             .insert(field.into(), length);
     }
 
@@ -137,8 +137,8 @@ mod tests {
         store.add_doc("2", doc2);
         assert_eq!(store.len(), 2);
         assert_eq!(store.is_stored(), false);
-        assert_eq!(store.get_doc("1").unwrap(), HashMap::new());
-        assert_eq!(store.get_doc("2").unwrap(), HashMap::new());
+        assert_eq!(store.get_doc("1").unwrap(), HashMap::default());
+        assert_eq!(store.get_doc("2").unwrap(), HashMap::default());
     }
 
     #[test]
@@ -152,7 +152,7 @@ mod tests {
         assert_eq!(store.len(), 2);
         assert_eq!(store.is_stored(), false);
         assert_eq!(store.get_doc("6"), None);
-        assert_eq!(store.get_doc("2").unwrap(), HashMap::new());
+        assert_eq!(store.get_doc("2").unwrap(), HashMap::default());
     }
 
     #[test]
@@ -166,7 +166,7 @@ mod tests {
         store.remove_doc("1");
         assert_eq!(store.len(), 1);
         assert_eq!(store.is_stored(), false);
-        assert_eq!(store.get_doc("2").unwrap(), HashMap::new());
+        assert_eq!(store.get_doc("2").unwrap(), HashMap::default());
         assert_eq!(store.get_doc("1"), None);
     }
 
@@ -181,8 +181,8 @@ mod tests {
         store.remove_doc("8");
         assert_eq!(store.len(), 2);
         assert_eq!(store.is_stored(), false);
-        assert_eq!(store.get_doc("2").unwrap(), HashMap::new());
-        assert_eq!(store.get_doc("1").unwrap(), HashMap::new());
+        assert_eq!(store.get_doc("2").unwrap(), HashMap::default());
+        assert_eq!(store.get_doc("1").unwrap(), HashMap::default());
     }
 
     #[test]

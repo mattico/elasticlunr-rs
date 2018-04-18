@@ -24,8 +24,7 @@
 //! file.write_all(index.to_json_pretty().as_bytes());
 //! ```
 
-#![cfg_attr(all(test, feature = "bench"), feature(test))]
-
+extern crate fnv;
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
@@ -38,12 +37,12 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
-#[cfg(test)]
-#[macro_use]
-extern crate maplit;
-
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
+
+#[cfg(test)]
+#[macro_use]
+mod test_helpers;
 
 pub mod config;
 pub mod document_store;
@@ -51,7 +50,7 @@ pub mod inverted_index;
 pub mod lang;
 pub mod pipeline;
 
-use std::collections::HashMap;
+use fnv::FnvHashMap as HashMap;
 
 use document_store::DocumentStore;
 use inverted_index::InvertedIndex;
@@ -168,7 +167,7 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut indices = HashMap::new();
+        let mut indices = HashMap::default();
         let mut field_vec = Vec::new();
         for field in fields {
             let field = field.as_ref().to_string();
@@ -200,7 +199,7 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut indices = HashMap::new();
+        let mut indices = HashMap::default();
         let mut field_vec = Vec::new();
         for field in fields {
             let field = field.as_ref().to_string();
@@ -234,9 +233,9 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut doc = HashMap::new();
+        let mut doc = HashMap::default();
         doc.insert(self.ref_field.clone(), doc_ref.into());
-        let mut token_freq = HashMap::new();
+        let mut token_freq = HashMap::default();
 
         for (field, value) in self.fields.iter().zip(data) {
             doc.insert(field.clone(), value.as_ref().to_string());

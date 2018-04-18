@@ -16,10 +16,8 @@ travis-ci = { repository = "mattico/elasticlunr-rs" }
 [lib]
 name = "elasticlunr"
 
-[dev-dependencies]
-maplit = "1"
-
 [dependencies]
+fnv = "1"
 lazy_static = "1"
 regex = "0.2.7" # First version to include unicode escape sequences
 rust-stemmers = "1"
