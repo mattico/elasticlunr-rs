@@ -2,7 +2,7 @@
 authors = ["Matt Ickstadt <mattico8@gmail.com>"]
 license = "MIT/Apache-2.0"
 name = "elasticlunr-rs"
-version = "2.1.2"
+version = "2.1.3"
 description = "A partial port of elasticlunr.js to Rust"
 documentation = "https://docs.rs/elasticlunr-rs"
 repository = "https://github.com/mattico/elasticlunr-rs"
