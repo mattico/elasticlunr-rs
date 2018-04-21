@@ -13,7 +13,7 @@ use strum::IntoEnumIterator;
 
 fn get_lang_code(lang: Language) -> &'static str {
     match lang {
-        Language::Dutch => "du",
+        #[cfg(feature = "du")] Language::Dutch => "du",
         _ => lang.to_code(),
     }
 }
@@ -35,7 +35,7 @@ fn write_output(lang: Language) {
     let output = base.join(&format!("{}.out.rs.txt", code));
     let mut output = File::create(&output).unwrap();
 
-    let pipeline = Pipeline::for_language(lang);
+    let pipeline = lang.make_pipeline();
     let tokens = pipeline.run(tokenize(&input_str));
 
     for tok in tokens {
@@ -59,7 +59,7 @@ fn compare_to_fixture(lang: Language) {
     let output = base.join(&format!("{}.out.txt", code));
     let mut output = BufReader::new(File::open(&output).unwrap()).lines();
 
-    let pipeline = Pipeline::for_language(lang);
+    let pipeline = lang.make_pipeline();
     let tokens = pipeline.run(tokenize(&input_str));
 
     for tok in tokens {

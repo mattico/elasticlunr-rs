@@ -29,7 +29,6 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
-extern crate rust_stemmers;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -37,6 +36,9 @@ extern crate serde_json;
 extern crate strum;
 #[macro_use]
 extern crate strum_macros;
+
+#[cfg(feature = "rust-stemmers")]
+extern crate rust_stemmers;
 
 #[cfg(test)]
 #[macro_use]
@@ -62,14 +64,13 @@ pub use pipeline::Pipeline;
 ///
 /// # Example
 /// ```
-/// # use elasticlunr::{Index, IndexBuilder, Language, Pipeline};
+/// # use elasticlunr::{Index, IndexBuilder};
 /// let mut index = IndexBuilder::new()
 ///     .save_docs(false)
 ///     .add_fields(&["title", "subtitle", "body"])
-///     .set_pipeline(Pipeline::for_language(Language::Danish))
 ///     .set_ref("doc_id")
 ///     .build();
-/// index.add_doc("doc_a", &["Kapitel 1", "Velkommen til København", "..."]);
+/// index.add_doc("doc_a", &["Chapter 1", "Welcome to Copenhagen", "..."]);
 /// ```
 pub struct IndexBuilder {
     save: bool,

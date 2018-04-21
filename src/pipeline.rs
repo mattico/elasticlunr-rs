@@ -2,7 +2,6 @@
 //! to use this module directly.
 
 use serde::ser::{Serialize, Serializer, SerializeSeq};
-use lang::Language;
 
 /// Splits a text string into a vector of individual tokens.
 pub fn tokenize(text: &str) -> Vec<String> {
@@ -43,23 +42,9 @@ impl Default for Pipeline {
 
 impl Pipeline {
     /// Returns a pipeline for the given [`Language`](../lang/enum.Language.html).
-    pub fn for_language(lang: Language) -> Pipeline {
-        match lang {
-            Language::Danish => ::lang::da::make_pipeline(),
-            Language::Dutch => ::lang::du::make_pipeline(),
-            Language::English => ::lang::en::make_pipeline(),
-            Language::Finnish => ::lang::fi::make_pipeline(),
-            Language::French => ::lang::fr::make_pipeline(),
-            Language::German => ::lang::de::make_pipeline(),
-            Language::Italian => ::lang::it::make_pipeline(),
-            Language::Portuguese => ::lang::pt::make_pipeline(),
-            Language::Romanian => ::lang::ro::make_pipeline(),
-            Language::Russian => ::lang::ru::make_pipeline(),
-            Language::Spanish => ::lang::es::make_pipeline(),
-            Language::Swedish => ::lang::sv::make_pipeline(),
-            Language::Turkish => ::lang::tr::make_pipeline(),
-            _ => panic!("Dont use the `__NonExhaustive` variant!"),
-        }
+    #[deprecated(since = "2.2.0", note = "Use `Language::make_pipeline()`")]
+    pub fn for_language(lang: ::lang::Language) -> Pipeline {
+        lang.make_pipeline()
     }
 
     /// Run the Pipeline against the given vector of tokens. The returned vector may be shorter

@@ -2,6 +2,7 @@
 //! language has a trimmer, a stop word filter, and a stemmer. Most users will not need to use 
 //! these modules directly.
 
+#[allow(unused_macros)]
 macro_rules! make_trimmer {
     ($reg:expr) => {
         pub fn trimmer(token: String) -> Option<String> {
@@ -39,6 +40,7 @@ macro_rules! make_stop_word_filter {
     };
 }
 
+#[cfg(feature = "rust-stemmers")]
 macro_rules! make_stemmer {
     ($lang:expr) => {
         pub fn stemmer(token: String) -> Option<String> {
@@ -54,19 +56,19 @@ macro_rules! make_stemmer {
 /// Used to configure the `Index` for a specific lanugage.
 #[derive(Copy, Clone, Eq, PartialEq, Debug, EnumString, ToString, EnumIter)]
 pub enum Language {
-    Danish,
-    Dutch,
     English,
-    Finnish,
-    French,
-    German,
-    Italian,
-    Portuguese,
-    Romanian,
-    Russian,
-    Spanish,
-    Swedish,
-    Turkish,
+    #[cfg(feature = "da")] Danish,
+    #[cfg(feature = "du")] Dutch,
+    #[cfg(feature = "fi")] Finnish,
+    #[cfg(feature = "fr")] French,
+    #[cfg(feature = "de")] German,
+    #[cfg(feature = "it")] Italian,
+    #[cfg(feature = "pt")] Portuguese,
+    #[cfg(feature = "ro")] Romanian,
+    #[cfg(feature = "ru")] Russian,
+    #[cfg(feature = "es")] Spanish,
+    #[cfg(feature = "sv")] Swedish,
+    #[cfg(feature = "tr")] Turkish,
     #[doc(hidden)]
     #[strum(disabled = "true")]
     __NonExhaustive,
@@ -84,19 +86,19 @@ impl Language {
     /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
     pub fn from_code(code: &str) -> Option<Language> {
         match code.to_ascii_lowercase().as_str() {
-            "da" => Some(Language::Danish),
-            "nl" => Some(Language::Dutch),
             "en" => Some(Language::English),
-            "fi" => Some(Language::Finnish),
-            "fr" => Some(Language::French),
-            "de" => Some(Language::German),
-            "it" => Some(Language::Italian),
-            "pt" => Some(Language::Portuguese),
-            "ro" => Some(Language::Romanian),
-            "ru" => Some(Language::Russian),
-            "es" => Some(Language::Spanish),
-            "sv" => Some(Language::Swedish),
-            "tr" => Some(Language::Turkish),
+            #[cfg(feature = "da")] "da" => Some(Language::Danish),
+            #[cfg(feature = "du")] "nl" => Some(Language::Dutch),
+            #[cfg(feature = "fi")] "fi" => Some(Language::Finnish),
+            #[cfg(feature = "fr")] "fr" => Some(Language::French),
+            #[cfg(feature = "de")] "de" => Some(Language::German),
+            #[cfg(feature = "it")] "it" => Some(Language::Italian),
+            #[cfg(feature = "pt")] "pt" => Some(Language::Portuguese),
+            #[cfg(feature = "ro")] "ro" => Some(Language::Romanian),
+            #[cfg(feature = "ru")] "ru" => Some(Language::Russian),
+            #[cfg(feature = "es")] "es" => Some(Language::Spanish),
+            #[cfg(feature = "sv")] "sv" => Some(Language::Swedish),
+            #[cfg(feature = "tr")] "tr" => Some(Language::Turkish),
             _ => None,
         }
     }
@@ -111,34 +113,67 @@ impl Language {
     /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
     pub fn to_code(&self) -> &'static str {
         match *self {
-            Language::Danish => "da",
-            Language::Dutch => "nl",
             Language::English => "en",
-            Language::Finnish => "fi",
-            Language::French => "fr",
-            Language::German => "de",
-            Language::Italian => "it",
-            Language::Portuguese => "pt",
-            Language::Romanian => "ro",
-            Language::Russian => "ru",
-            Language::Spanish => "es",
-            Language::Swedish => "sv",
-            Language::Turkish => "tr",
+            #[cfg(feature = "da")] Language::Danish => "da",
+            #[cfg(feature = "du")] Language::Dutch => "nl",
+            #[cfg(feature = "fi")] Language::Finnish => "fi",
+            #[cfg(feature = "fr")] Language::French => "fr",
+            #[cfg(feature = "de")] Language::German => "de",
+            #[cfg(feature = "it")] Language::Italian => "it",
+            #[cfg(feature = "pt")] Language::Portuguese => "pt",
+            #[cfg(feature = "ro")] Language::Romanian => "ro",
+            #[cfg(feature = "ru")] Language::Russian => "ru",
+            #[cfg(feature = "es")] Language::Spanish => "es",
+            #[cfg(feature = "sv")] Language::Swedish => "sv",
+            #[cfg(feature = "tr")] Language::Turkish => "tr",
             _ => panic!("Don't use the __NonExhaustive variant!"),
+        }
+    }
+
+    /// Creates a pipeline for the [`Language`](../lang/enum.Language.html).
+    pub fn make_pipeline(&self) -> ::pipeline::Pipeline {
+        match *self {
+            Language::English => ::lang::en::make_pipeline(),
+            #[cfg(feature = "da")] Language::Danish => ::lang::da::make_pipeline(),
+            #[cfg(feature = "du")] Language::Dutch => ::lang::du::make_pipeline(),
+            #[cfg(feature = "fi")] Language::Finnish => ::lang::fi::make_pipeline(),
+            #[cfg(feature = "fr")] Language::French => ::lang::fr::make_pipeline(),
+            #[cfg(feature = "de")] Language::German => ::lang::de::make_pipeline(),
+            #[cfg(feature = "it")] Language::Italian => ::lang::it::make_pipeline(),
+            #[cfg(feature = "pt")] Language::Portuguese => ::lang::pt::make_pipeline(),
+            #[cfg(feature = "ro")] Language::Romanian => ::lang::ro::make_pipeline(),
+            #[cfg(feature = "ru")] Language::Russian => ::lang::ru::make_pipeline(),
+            #[cfg(feature = "es")] Language::Spanish => ::lang::es::make_pipeline(),
+            #[cfg(feature = "sv")] Language::Swedish => ::lang::sv::make_pipeline(),
+            #[cfg(feature = "tr")] Language::Turkish => ::lang::tr::make_pipeline(),
+            _ => panic!("Dont use the `__NonExhaustive` variant!"),
         }
     }
 }
 
-pub mod da;
-pub mod de;
-pub mod du;
 pub mod en;
+
+#[cfg(feature = "da")]
+pub mod da;
+#[cfg(feature = "de")]
+pub mod de;
+#[cfg(feature = "du")]
+pub mod du;
+#[cfg(feature = "es")]
 pub mod es;
+#[cfg(feature = "fi")]
 pub mod fi;
+#[cfg(feature = "fr")]
 pub mod fr;
+#[cfg(feature = "it")]
 pub mod it;
+#[cfg(feature = "pt")]
 pub mod pt;
+#[cfg(feature = "ro")]
 pub mod ro;
+#[cfg(feature = "ru")]
 pub mod ru;
+#[cfg(feature = "sv")]
 pub mod sv;
+#[cfg(feature = "tr")]
 pub mod tr;
