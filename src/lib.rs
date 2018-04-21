@@ -212,7 +212,7 @@ impl Index {
         Index {
             fields: field_vec,
             index: indices,
-            pipeline: Pipeline::for_language(lang),
+            pipeline: lang.make_pipeline(),
             ref_field: "id".into(),
             version: ::ELASTICLUNR_VERSION,
             document_store: DocumentStore::new(true),
