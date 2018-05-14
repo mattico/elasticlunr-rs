@@ -2,16 +2,31 @@
 extern crate serde_json;
 extern crate elasticlunr;
 
+use elasticlunr::*;
 use std::fs::File;
 use std::path::Path;
-use elasticlunr::*;
 
 const DOCS: &'static [[&'static str; 2]] = &[
-    ["Chapter 1", "Lorem ipsum dolor sit amet, consectetur adipiscing elit"],
-    ["Chapter 2", "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad"],
-    ["Chapter 3", "minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex"],
-    ["Chapter 4", "ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate"],
-    ["Chapter 5", "velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat"],
+    [
+        "Chapter 1",
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    ],
+    [
+        "Chapter 2",
+        "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad",
+    ],
+    [
+        "Chapter 3",
+        "minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex",
+    ],
+    [
+        "Chapter 4",
+        "ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate",
+    ],
+    [
+        "Chapter 5",
+        "velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat",
+    ],
 ];
 
 fn create_index() -> serde_json::Value {

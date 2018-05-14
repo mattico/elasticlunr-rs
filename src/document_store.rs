@@ -41,8 +41,10 @@ impl DocumentStore {
             self.length += 1;
         }
 
-        self.docs
-            .insert(doc_ref.into(), if self.save { doc } else { BTreeMap::new() });
+        self.docs.insert(
+            doc_ref.into(),
+            if self.save { doc } else { BTreeMap::new() },
+        );
     }
 
     pub fn get_doc(&self, doc_ref: &str) -> Option<BTreeMap<String, String>> {

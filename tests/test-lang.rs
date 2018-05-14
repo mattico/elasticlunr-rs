@@ -4,16 +4,17 @@ extern crate elasticlunr;
 extern crate strum;
 
 use std::fs::File;
-use std::path::Path;
 use std::io::{BufRead, BufReader, Read, Write};
+use std::path::Path;
 
-use elasticlunr::*;
 use elasticlunr::pipeline::tokenize;
+use elasticlunr::*;
 use strum::IntoEnumIterator;
 
 fn get_lang_code(lang: Language) -> &'static str {
     match lang {
-        #[cfg(feature = "du")] Language::Dutch => "du",
+        #[cfg(feature = "du")]
+        Language::Dutch => "du",
         _ => lang.to_code(),
     }
 }

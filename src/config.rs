@@ -1,7 +1,7 @@
 //! These types are not used for generating `Index`es. They are provided to help with
 //! creating compatible JSON structures for configuring the JavaScript search
 //! function.
-//! 
+//!
 //! *Reference:*
 //! <http://elasticlunr.com/docs/configuration.js.html>
 
@@ -40,7 +40,7 @@ impl Default for SearchBool {
     }
 }
 
-/// The search configuration map which is passed to the 
+/// The search configuration map which is passed to the
 /// elasticlunr.js `Index.search()` function.
 ///
 /// |Key     |Default|

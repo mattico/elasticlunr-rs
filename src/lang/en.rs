@@ -1,5 +1,5 @@
-use regex::Regex;
 use pipeline::Pipeline;
+use regex::Regex;
 
 pub fn make_pipeline() -> Pipeline {
     Pipeline {
@@ -332,7 +332,7 @@ mod tests {
     macro_rules! pipeline_eq {
         ($func:expr, $input:expr, $output:expr) => {
             assert_eq!(&$func($input.to_string()).unwrap(), $output);
-        }
+        };
     }
 
     #[test]

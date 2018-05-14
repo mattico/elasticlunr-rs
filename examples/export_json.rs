@@ -1,8 +1,8 @@
 extern crate elasticlunr;
 
+use elasticlunr::Index;
 use std::fs::File;
 use std::io::Write;
-use elasticlunr::Index;
 
 fn main() {
     let mut index = Index::new(&["title", "body"]);
