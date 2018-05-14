@@ -53,7 +53,7 @@ pub mod inverted_index;
 pub mod lang;
 pub mod pipeline;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use document_store::DocumentStore;
 use inverted_index::InvertedIndex;
@@ -151,7 +151,7 @@ pub struct Index {
     #[serde(rename = "ref")]
     pub ref_field: String,
     pub version: &'static str,
-    index: HashMap<String, InvertedIndex>,
+    index: BTreeMap<String, InvertedIndex>,
     pub document_store: DocumentStore,
 }
 
@@ -169,7 +169,7 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut indices = HashMap::new();
+        let mut indices = BTreeMap::new();
         let mut field_vec = Vec::new();
         for field in fields {
             let field = field.as_ref().to_string();
@@ -201,7 +201,7 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut indices = HashMap::new();
+        let mut indices = BTreeMap::new();
         let mut field_vec = Vec::new();
         for field in fields {
             let field = field.as_ref().to_string();
@@ -235,9 +235,9 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut doc = HashMap::new();
+        let mut doc = BTreeMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());
-        let mut token_freq = HashMap::new();
+        let mut token_freq = BTreeMap::new();
 
         for (field, value) in self.fields.iter().zip(data) {
             doc.insert(field.clone(), value.as_ref().to_string());
@@ -300,7 +300,7 @@ mod tests {
         assert_eq!(idx.document_store.len(), 1);
         assert_eq!(
             idx.document_store.get_doc("1").unwrap(),
-            hashmap!{
+            btreemap!{
                 "id".into() => "1".into(),
                 "body".into() => "this is a test".into(),
             }
