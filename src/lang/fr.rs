@@ -58,7 +58,7 @@ mod benches {
 
         b.iter(|| {
             let tokens = tokens.clone();
-            for token in tokens.into_iter() {
+            for token in tokens {
                 test::black_box(super::stop_word_filter(token));
             }
         });
