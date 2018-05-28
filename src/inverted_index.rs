@@ -13,8 +13,8 @@ struct IndexItem {
     pub docs: BTreeMap<String, TermFrequency>,
     #[serde(rename = "df")]
     pub doc_freq: i64,
-    #[serde(flatten)]
-    pub children: BTreeMap<String, IndexItem>,
+    #[serde(flatten, serialize_with = "IndexItem::serialize")]
+    pub children: BTreeMap<char, IndexItem>,
 }
 
 impl IndexItem {
@@ -26,18 +26,29 @@ impl IndexItem {
         }
     }
 
+    fn serialize<S>(map: &BTreeMap<char, IndexItem>, ser: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        use serde::ser::SerializeMap;
+
+        let mut ser_map = ser.serialize_map(Some(map.len()))?;
+        let mut buf = [0u8; 4];
+        for (key, value) in map {
+            let key = key.encode_utf8(&mut buf);
+            ser_map.serialize_entry(key, value)?;
+        }
+        ser_map.end()
+    }
+
     fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
         let mut iter = token.chars();
         if let Some(character) = iter.next() {
-            let mut item = self.children
-                .entry(character.to_string())
-                .or_insert(IndexItem::new());
+            let mut item = self.children.entry(character).or_insert(IndexItem::new());
 
             for character in iter {
                 let tmp = item;
-                item = tmp.children
-                    .entry(character.to_string())
-                    .or_insert(IndexItem::new());
+                item = tmp.children.entry(character).or_insert(IndexItem::new());
             }
 
             if !item.docs.contains_key(doc_ref.into()) {
@@ -50,8 +61,8 @@ impl IndexItem {
 
     fn get_node(&self, token: &str) -> Option<&IndexItem> {
         let mut root = self;
-        for char in token.chars() {
-            if let Some(item) = root.children.get(&char.to_string()) {
+        for ch in token.chars() {
+            if let Some(item) = root.children.get(&ch) {
                 root = item;
             } else {
                 return None;
@@ -63,8 +74,8 @@ impl IndexItem {
 
     fn remove_token(&mut self, doc_ref: &str, token: &str) {
         let mut iter = token.char_indices();
-        if let Some((_, char)) = iter.next() {
-            if let Some(item) = self.children.get_mut(&char.to_string()) {
+        if let Some((_, ch)) = iter.next() {
+            if let Some(item) = self.children.get_mut(&ch) {
                 if let Some((idx, _)) = iter.next() {
                     item.remove_token(doc_ref, &token[idx..]);
                 } else {

@@ -8,7 +8,8 @@ extern crate elasticlunr;
 use elasticlunr::Index;
 
 // # Results
-// HashMap: 3,612,098 ns/iter (+/- 303,386)
+// BTreeMap<String, IndexItem>: 3,165,389 ns/iter (+/- 420,869)
+// BTreeMap<char, IndexItem>:   2,920,902 ns/iter (+/- 118,729)
 
 #[bench]
 fn bench_holistic_en(b: &mut Bencher) {
