@@ -96,29 +96,38 @@ struct Stemmer {
     re3_5: Regex,
 }
 
-#[allow(non_upper_case_globals)]
-const v: &str = "[aeiouy]"; // vowel
-#[allow(non_upper_case_globals)]
-const C: &str = "[^aeiou][^aeiouy]*"; // consonant sequence
-#[allow(non_upper_case_globals)]
-const V: &str = "[aeiouy][aeiou]*"; // vowel sequence
+// vowel
+macro_rules! V {
+    () => {
+        "[aeiouy]"
+    };
+}
 
-macro_rules! concat_buf {
-    ($($st:expr),*) => {
-        {
-            let mut temp_str = String::new();
-            $(temp_str.push_str($st);)*
-            temp_str
-        }
-    }
+// consonant sequence
+macro_rules! CS {
+    () => {
+        "[^aeiou][^aeiouy]*"
+    };
+}
+
+// vowel sequence
+macro_rules! VS {
+    () => {
+        "[aeiouy][aeiou]*"
+    };
+}
+
+#[inline]
+fn concat_string(strs: &[&str]) -> String {
+    strs.iter().cloned().collect()
 }
 
 impl Stemmer {
     fn new() -> Self {
-        let mgr0 = concat_buf!("^(", C, ")?", V, C);
-        let meq1 = concat_buf!("^(", C, ")?", V, C, "(", V, ")?$");
-        let mgr1 = concat_buf!("^(", C, ")?", V, C, V, C);
-        let s_v = concat_buf!("^(", C, ")?", v);
+        let mgr0 = concat!("^(", CS!(), ")?", VS!(), CS!());
+        let meq1 = concat!("^(", CS!(), ")?", VS!(), CS!(), "(", VS!(), ")?$");
+        let mgr1 = concat!("^(", CS!(), ")?", VS!(), CS!(), VS!(), CS!());
+        let s_v = concat!("^(", CS!(), ")?", V!());
 
         let re_mgr0 = Regex::new(&mgr0).unwrap();
         let re_mgr1 = Regex::new(&mgr1).unwrap();
@@ -131,7 +140,7 @@ impl Stemmer {
         let re2_1b = Regex::new("^(.+?)(ed|ing)$").unwrap();
         let re2_1b_2 = Regex::new("(at|bl|iz)$").unwrap();
         let re3_1b_2 = Regex::new("([^aeiouylsz]{2})$").unwrap();
-        let re4_1b_2 = Regex::new(&concat_buf!("^", C, v, "[^aeiouwxy]$")).unwrap();
+        let re4_1b_2 = Regex::new(concat!("^", CS!(), V!(), "[^aeiouwxy]$")).unwrap();
 
         let re_1c = Regex::new("^(.+?[^aeiou])y$").unwrap();
         let re_2 = Regex::new(
@@ -147,7 +156,7 @@ impl Stemmer {
         let re2_4 = Regex::new("^(.+?)(s|t)(ion)$").unwrap();
 
         let re_5 = Regex::new("^(.+?)e$").unwrap();
-        let re3_5 = Regex::new(&concat_buf!("^", C, v, "[^aeiouwxy]$")).unwrap();
+        let re3_5 = Regex::new(concat!("^", CS!(), V!(), "[^aeiouwxy]$")).unwrap();
 
         Stemmer {
             re_mgr0,
@@ -188,10 +197,10 @@ impl Stemmer {
 
         // Step 1a
         if let Some(caps) = self.re_1a.captures(&w.clone()) {
-            w = concat_buf!(&caps[1], &caps[2]);
+            w = concat_string(&[&caps[1], &caps[2]]);
         }
         if let Some(caps) = self.re2_1a.captures(&w.clone()) {
-            w = concat_buf!(&caps[1], &caps[2]);
+            w = concat_string(&[&caps[1], &caps[2]]);
         }
 
         // Step 1b
@@ -230,7 +239,7 @@ impl Stemmer {
         // letter of the word (so cry -> cri, by -> by, say -> say)
         if let Some(caps) = self.re_1c.captures(&w.clone()) {
             let stem = &caps[1];
-            w = concat_buf!(stem, "i");
+            w = concat_string(&[stem, "i"]);
         }
 
         // Step 2
@@ -238,7 +247,7 @@ impl Stemmer {
             let stem = &caps[1];
             let suffix = &caps[2];
             if self.re_mgr0.is_match(&stem) {
-                w = concat_buf!(stem, STEP_2.iter().find(|&&(k, _)| k == suffix).unwrap().1);
+                w = concat_string(&[stem, STEP_2.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
             }
         }
 
@@ -247,7 +256,7 @@ impl Stemmer {
             let stem = &caps[1];
             let suffix = &caps[2];
             if self.re_mgr0.is_match(&stem) {
-                w = concat_buf!(stem, STEP_3.iter().find(|&&(k, _)| k == suffix).unwrap().1);
+                w = concat_string(&[stem, STEP_3.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
             }
         }
 
@@ -258,7 +267,7 @@ impl Stemmer {
                 w = stem.into();
             }
         } else if let Some(caps) = self.re2_4.captures(&w.clone()) {
-            let stem = concat_buf!(&caps[1], &caps[2]);
+            let stem = concat_string(&[&caps[1], &caps[2]]);
             if self.re_mgr1.is_match(&stem) {
                 w = stem;
             }
