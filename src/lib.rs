@@ -79,14 +79,20 @@ pub struct IndexBuilder {
     pipeline: Option<Pipeline>,
 }
 
-impl IndexBuilder {
-    pub fn new() -> Self {
+impl Default for IndexBuilder {
+    fn default() -> Self {
         IndexBuilder {
             save: true,
             fields: BTreeSet::new(),
             ref_field: "id".into(),
             pipeline: None,
         }
+    }
+}
+
+impl IndexBuilder {
+    pub fn new() -> Self {
+        Default::default()
     }
 
     /// Set whether or not documents should be saved in the `Index`'s document store.
