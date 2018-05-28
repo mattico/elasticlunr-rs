@@ -24,7 +24,7 @@
 //! file.write_all(index.to_json_pretty().as_bytes());
 //! ```
 
-#![cfg_attr(all(test, feature = "bench"), feature(test))]
+#![cfg_attr(feature = "bench", feature(test))]
 
 #[macro_use]
 extern crate lazy_static;
@@ -96,7 +96,7 @@ impl IndexBuilder {
     }
 
     /// Add a document field to the `Index`.
-    /// 
+    ///
     /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
     pub fn add_field(mut self, field: &str) -> Self {
         self.fields.insert(field.into());
@@ -104,7 +104,7 @@ impl IndexBuilder {
     }
 
     /// Add the document fields to the `Index`.
-    /// 
+    ///
     /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
     pub fn add_fields<I>(mut self, fields: I) -> Self
     where
@@ -130,7 +130,8 @@ impl IndexBuilder {
 
     /// Build an `Index` from this builder.
     pub fn build(self) -> Index {
-        let index = self.fields
+        let index = self
+            .fields
             .iter()
             .map(|f| (f.clone(), InvertedIndex::new()))
             .collect();
@@ -164,15 +165,15 @@ impl Index {
     /// Create a new index with the provided fields.
     ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use elasticlunr::Index;
     /// let mut index = Index::new(&["title", "body", "breadcrumbs"]);
     /// index.add_doc("1", &["How to Foo", "First, you need to `bar`.", "Chapter 1 > How to Foo"]);
     /// ```
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if multiple given fields are identical.
     pub fn new<I>(fields: I) -> Self
     where
@@ -186,15 +187,15 @@ impl Index {
     /// [`Language`](lang/enum.Language.html).
     ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use elasticlunr::{Index, Language};
     /// let mut index = Index::with_language(Language::English, &["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// Panics if multiple given fields are identical.
     pub fn with_language<I>(lang: Language, fields: I) -> Self
     where
@@ -297,7 +298,7 @@ mod tests {
 
         let idx_fields = idx.get_fields();
         for f in &["foo", "bar", "baz"] {
-            assert_eq!(idx_fields.iter().filter(|x| x == f).count(), 1);   
+            assert_eq!(idx_fields.iter().filter(|x| x == f).count(), 1);
         }
     }
 
