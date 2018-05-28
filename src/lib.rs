@@ -130,7 +130,8 @@ impl IndexBuilder {
 
     /// Build an `Index` from this builder.
     pub fn build(self) -> Index {
-        let index = self.fields
+        let index = self
+            .fields
             .iter()
             .map(|f| (f.clone(), InvertedIndex::new()))
             .collect();
