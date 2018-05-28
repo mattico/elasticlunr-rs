@@ -51,7 +51,7 @@ impl IndexItem {
                 item = tmp.children.entry(character).or_insert(IndexItem::new());
             }
 
-            if !item.docs.contains_key(doc_ref.into()) {
+            if !item.docs.contains_key(doc_ref) {
                 item.doc_freq += 1;
             }
             item.docs

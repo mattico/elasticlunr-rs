@@ -48,7 +48,7 @@ impl DocumentStore {
     }
 
     pub fn get_doc(&self, doc_ref: &str) -> Option<BTreeMap<String, String>> {
-        self.docs.get(doc_ref.into()).cloned()
+        self.docs.get(doc_ref).cloned()
     }
 
     pub fn remove_doc(&mut self, doc_ref: &str) {
@@ -56,7 +56,7 @@ impl DocumentStore {
             self.length -= 1;
         }
 
-        self.docs.remove(doc_ref.into());
+        self.docs.remove(doc_ref);
     }
 
     pub fn add_field_length(&mut self, doc_ref: &str, field: &str, length: usize) {
@@ -69,8 +69,8 @@ impl DocumentStore {
     pub fn get_field_length(&self, doc_ref: &str, field: &str) -> usize {
         if self.has_doc(doc_ref) {
             self.doc_info
-                .get(doc_ref.into())
-                .and_then(|e| e.get(field.into()))
+                .get(doc_ref)
+                .and_then(|e| e.get(field))
                 .cloned()
                 .unwrap_or(0)
         } else {
