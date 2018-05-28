@@ -17,7 +17,7 @@ pub struct DocumentStore {
 impl DocumentStore {
     pub fn new(save: bool) -> Self {
         DocumentStore {
-            save: save,
+            save,
             docs: BTreeMap::new(),
             doc_info: BTreeMap::new(),
             length: 0,
@@ -26,6 +26,10 @@ impl DocumentStore {
 
     pub fn len(&self) -> usize {
         self.docs.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn is_stored(&self) -> bool {
@@ -62,7 +66,7 @@ impl DocumentStore {
     pub fn add_field_length(&mut self, doc_ref: &str, field: &str, length: usize) {
         self.doc_info
             .entry(doc_ref.into())
-            .or_insert(BTreeMap::new())
+            .or_insert_with(BTreeMap::new)
             .insert(field.into(), length);
     }
 

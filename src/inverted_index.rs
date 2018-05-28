@@ -8,7 +8,7 @@ struct TermFrequency {
     pub term_freq: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 struct IndexItem {
     pub docs: BTreeMap<String, TermFrequency>,
     #[serde(rename = "df")]
@@ -19,11 +19,7 @@ struct IndexItem {
 
 impl IndexItem {
     fn new() -> Self {
-        IndexItem {
-            docs: BTreeMap::new(),
-            doc_freq: 0,
-            children: BTreeMap::new(),
-        }
+        Default::default()
     }
 
     fn serialize<S>(map: &BTreeMap<char, IndexItem>, ser: S) -> Result<S::Ok, S::Error>
@@ -44,11 +40,14 @@ impl IndexItem {
     fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
         let mut iter = token.chars();
         if let Some(character) = iter.next() {
-            let mut item = self.children.entry(character).or_insert(IndexItem::new());
+            let mut item = self
+                .children
+                .entry(character)
+                .or_insert_with(IndexItem::new);
 
             for character in iter {
                 let tmp = item;
-                item = tmp.children.entry(character).or_insert(IndexItem::new());
+                item = tmp.children.entry(character).or_insert_with(IndexItem::new);
             }
 
             if !item.docs.contains_key(doc_ref) {
@@ -78,11 +77,9 @@ impl IndexItem {
             if let Some(item) = self.children.get_mut(&ch) {
                 if let Some((idx, _)) = iter.next() {
                     item.remove_token(doc_ref, &token[idx..]);
-                } else {
-                    if item.docs.contains_key(doc_ref) {
-                        item.docs.remove(doc_ref);
-                        item.doc_freq -= 1;
-                    }
+                } else if item.docs.contains_key(doc_ref) {
+                    item.docs.remove(doc_ref);
+                    item.doc_freq -= 1;
                 }
             } else {
                 return;
@@ -92,16 +89,14 @@ impl IndexItem {
 }
 
 /// Implements an elasticlunr.js inverted index. Most users do not need to use this type directly.
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Default)]
 pub struct InvertedIndex {
     root: IndexItem,
 }
 
 impl InvertedIndex {
     pub fn new() -> Self {
-        InvertedIndex {
-            root: IndexItem::new(),
-        }
+        Default::default()
     }
 
     pub fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
@@ -128,7 +123,7 @@ impl InvertedIndex {
     pub fn get_term_frequency(&self, doc_ref: &str, token: &str) -> f64 {
         self.root
             .get_node(token)
-            .and_then(|node| node.docs.get(doc_ref.into()))
+            .and_then(|node| node.docs.get(doc_ref))
             .map_or(0., |docs| docs.term_freq)
     }
 

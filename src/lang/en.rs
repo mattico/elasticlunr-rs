@@ -177,7 +177,7 @@ impl Stemmer {
             return w;
         }
 
-        let starts_with_y = w.as_bytes()[0] == 'y' as u8;
+        let starts_with_y = w.as_bytes()[0] == b'y';
         if starts_with_y {
             w.remove(0);
             w.insert(0, 'Y');
@@ -260,7 +260,7 @@ impl Stemmer {
         } else if let Some(caps) = self.re2_4.captures(&w.clone()) {
             let stem = concat_buf!(&caps[1], &caps[2]);
             if self.re_mgr1.is_match(&stem) {
-                w = stem.into();
+                w = stem;
             }
         }
 
