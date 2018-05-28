@@ -221,6 +221,7 @@ impl Stemmer {
                 } else if let Some(m) = self.re3_1b_2.find(&w.clone()) {
                     let suffix = m.as_str();
                     // Make sure the two characters are the same since we can't use backreferences
+                    // these indexing operations can't panic since the regex only matches ascii characters
                     if suffix[0..1] == suffix[1..2] {
                         re3_1b_2_matched = true;
                         w.pop();
