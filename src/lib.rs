@@ -24,6 +24,8 @@
 //! file.write_all(index.to_json_pretty().as_bytes());
 //! ```
 
+#![feature(rust_2018_preview)]
+
 #![cfg_attr(feature = "bench", feature(test))]
 
 #[macro_use]
