@@ -310,7 +310,7 @@ mod tests {
     #[cfg(feature = "bench")]
     extern crate test;
     use super::*;
-    use pipeline::tokenize;
+    use crate::pipeline::tokenize;
 
     #[test]
     fn split_simple_strings() {
