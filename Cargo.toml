@@ -1,4 +1,7 @@
+cargo-features = ["edition"]
+
 [package]
+edition = '2018'
 authors = ["Matt Ickstadt <mattico8@gmail.com>"]
 license = "MIT/Apache-2.0"
 name = "elasticlunr-rs"

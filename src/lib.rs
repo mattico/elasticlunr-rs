@@ -25,6 +25,7 @@
 //! ```
 
 #![feature(rust_2018_preview)]
+#![deny(rust_2018_idioms)]
 
 #![cfg_attr(feature = "bench", feature(test))]
 
