@@ -1,4 +1,4 @@
-use pipeline::Pipeline;
+use crate::pipeline::Pipeline;
 use regex::Regex;
 
 pub fn make_pipeline() -> Pipeline {

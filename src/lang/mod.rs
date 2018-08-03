@@ -167,33 +167,33 @@ impl Language {
     }
 
     /// Creates a pipeline for the [`Language`](../lang/enum.Language.html).
-    pub fn make_pipeline(&self) -> ::pipeline::Pipeline {
+    pub fn make_pipeline(&self) -> crate::pipeline::Pipeline {
         match *self {
-            Language::English => ::lang::en::make_pipeline(),
+            Language::English => crate::lang::en::make_pipeline(),
             #[cfg(feature = "da")]
-            Language::Danish => ::lang::da::make_pipeline(),
+            Language::Danish => crate::lang::da::make_pipeline(),
             #[cfg(feature = "du")]
-            Language::Dutch => ::lang::du::make_pipeline(),
+            Language::Dutch => crate::lang::du::make_pipeline(),
             #[cfg(feature = "fi")]
-            Language::Finnish => ::lang::fi::make_pipeline(),
+            Language::Finnish => crate::lang::fi::make_pipeline(),
             #[cfg(feature = "fr")]
-            Language::French => ::lang::fr::make_pipeline(),
+            Language::French => crate::lang::fr::make_pipeline(),
             #[cfg(feature = "de")]
-            Language::German => ::lang::de::make_pipeline(),
+            Language::German => crate::lang::de::make_pipeline(),
             #[cfg(feature = "it")]
-            Language::Italian => ::lang::it::make_pipeline(),
+            Language::Italian => crate::lang::it::make_pipeline(),
             #[cfg(feature = "pt")]
-            Language::Portuguese => ::lang::pt::make_pipeline(),
+            Language::Portuguese => crate::lang::pt::make_pipeline(),
             #[cfg(feature = "ro")]
-            Language::Romanian => ::lang::ro::make_pipeline(),
+            Language::Romanian => crate::lang::ro::make_pipeline(),
             #[cfg(feature = "ru")]
-            Language::Russian => ::lang::ru::make_pipeline(),
+            Language::Russian => crate::lang::ru::make_pipeline(),
             #[cfg(feature = "es")]
-            Language::Spanish => ::lang::es::make_pipeline(),
+            Language::Spanish => crate::lang::es::make_pipeline(),
             #[cfg(feature = "sv")]
-            Language::Swedish => ::lang::sv::make_pipeline(),
+            Language::Swedish => crate::lang::sv::make_pipeline(),
             #[cfg(feature = "tr")]
-            Language::Turkish => ::lang::tr::make_pipeline(),
+            Language::Turkish => crate::lang::tr::make_pipeline(),
             _ => panic!("Dont use the `__NonExhaustive` variant!"),
         }
     }

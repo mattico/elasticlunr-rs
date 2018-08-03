@@ -57,10 +57,10 @@ pub mod pipeline;
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use document_store::DocumentStore;
-use inverted_index::InvertedIndex;
-pub use lang::Language;
-pub use pipeline::Pipeline;
+use crate::document_store::DocumentStore;
+use crate::inverted_index::InvertedIndex;
+pub use crate::lang::Language;
+pub use crate::pipeline::Pipeline;
 
 /// A builder for an `Index` with custom parameters.
 ///
@@ -150,7 +150,7 @@ impl IndexBuilder {
             ref_field: self.ref_field,
             document_store: DocumentStore::new(self.save),
             pipeline: self.pipeline.unwrap_or_default(),
-            version: ::ELASTICLUNR_VERSION,
+            version: crate::ELASTICLUNR_VERSION,
         }
     }
 }
@@ -226,7 +226,7 @@ impl Index {
             index: indices,
             pipeline: lang.make_pipeline(),
             ref_field: "id".into(),
-            version: ::ELASTICLUNR_VERSION,
+            version: crate::ELASTICLUNR_VERSION,
             document_store: DocumentStore::new(true),
         }
     }
