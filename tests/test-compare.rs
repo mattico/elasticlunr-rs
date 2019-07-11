@@ -27,6 +27,10 @@ const DOCS: &'static [[&'static str; 2]] = &[
         "Chapter 5",
         "velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat",
     ],
+    [
+        "Chapter 6",
+        "Spatiëring shouldn’t cause a panic.",
+    ],
 ];
 
 fn create_index() -> serde_json::Value {
