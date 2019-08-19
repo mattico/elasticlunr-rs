@@ -44,6 +44,10 @@ extern crate rust_stemmers;
 #[macro_use]
 extern crate maplit;
 
+#[cfg(feature = "zh")]
+extern crate jieba_rs;
+
+
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
 
@@ -59,6 +63,7 @@ use document_store::DocumentStore;
 use inverted_index::InvertedIndex;
 pub use lang::Language;
 pub use pipeline::Pipeline;
+use jieba_rs::Jieba;
 
 /// A builder for an `Index` with custom parameters.
 ///
@@ -149,6 +154,7 @@ impl IndexBuilder {
             document_store: DocumentStore::new(self.save),
             pipeline: self.pipeline.unwrap_or_default(),
             version: ::ELASTICLUNR_VERSION,
+            lang: Language::English,
         }
     }
 }
@@ -165,6 +171,7 @@ pub struct Index {
     pub version: &'static str,
     index: BTreeMap<String, InvertedIndex>,
     pub document_store: DocumentStore,
+    lang: Language,
 }
 
 impl Index {
@@ -226,6 +233,7 @@ impl Index {
             ref_field: "id".into(),
             version: ::ELASTICLUNR_VERSION,
             document_store: DocumentStore::new(true),
+            lang: lang,
         }
     }
 
@@ -256,7 +264,23 @@ impl Index {
                 continue;
             }
 
-            let tokens = self.pipeline.run(pipeline::tokenize(value.as_ref()));
+            let raw_tokens: Vec<String>;
+
+            if self.lang == Language::Chinese {
+                let jieba = Jieba::new();
+                raw_tokens = jieba.cut_for_search(value.as_ref(), false)
+                    .iter()
+                    .map(|s| (*s).into())
+                    .collect();
+
+                println!("raw tokens: {:?}", raw_tokens);
+            } else {
+                raw_tokens = pipeline::tokenize(value.as_ref());
+            }
+
+            let tokens = self.pipeline.run(raw_tokens);
+            println!("tokens: {:?}", tokens);
+
             self.document_store
                 .add_field_length(doc_ref, field, tokens.len());
 
@@ -266,6 +290,7 @@ impl Index {
 
             for (token, count) in &token_freq {
                 let freq = (*count as f64).sqrt();
+                println!("token={}, freq={}", token, freq);
                 self.index
                     .get_mut(field)
                     .expect(&format!("InvertedIndex does not exist for field {}", field))

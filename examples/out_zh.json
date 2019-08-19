@@ -1,0 +1,45 @@
+{
+  "fields": [
+    "title",
+    "body"
+  ],
+  "pipeline": [
+    "trimmer-zh",
+    "stopWordFilter-zh",
+    "stemmer-zh"
+  ],
+  "ref": "id",
+  "version": "0.9.5",
+  "index": {
+    "body": {
+      "root": {
+        "docs": {},
+        "df": 0
+      }
+    },
+    "title": {
+      "root": {
+        "docs": {},
+        "df": 0
+      }
+    }
+  },
+  "documentStore": {
+    "save": true,
+    "docs": {
+      "1": {
+        "body": "杭州余杭区人民欢迎你",
+        "id": "1",
+        "title": "中华人民共和国"
+      }
+    },
+    "docInfo": {
+      "1": {
+        "body": 0,
+        "title": 0
+      }
+    },
+    "length": 1
+  },
+  "lang": "Chinese"
+}
