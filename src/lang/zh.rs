@@ -13,17 +13,9 @@ pub fn make_pipeline() -> Pipeline {
 
 
 pub fn trimmer(token: String) -> Option<String> {
-    println!("trim {}", token);
-
-    for c in token.chars() {
-        println!("{}, {}", c, c as u32);
-    }
-
     let ret: String = token.
         trim_matches(|c: char| !is_valid_char(c)  )
         .into();
-
-    println!("end trim{}", ret);
 
     if ret.eq("") {
         return None;

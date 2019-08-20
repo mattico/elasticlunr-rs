@@ -274,8 +274,6 @@ impl Index {
                         .iter()
                         .map(|s| (*s).into())
                         .collect();
-
-                    println!("raw tokens: {:?}", raw_tokens);
                 },
                 _ => {
                     raw_tokens = pipeline::tokenize(value.as_ref());
@@ -283,7 +281,6 @@ impl Index {
             }
 
             let tokens = self.pipeline.run(raw_tokens);
-            println!("tokens: {:?}", tokens);
 
             self.document_store
                 .add_field_length(doc_ref, field, tokens.len());
@@ -294,7 +291,7 @@ impl Index {
 
             for (token, count) in &token_freq {
                 let freq = (*count as f64).sqrt();
-                println!("token={}, freq={}", token, freq);
+
                 self.index
                     .get_mut(field)
                     .expect(&format!("InvertedIndex does not exist for field {}", field))
