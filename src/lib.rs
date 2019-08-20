@@ -266,16 +266,20 @@ impl Index {
 
             let raw_tokens: Vec<String>;
 
-            if self.lang == Language::Chinese {
-                let jieba = Jieba::new();
-                raw_tokens = jieba.cut_for_search(value.as_ref(), false)
-                    .iter()
-                    .map(|s| (*s).into())
-                    .collect();
+            match self.lang {
+                Language::Chinese => {
+                    let jieba = Jieba::new();
 
-                println!("raw tokens: {:?}", raw_tokens);
-            } else {
-                raw_tokens = pipeline::tokenize(value.as_ref());
+                    raw_tokens = jieba.cut_for_search(value.as_ref(), false)
+                        .iter()
+                        .map(|s| (*s).into())
+                        .collect();
+
+                    println!("raw tokens: {:?}", raw_tokens);
+                },
+                _ => {
+                    raw_tokens = pipeline::tokenize(value.as_ref());
+                }
             }
 
             let tokens = self.pipeline.run(raw_tokens);
