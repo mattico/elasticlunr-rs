@@ -63,7 +63,6 @@ use document_store::DocumentStore;
 use inverted_index::InvertedIndex;
 pub use lang::Language;
 pub use pipeline::Pipeline;
-use jieba_rs::Jieba;
 
 /// A builder for an `Index` with custom parameters.
 ///
@@ -268,12 +267,7 @@ impl Index {
 
             match self.lang {
                 Language::Chinese => {
-                    let jieba = Jieba::new();
-
-                    raw_tokens = jieba.cut_for_search(value.as_ref(), false)
-                        .iter()
-                        .map(|s| (*s).into())
-                        .collect();
+                    raw_tokens = pipeline::tokenize_chinese(value.as_ref());
                 },
                 _ => {
                     raw_tokens = pipeline::tokenize(value.as_ref());
