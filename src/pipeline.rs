@@ -3,6 +3,7 @@
 
 
 use serde::ser::{Serialize, SerializeSeq, Serializer};
+#[cfg(feature = "zh")]
 use jieba_rs::Jieba;
 
 /// Splits a text string into a vector of individual tokens.
@@ -13,6 +14,7 @@ pub fn tokenize(text: &str) -> Vec<String> {
         .collect()
 }
 
+#[cfg(feature = "zh")]
 pub fn tokenize_chinese(text: &str) -> Vec<String> {
     let jieba = Jieba::new();
 

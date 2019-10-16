@@ -43,7 +43,6 @@ extern crate rust_stemmers;
 #[cfg(test)]
 #[macro_use]
 extern crate maplit;
-
 #[cfg(feature = "zh")]
 extern crate jieba_rs;
 
@@ -266,6 +265,7 @@ impl Index {
             let raw_tokens: Vec<String>;
 
             match self.lang {
+                #[cfg(feature = "zh")]
                 Language::Chinese => {
                     raw_tokens = pipeline::tokenize_chinese(value.as_ref());
                 },
