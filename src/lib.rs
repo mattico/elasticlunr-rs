@@ -43,6 +43,9 @@ extern crate rust_stemmers;
 #[cfg(test)]
 #[macro_use]
 extern crate maplit;
+#[cfg(feature = "zh")]
+extern crate jieba_rs;
+
 
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
@@ -149,6 +152,7 @@ impl IndexBuilder {
             document_store: DocumentStore::new(self.save),
             pipeline: self.pipeline.unwrap_or_default(),
             version: ::ELASTICLUNR_VERSION,
+            lang: Language::English,
         }
     }
 }
@@ -165,6 +169,7 @@ pub struct Index {
     pub version: &'static str,
     index: BTreeMap<String, InvertedIndex>,
     pub document_store: DocumentStore,
+    lang: Language,
 }
 
 impl Index {
@@ -226,6 +231,7 @@ impl Index {
             ref_field: "id".into(),
             version: ::ELASTICLUNR_VERSION,
             document_store: DocumentStore::new(true),
+            lang: lang,
         }
     }
 
@@ -256,7 +262,20 @@ impl Index {
                 continue;
             }
 
-            let tokens = self.pipeline.run(pipeline::tokenize(value.as_ref()));
+            let raw_tokens: Vec<String>;
+
+            match self.lang {
+                #[cfg(feature = "zh")]
+                Language::Chinese => {
+                    raw_tokens = pipeline::tokenize_chinese(value.as_ref());
+                },
+                _ => {
+                    raw_tokens = pipeline::tokenize(value.as_ref());
+                }
+            }
+
+            let tokens = self.pipeline.run(raw_tokens);
+
             self.document_store
                 .add_field_length(doc_ref, field, tokens.len());
 
@@ -266,6 +285,7 @@ impl Index {
 
             for (token, count) in &token_freq {
                 let freq = (*count as f64).sqrt();
+
                 self.index
                     .get_mut(field)
                     .expect(&format!("InvertedIndex does not exist for field {}", field))

@@ -1,13 +1,26 @@
 //! Defines the pipeline which processes text for inclusion in the index. Most users do not need
 //! to use this module directly.
 
+
 use serde::ser::{Serialize, SerializeSeq, Serializer};
+#[cfg(feature = "zh")]
+use jieba_rs::Jieba;
 
 /// Splits a text string into a vector of individual tokens.
 pub fn tokenize(text: &str) -> Vec<String> {
     text.split(|c: char| c.is_whitespace() || c == '-')
         .filter(|s| !s.is_empty())
         .map(|s| s.trim().to_lowercase())
+        .collect()
+}
+
+#[cfg(feature = "zh")]
+pub fn tokenize_chinese(text: &str) -> Vec<String> {
+    let jieba = Jieba::new();
+
+    jieba.cut_for_search(text.as_ref(), false)
+        .iter()
+        .map(|s| (*s).into())
         .collect()
 }
 

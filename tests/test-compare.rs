@@ -65,7 +65,7 @@ fn get_fixture() -> serde_json::Value {
 fn search_index_hasnt_changed_accidentally() {
     let new_index = create_index();
     let fixture_index = get_fixture();
-
+ 
     if new_index != fixture_index {
         panic!("The search index has changed from the fixture");
     }

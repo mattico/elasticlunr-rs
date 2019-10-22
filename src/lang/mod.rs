@@ -54,7 +54,7 @@ macro_rules! make_stemmer {
 }
 
 /// Used to configure the `Index` for a specific lanugage.
-#[derive(Copy, Clone, Eq, PartialEq, Debug, EnumString, ToString, EnumIter)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, EnumString, ToString, EnumIter, Serialize, Deserialize)]
 pub enum Language {
     English,
     #[cfg(feature = "da")]
@@ -81,6 +81,8 @@ pub enum Language {
     Swedish,
     #[cfg(feature = "tr")]
     Turkish,
+    #[cfg(feature = "zh")]
+    Chinese,
     #[doc(hidden)]
     #[strum(disabled = "true")]
     __NonExhaustive,
@@ -123,6 +125,8 @@ impl Language {
             "sv" => Some(Language::Swedish),
             #[cfg(feature = "tr")]
             "tr" => Some(Language::Turkish),
+            #[cfg(feature = "zh")]
+            "zh" => Some(Language::Chinese),
             _ => None,
         }
     }
@@ -162,6 +166,8 @@ impl Language {
             Language::Swedish => "sv",
             #[cfg(feature = "tr")]
             Language::Turkish => "tr",
+            #[cfg(feature = "zh")]
+            Language::Chinese => "zh",
             _ => panic!("Don't use the __NonExhaustive variant!"),
         }
     }
@@ -194,10 +200,13 @@ impl Language {
             Language::Swedish => ::lang::sv::make_pipeline(),
             #[cfg(feature = "tr")]
             Language::Turkish => ::lang::tr::make_pipeline(),
+            #[cfg(feature = "zh")]
+            Language::Chinese => ::lang::zh::make_pipeline(),
             _ => panic!("Dont use the `__NonExhaustive` variant!"),
         }
     }
 }
+
 
 pub mod en;
 
@@ -225,3 +234,5 @@ pub mod ru;
 pub mod sv;
 #[cfg(feature = "tr")]
 pub mod tr;
+#[cfg(feature = "zh")]
+pub mod zh;
