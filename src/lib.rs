@@ -45,7 +45,8 @@ extern crate rust_stemmers;
 extern crate maplit;
 #[cfg(feature = "zh")]
 extern crate jieba_rs;
-
+#[cfg(feature = "ja")]
+extern crate lindera;
 
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
@@ -268,7 +269,11 @@ impl Index {
                 #[cfg(feature = "zh")]
                 Language::Chinese => {
                     raw_tokens = pipeline::tokenize_chinese(value.as_ref());
-                },
+                }
+                #[cfg(feature = "ja")]
+                Language::Japanese => {
+                    raw_tokens = pipeline::tokenize_japanese(value.as_ref());
+                }
                 _ => {
                     raw_tokens = pipeline::tokenize(value.as_ref());
                 }
@@ -336,7 +341,7 @@ mod tests {
         assert_eq!(idx.document_store.len(), 1);
         assert_eq!(
             idx.document_store.get_doc("1").unwrap(),
-            btreemap!{
+            btreemap! {
                 "id".into() => "1".into(),
                 "body".into() => "this is a test".into(),
             }
