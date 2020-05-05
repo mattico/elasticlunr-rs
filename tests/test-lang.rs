@@ -9,7 +9,7 @@ use std::path::Path;
 
 use elasticlunr::pipeline::tokenize;
 #[cfg(feature = "zh")]
-use elasticlunr::pipeline::tokenize_chinese;
+use elasticlunr::pipeline::{tokenize_chinese, tokenize_japanese};
 use elasticlunr::*;
 use strum::IntoEnumIterator;
 
@@ -67,6 +67,8 @@ fn compare_to_fixture(lang: Language) {
     let tokens = match lang {
         #[cfg(feature = "zh")]
         Language::Chinese => pipeline.run(tokenize_chinese(&input_str)),
+        #[cfg(feature = "ja")]
+        Language::Japanese => pipeline.run(tokenize_japanese(&input_str)),
         _ => pipeline.run(tokenize(&input_str)),
     };
 

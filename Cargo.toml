@@ -29,13 +29,14 @@ serde_json = "1"
 strum = "0.16"
 strum_macros = "0.16"
 jieba-rs = "0.4.10"
+lindera = "0.3.4"
 
 [features]
 default = ["languages"]
 nightly = ["bench"]
 bench = []
 
-languages = ["da", "de", "du", "es", "fi", "fr", "it", "pt", "ro", "ru", "sv", "tr", "zh"]
+languages = ["da", "de", "du", "es", "fi", "fr", "it", "pt", "ro", "ru", "sv", "tr", "zh", "ja"]
 da = ["rust-stemmers"]
 de = ["rust-stemmers"]
 du = ["rust-stemmers"]
@@ -49,3 +50,4 @@ ru = ["rust-stemmers"]
 sv = ["rust-stemmers"]
 tr = ["rust-stemmers"]
 zh = ["rust-stemmers"]
+ja = ["rust-stemmers"]
