@@ -1,6 +1,6 @@
 # elasticlunr-rs 
 
-[![Build Status](https://travis-ci.org/mattico/elasticlunr-rs.svg?branch=master)](https://travis-ci.org/mattico/elasticlunr-rs)
+![Build Status](https://github.com/mattico/elasticlunr-rs/workflows/CI/badge.svg)
 [![Documentation](https://docs.rs/elasticlunr-rs/badge.svg)](https://docs.rs/elasticlunr-rs)
 [![Crates.io](https://img.shields.io/crates/v/elasticlunr-rs.svg)](https://crates.io/crates/elasticlunr-rs)
 

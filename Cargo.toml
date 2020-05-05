@@ -9,6 +9,7 @@ repository = "https://github.com/mattico/elasticlunr-rs"
 keywords = ["search", "index", "indexing", "lunr", "elasticlunrjs"]
 exclude = ["tests/lunr-fixture-gen/**"]
 readme = "README.md"
+maintenance = { status = "passively-maintained" }
 
 [badges]
 travis-ci = { repository = "mattico/elasticlunr-rs" }
