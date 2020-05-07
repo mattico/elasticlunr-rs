@@ -9,7 +9,9 @@ use std::path::Path;
 
 use elasticlunr::pipeline::tokenize;
 #[cfg(feature = "zh")]
-use elasticlunr::pipeline::{tokenize_chinese, tokenize_japanese};
+use elasticlunr::pipeline::tokenize_chinese;
+#[cfg(feature = "ja")]
+use elasticlunr::pipeline::tokenize_japanese;
 use elasticlunr::*;
 use strum::IntoEnumIterator;
 
