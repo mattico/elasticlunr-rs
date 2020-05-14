@@ -29,7 +29,7 @@ serde_derive = "1.0.34" # First verstion to support #[serde(flatten)]
 serde_json = "1"
 strum = "0.16"
 strum_macros = "0.16"
-jieba-rs = { version = "0.4.10", optional = true }
+jieba-rs = { version = "0.5.0", optional = true }
 lindera = { version = "0.3.4", optional = true }
 
 [features]
