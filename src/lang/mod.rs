@@ -61,6 +61,8 @@ pub enum Language {
     English,
     #[cfg(feature = "da")]
     Danish,
+    #[cfg(feature = "no")]
+    Norwegian,
     #[cfg(feature = "du")]
     Dutch,
     #[cfg(feature = "fi")]
@@ -107,6 +109,8 @@ impl Language {
             "en" => Some(Language::English),
             #[cfg(feature = "da")]
             "da" => Some(Language::Danish),
+            #[cfg(feature = "no")]
+            "no" => Some(Language::Norwegian),
             #[cfg(feature = "du")]
             "nl" => Some(Language::Dutch),
             #[cfg(feature = "fi")]
@@ -150,6 +154,8 @@ impl Language {
             Language::English => "en",
             #[cfg(feature = "da")]
             Language::Danish => "da",
+            #[cfg(feature = "no")]
+            Language::Norwegian => "no",
             #[cfg(feature = "du")]
             Language::Dutch => "nl",
             #[cfg(feature = "fi")]
@@ -186,6 +192,8 @@ impl Language {
             Language::English => ::lang::en::make_pipeline(),
             #[cfg(feature = "da")]
             Language::Danish => ::lang::da::make_pipeline(),
+            #[cfg(feature = "no")]
+            Language::Norwegian => ::lang::no::make_pipeline(),
             #[cfg(feature = "du")]
             Language::Dutch => ::lang::du::make_pipeline(),
             #[cfg(feature = "fi")]
@@ -221,6 +229,8 @@ pub mod en;
 
 #[cfg(feature = "da")]
 pub mod da;
+#[cfg(feature = "no")]
+pub mod no;
 #[cfg(feature = "de")]
 pub mod de;
 #[cfg(feature = "du")]
