@@ -63,6 +63,7 @@ use document_store::DocumentStore;
 use inverted_index::InvertedIndex;
 pub use lang::Language;
 pub use pipeline::Pipeline;
+use pipeline::TokenizerFn;
 
 /// A builder for an `Index` with custom parameters.
 ///
@@ -252,6 +253,38 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
+        let tokenizer = match self.lang {
+            #[cfg(feature = "zh")]
+            Language::Chinese => pipeline::tokenize_chinese,
+            #[cfg(feature = "ja")]
+            Language::Japanese => pipeline::tokenize_japanese,
+            _ => pipeline::tokenize,
+        };
+        self.add_doc_with_tokenizer(doc_ref, data, tokenizer)
+    }
+
+    /// Add the data from a document to the index.
+    ///
+    /// *NOTE: The elements of `data` should be provided in the same order as
+    /// the fields used to create the index.*
+    ///
+    /// # Example
+    /// ```
+    /// # use elasticlunr::Index;
+    /// fn css_tokenizer(text: &str) -> Vec<String> {
+    ///     text.split(|c: char| c.is_whitespace())
+    ///         .filter(|s| !s.is_empty())
+    ///         .map(|s| s.trim().to_lowercase())
+    ///         .collect()
+    /// }
+    /// let mut index = Index::new(&["title", "body"]);
+    /// index.add_doc_with_tokenizer("1", &["this is a title", "this is body text"], css_tokenizer);
+    /// ```
+    pub fn add_doc_with_tokenizer<I>(&mut self, doc_ref: &str, data: I, tokenizer: TokenizerFn)
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
         let mut doc = BTreeMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());
         let mut token_freq = BTreeMap::new();
@@ -263,21 +296,7 @@ impl Index {
                 continue;
             }
 
-            let raw_tokens: Vec<String>;
-
-            match self.lang {
-                #[cfg(feature = "zh")]
-                Language::Chinese => {
-                    raw_tokens = pipeline::tokenize_chinese(value.as_ref());
-                }
-                #[cfg(feature = "ja")]
-                Language::Japanese => {
-                    raw_tokens = pipeline::tokenize_japanese(value.as_ref());
-                }
-                _ => {
-                    raw_tokens = pipeline::tokenize(value.as_ref());
-                }
-            }
+            let raw_tokens = tokenizer(value.as_ref());
 
             let tokens = self.pipeline.run(raw_tokens);
 
