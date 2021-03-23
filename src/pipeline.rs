@@ -39,6 +39,9 @@ pub fn tokenize_japanese(text: &str) -> Vec<String> {
         .collect()
 }
 
+/// The function type used for the tokenizer.
+pub type TokenizerFn = fn(&str) -> Vec<String>;
+
 /// The function type used for each step in a pipeline.
 pub type PipelineFn = fn(String) -> Option<String>;
 
