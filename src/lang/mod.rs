@@ -89,6 +89,8 @@ pub enum Language {
     Chinese,
     #[cfg(feature = "ja")]
     Japanese,
+    #[cfg(feature = "ar")]
+    Arabic,
     #[doc(hidden)]
     #[strum(disabled)]
     __NonExhaustive,
@@ -137,6 +139,8 @@ impl Language {
             "zh" => Some(Language::Chinese),
             #[cfg(feature = "ja")]
             "ja" => Some(Language::Japanese),
+            #[cfg(feature = "ar")]
+            "ar" => Some(Language::Arabic),
             _ => None,
         }
     }
@@ -182,6 +186,8 @@ impl Language {
             Language::Chinese => "zh",
             #[cfg(feature = "ja")]
             Language::Japanese => "ja",
+            #[cfg(feature = "ar")]
+            Language::Arabic => "ar",
             _ => panic!("Don't use the __NonExhaustive variant!"),
         }
     }
@@ -220,6 +226,8 @@ impl Language {
             Language::Chinese => ::lang::zh::make_pipeline(),
             #[cfg(feature = "ja")]
             Language::Japanese => ::lang::ja::make_pipeline(),
+            #[cfg(feature = "ar")]
+            Language::Arabic => ::lang::ar::make_pipeline(),
             _ => panic!("Dont use the `__NonExhaustive` variant!"),
         }
     }
@@ -257,4 +265,5 @@ pub mod sv;
 pub mod tr;
 #[cfg(feature = "zh")]
 pub mod zh;
-
+#[cfg(feature = "ar")]
+pub mod ar;
