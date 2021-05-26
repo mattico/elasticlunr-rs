@@ -285,11 +285,39 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
+        self.add_doc_with_tokenizers(doc_ref, data, std::iter::repeat(tokenizer));
+    }
+
+    /// Add the data from a document to the index.
+    ///
+    /// *NOTE: The elements of `data` and `tokenizers` should be provided in
+    /// the same order as the fields used to create the index.*
+    ///
+    /// # Example
+    /// ```
+    /// # use elasticlunr::Index;
+    /// use elasticlunr::pipeline::{tokenize, TokenizerFn};
+    /// fn css_tokenizer(text: &str) -> Vec<String> {
+    ///     text.split(|c: char| c.is_whitespace())
+    ///         .filter(|s| !s.is_empty())
+    ///         .map(|s| s.trim().to_lowercase())
+    ///         .collect()
+    /// }
+    /// let mut index = Index::new(&["title", "body"]);
+    /// let tokenizers: Vec<TokenizerFn> = vec![tokenize, css_tokenizer];
+    /// index.add_doc_with_tokenizers("1", &["this is a title", "this is body text"], tokenizers);
+    /// ```
+    pub fn add_doc_with_tokenizers<I, T>(&mut self, doc_ref: &str, data: I, tokenizers: T)
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+        T: IntoIterator<Item=TokenizerFn>,
+    {
         let mut doc = BTreeMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());
         let mut token_freq = BTreeMap::new();
 
-        for (field, value) in self.fields.iter().zip(data) {
+        for ((field, value), tokenizer) in self.fields.iter().zip(data).zip(tokenizers) {
             doc.insert(field.clone(), value.as_ref().to_string());
 
             if field == &self.ref_field {
