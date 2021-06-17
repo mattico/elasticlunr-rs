@@ -26,8 +26,8 @@ rust-stemmers = { version = "1", optional = true }
 serde = "1"
 serde_derive = "1.0.34" # First verstion to support #[serde(flatten)]
 serde_json = "1"
-strum = "0.18"
-strum_macros = "0.18"
+strum = "0.21"
+strum_macros = "0.21"
 jieba-rs = { version = "0.5.0", optional = true }
 lindera = { version = "0.3.4", optional = true }
 
