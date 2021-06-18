@@ -90,7 +90,7 @@ pub enum Language {
     #[cfg(feature = "ja")]
     Japanese,
     #[doc(hidden)]
-    #[strum(disabled = "true")]
+    #[strum(disabled)]
     __NonExhaustive,
 }
 
