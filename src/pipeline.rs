@@ -24,8 +24,8 @@ pub fn tokenize_chinese(text: &str) -> Vec<String> {
 
 #[cfg(feature = "ja")]
 pub fn tokenize_japanese(text: &str) -> Vec<String> {
-    use lindera_core::viterbi::Mode;
     use lindera::tokenizer::{Tokenizer, TokenizerConfig};
+    use lindera_core::viterbi::Mode;
     let config = TokenizerConfig {
         mode: Mode::Decompose(Default::default()),
         ..Default::default()

@@ -313,7 +313,7 @@ impl Index {
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
-        T: IntoIterator<Item=TokenizerFn>,
+        T: IntoIterator<Item = TokenizerFn>,
     {
         let mut doc = BTreeMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());

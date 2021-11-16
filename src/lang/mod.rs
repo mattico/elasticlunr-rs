@@ -229,8 +229,6 @@ pub mod en;
 
 #[cfg(feature = "da")]
 pub mod da;
-#[cfg(feature = "no")]
-pub mod no;
 #[cfg(feature = "de")]
 pub mod de;
 #[cfg(feature = "du")]
@@ -245,6 +243,8 @@ pub mod fr;
 pub mod it;
 #[cfg(feature = "ja")]
 pub mod ja;
+#[cfg(feature = "no")]
+pub mod no;
 #[cfg(feature = "pt")]
 pub mod pt;
 #[cfg(feature = "ro")]
@@ -257,4 +257,3 @@ pub mod sv;
 pub mod tr;
 #[cfg(feature = "zh")]
 pub mod zh;
-

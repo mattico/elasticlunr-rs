@@ -146,13 +146,15 @@ impl Stemmer {
         let re_2 = Regex::new(
             "^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|\
              ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$",
-        ).unwrap();
+        )
+        .unwrap();
 
         let re_3 = Regex::new("^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$").unwrap();
 
         let re_4 = Regex::new(
             "^(.+?)(al|ance|ence|er|ic|able|ible|ant|ement|ment|ent|ou|ism|ate|iti|ous|ive|ize)$",
-        ).unwrap();
+        )
+        .unwrap();
         let re2_4 = Regex::new("^(.+?)(s|t)(ion)$").unwrap();
 
         let re_5 = Regex::new("^(.+?)e$").unwrap();
