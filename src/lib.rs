@@ -47,6 +47,8 @@ extern crate maplit;
 extern crate jieba_rs;
 #[cfg(feature = "ja")]
 extern crate lindera;
+#[cfg(feature = "ja")]
+extern crate lindera_core;
 
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
