@@ -55,7 +55,7 @@ macro_rules! make_stemmer {
 
 /// Used to configure the `Index` for a specific lanugage.
 #[derive(
-    Copy, Clone, Eq, PartialEq, Debug, EnumString, ToString, EnumIter, Serialize, Deserialize,
+    Copy, Clone, Eq, PartialEq, Debug, strum_macros::Display, EnumString, EnumIter, Serialize, Deserialize,
 )]
 pub enum Language {
     English,
