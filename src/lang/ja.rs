@@ -1,11 +1,51 @@
+use super::Language;
 use crate::pipeline::Pipeline;
+use lindera::tokenizer::{Tokenizer, TokenizerConfig};
+use lindera_core::viterbi::Mode;
 
-pub fn make_pipeline() -> Pipeline {
-    Pipeline {
-        queue: vec![
-            ("trimmer-ja".into(), trimmer),
-            ("stemmer-ja".into(), stemmer),
-        ],
+pub struct Japanese {
+    tokenizer: Tokenizer,
+}
+
+impl Japanese {
+    pub fn new() -> Self {
+        let config = TokenizerConfig {
+            mode: Mode::Decompose(Default::default()),
+            ..Default::default()
+        };
+        Self::with_config(config)
+    }
+
+    pub fn with_config(config: TokenizerConfig) -> Self {
+        // NB: unwrap() is okay since the errors are only related to user-supplied dictionaries.
+        let tokenizer = Tokenizer::with_config(config).unwrap();
+        Self { tokenizer }
+    }
+}
+
+impl Language for Japanese {
+    const NAME: &'static str = "Japanese";
+    const CODE: &'static str = "ja";
+
+    fn tokenize(&mut self, text: &str) -> Vec<String> {
+        self.tokenizer
+            .tokenize(text)
+            .unwrap()
+            .into_iter()
+            .filter_map(|tok| match tok.detail.get(0).map(|d| d.as_str()) {
+                Some("助詞") | Some("助動詞") | Some("記号") | Some("UNK") => None,
+                _ => Some(tok.text.to_string()),
+            })
+            .collect()
+    }
+
+    fn pipeline(&mut self) -> Pipeline {
+        Pipeline {
+            queue: vec![
+                ("trimmer-ja".into(), trimmer),
+                ("stemmer-ja".into(), stemmer),
+            ],
+        }
     }
 }
 

@@ -2,7 +2,99 @@
 //! language has a trimmer, a stop word filter, and a stemmer. Most users will not need to use
 //! these modules directly.
 
-use std::fmt::{self, Display};
+use std::{
+    collections::HashSet,
+    fmt::{self, Display},
+};
+
+pub mod common;
+
+use crate::Pipeline;
+
+pub trait Language {
+    /// The name of the language in English
+    const NAME: &'static str;
+
+    /// The ISO 639-1 language code of the language
+    const CODE: &'static str;
+
+    /// Produces suitably simplified search tokens for inserting into the search index
+    fn tokenize(&mut self, text: &str) -> Vec<String>;
+
+    /// Returns the [`Pipeline`] to process the tokens with
+    fn pipeline(&mut self) -> Pipeline;
+}
+
+impl<L: Language> Display for L {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.NAME)
+    }
+}
+
+/// Splits a text string into a vector of individual tokens.
+pub fn tokenize_whitespace(text: &str) -> Vec<String> {
+    text.split(|c: char| c.is_whitespace() || c == '-')
+        .filter(|s| !s.is_empty())
+        .map(|s| s.trim().to_lowercase())
+        .collect()
+}
+
+macro_rules! impl_language {
+    ($( ( $name:ident, $code:ident $(, #[$cfgs:meta] )? ), )+) => {
+        /// Returns a list of all the [`Language`] implementations in the crate
+        pub fn languages() -> Vec<Box<dyn Language>> {
+            vec![
+                $(
+                    Box::new($code::$name::new()),
+                )+
+            ]
+        }
+
+        /// Returns the [`Language`] for the given two-character [ISO 639-1][iso] language code if the
+        /// language is supported. Returns `None` if not supported.
+        ///
+        /// *Note:*
+        ///
+        /// The ISO 639-1 code for Dutch is "nl". However "du" is used for the module name
+        /// and pipeline suffix in order to match lunr-languages.
+        ///
+        /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
+        pub fn from_code(code: &str) -> Option<Box<dyn Language>> {
+            match code.to_ascii_lowercase().as_str() {
+                $(
+                    $(#[$cfgs])?
+                    stringify!($code) => Some(Box::new($code::$name::new())),
+                )+
+                _ => None,
+            }
+        }
+
+        $(
+            $(#[$cfgs])?
+            pub mod $code;
+        )+
+    };
+}
+
+impl_language! {
+    (English, en),
+    (Arabic, ar, #[cfg(feature = "ar")]),
+    (Chinese, zh, #[cfg(feature = "zh")]),
+    (Danish, da, #[cfg(feature = "da")]),
+    (Dutch, du, #[cfg(feature = "du")]),
+    (Finnish, fi, #[cfg(feature = "fi")]),
+    (French, fr, #[cfg(feature = "fr")]),
+    (German, de, #[cfg(feature = "de")]),
+    (Italian, it, #[cfg(feature = "it")]),
+    (Japanese, ja, #[cfg(feature = "ja")]),
+    (Norwegian, no, #[cfg(feature = "no")]),
+    (Portuguese, pt, #[cfg(feature = "pt")]),
+    (Romanian, ro, #[cfg(feature = "ro")]),
+    (Russian, ru, #[cfg(feature = "ru")]),
+    (Spanish, es, #[cfg(feature = "es")]),
+    (Swedish, sv, #[cfg(feature = "sv")]),
+    (Turkish, tr, #[cfg(feature = "tr")]),
+}
 
 #[allow(unused_macros)]
 macro_rules! make_trimmer {
@@ -55,109 +147,37 @@ macro_rules! make_stemmer {
     };
 }
 
-macro_rules! impl_language {
-    ($( ( $name:ident, $code:ident $(, #[$cfgs:meta] )? ), )+) => {
-        /// Used to configure the `Index` for a specific lanugage.
-        #[derive(Copy, Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
-        #[non_exhaustive]
-        pub enum Language {
-            $(
-                $(#[$cfgs])?
-                $name,
-            )+
-        }
+#[cfg(test)]
+mod tests {
+    use super::tokenize_whitespace;
 
-        /// A list of all the [`Language`]s enabled in the library.
-        pub const LANGUAGES: &'static [Language] = &[
-            $(
-                $(#[$cfgs])?
-                Language::$name,
-            )+
-        ];
+    #[test]
+    fn split_simple_strings() {
+        let string = "this is a simple string";
+        assert_eq!(
+            &tokenize_whitespace(string),
+            &["this", "is", "a", "simple", "string"]
+        );
+    }
 
-        impl Language {
-            /// Returns the `Language` for the given two-character [ISO 639-1][iso] language code if the
-            /// language is supported. Returns `None` if not supported.
-            ///
-            /// *Note:*
-            ///
-            /// The ISO 639-1 code for Dutch is "nl". However "du" is used for the module name
-            /// and pipeline suffix in order to match lunr-languages.
-            ///
-            /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
-            pub fn from_code(code: &str) -> Option<Language> {
-                match code.to_ascii_lowercase().as_str() {
-                    $(
-                        $(#[$cfgs])?
-                        stringify!($code) => Some(Language::$name),
-                    )+
-                    _ => None,
-                }
-            }
+    #[test]
+    fn multiple_white_space() {
+        let string = "  foo    bar  ";
+        assert_eq!(&tokenize_whitespace(string), &["foo", "bar"]);
+    }
 
-            /// Returns the two-character [ISO 639-1][iso] language code for the `Language`.
-            ///
-            /// *Note:*
-            ///
-            /// The ISO 639-1 code for Dutch is "nl". However "du" is used for the module name
-            /// and pipeline suffix in order to match lunr-languages.
-            ///
-            /// [iso]: https://en.wikipedia.org/wiki/ISO_639-1
-            pub fn to_code(&self) -> &'static str {
-                match *self {
-                    $(
-                        $(#[$cfgs])?
-                        Language::$name => stringify!($code),
-                    )+
-                }
-            }
+    #[test]
+    fn hyphens() {
+        let string = "take the New York-San Francisco flight";
+        assert_eq!(
+            &tokenize_whitespace(string),
+            &["take", "the", "new", "york", "san", "francisco", "flight"]
+        );
+    }
 
-            /// Creates a pipeline for the [`Language`](../lang/enum.Language.html).
-            pub fn make_pipeline(&self) -> crate::pipeline::Pipeline {
-                match *self {
-                    $(
-                        $(#[$cfgs])?
-                        Language::$name => crate::lang::$code::make_pipeline(),
-                    )+
-                }
-            }
-        }
-
-        impl Display for Language {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                let name = match *self {
-                    $(
-                        $(#[$cfgs])?
-                        Language::$name => stringify!($name),
-                    )+
-                };
-                f.write_str(name)
-            }
-        }
-
-        $(
-            $(#[$cfgs])?
-            pub mod $code;
-        )+
-    };
-}
-
-impl_language! {
-    (English, en),
-    (Danish, da, #[cfg(feature = "da")]),
-    (Norwegian, no, #[cfg(feature = "no")]),
-    (Dutch, du, #[cfg(feature = "du")]),
-    (Finnish, fi, #[cfg(feature = "fi")]),
-    (French, fr, #[cfg(feature = "fr")]),
-    (German, de, #[cfg(feature = "de")]),
-    (Italian, it, #[cfg(feature = "it")]),
-    (Portuguese, pt, #[cfg(feature = "pt")]),
-    (Romanian, ro, #[cfg(feature = "ro")]),
-    (Russian, ru, #[cfg(feature = "ru")]),
-    (Spanish, es, #[cfg(feature = "es")]),
-    (Swedish, sv, #[cfg(feature = "sv")]),
-    (Turkish, tr, #[cfg(feature = "tr")]),
-    (Chinese, zh, #[cfg(feature = "zh")]),
-    (Japanese, ja, #[cfg(feature = "ja")]),
-    (Arabic, ar, #[cfg(feature = "ar")]),
+    #[test]
+    fn splitting_strings_with_hyphens() {
+        let string = "Solve for A - B";
+        assert_eq!(&tokenize_whitespace(string), &["solve", "for", "a", "b"]);
+    }
 }

@@ -1,13 +1,27 @@
-/// Simple Arabic stemmer based on lunr.ar.js from https://github.com/MihaiValentin/lunr-languages
-
+use super::Language;
 use crate::pipeline::Pipeline;
 use regex::Regex;
 
-pub fn make_pipeline() -> Pipeline {
-    Pipeline {
-        queue: vec![
-            ("stemmer-ar".into(), stemmer),
-        ],
+pub struct Arabic {}
+
+impl Arabic {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
+impl Language for Arabic {
+    const NAME: &'static str = "Arabic";
+    const CODE: &'static str = "ar";
+
+    fn tokenize(&mut self, text: &str) -> Vec<String> {
+        super::tokenize_whitespace(text)
+    }
+
+    fn pipeline(&mut self) -> Pipeline {
+        Pipeline {
+            queue: vec![("stemmer-ar".into(), stemmer)],
+        }
     }
 }
 

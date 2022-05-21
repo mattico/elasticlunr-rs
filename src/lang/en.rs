@@ -1,25 +1,9 @@
+use super::{common::StopWordFilter, Language};
 use crate::pipeline::Pipeline;
 use regex::Regex;
+use std::collections::HashSet;
 
-pub fn make_pipeline() -> Pipeline {
-    Pipeline {
-        queue: vec![
-            ("trimmer".into(), trimmer),
-            ("stopWordFilter".into(), stop_word_filter),
-            ("stemmer".into(), stemmer),
-        ],
-    }
-}
-
-pub fn trimmer(token: String) -> Option<String> {
-    Some(
-        token
-            .trim_matches(|c: char| !c.is_digit(36) && c != '_')
-            .into(),
-    )
-}
-
-make_stop_word_filter!([
+const WORDS: &'static [&'static str] = &[
     "", "a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an",
     "and", "any", "are", "as", "at", "be", "because", "been", "but", "by", "can", "cannot",
     "could", "dear", "did", "do", "does", "either", "else", "ever", "every", "for", "from", "get",
@@ -30,7 +14,50 @@ make_stop_word_filter!([
     "so", "some", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this",
     "tis", "to", "too", "twas", "us", "wants", "was", "we", "were", "what", "when", "where",
     "which", "while", "who", "whom", "why", "will", "with", "would", "yet", "you", "your",
-]);
+];
+
+pub struct English {
+    stop_words: StopWordFilter,
+    stemmer: Stemmer,
+}
+
+impl English {
+    pub fn new() -> Self {
+        let stop_words = StopWordFilter::new(WORDS);
+        let stemmer = Stemmer::new();
+        Self {
+            stop_words,
+            stemmer,
+        }
+    }
+}
+
+impl Language for English {
+    const NAME: &'static str = "English";
+    const CODE: &'static str = "en";
+
+    fn tokenize(&mut self, text: &str) -> Vec<String> {
+        super::tokenize_whitespace(text)
+    }
+
+    fn pipeline(&mut self) -> Pipeline {
+        Pipeline {
+            queue: vec![
+                ("trimmer".into(), trimmer),
+                ("stopWordFilter".into(), self.stop_words.filterer()),
+                ("stemmer".into(), |s| Some(self.stemmer.stem(s))),
+            ],
+        }
+    }
+}
+
+fn trimmer(token: String) -> Option<String> {
+    Some(
+        token
+            .trim_matches(|c: char| !c.is_digit(36) && c != '_')
+            .into(),
+    )
+}
 
 static STEP_2: &[(&str, &str)] = &[
     ("ational", "ate"),
@@ -146,13 +173,15 @@ impl Stemmer {
         let re_2 = Regex::new(
             "^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|\
              ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$",
-        ).unwrap();
+        )
+        .unwrap();
 
         let re_3 = Regex::new("^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$").unwrap();
 
         let re_4 = Regex::new(
             "^(.+?)(al|ance|ence|er|ic|able|ible|ant|ement|ment|ent|ou|ism|ate|iti|ous|ive|ize)$",
-        ).unwrap();
+        )
+        .unwrap();
         let re2_4 = Regex::new("^(.+?)(s|t)(ion)$").unwrap();
 
         let re_5 = Regex::new("^(.+?)e$").unwrap();
@@ -297,44 +326,9 @@ impl Stemmer {
     }
 }
 
-pub fn stemmer(input: String) -> Option<String> {
-    lazy_static! {
-        static ref STEMMER: Stemmer = Stemmer::new();
-    }
-    Some(STEMMER.stem(input))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::pipeline::tokenize;
-
-    #[test]
-    fn split_simple_strings() {
-        let string = "this is a simple string";
-        assert_eq!(&tokenize(string), &["this", "is", "a", "simple", "string"]);
-    }
-
-    #[test]
-    fn multiple_white_space() {
-        let string = "  foo    bar  ";
-        assert_eq!(&tokenize(string), &["foo", "bar"]);
-    }
-
-    #[test]
-    fn hyphens() {
-        let string = "take the New York-San Francisco flight";
-        assert_eq!(
-            &tokenize(string),
-            &["take", "the", "new", "york", "san", "francisco", "flight"]
-        );
-    }
-
-    #[test]
-    fn splitting_strings_with_hyphens() {
-        let string = "Solve for A - B";
-        assert_eq!(&tokenize(string), &["solve", "for", "a", "b"]);
-    }
 
     macro_rules! pipeline_eq {
         ($func:expr, $input:expr, $output:expr) => {
@@ -446,8 +440,9 @@ mod tests {
             ("try", "tri"),
         ];
 
+        let stemmer = Stemmer::new();
         for &(input, output) in cases.iter() {
-            assert_eq!(&stemmer(input.into()).unwrap(), output);
+            assert_eq!(&stemmer.stem(input.into()).unwrap(), output);
         }
     }
 }
