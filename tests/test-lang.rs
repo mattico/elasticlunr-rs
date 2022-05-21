@@ -1,7 +1,6 @@
 // Input text is excerpted from public domain books on gutenberg.org or wikisource.org
 
 extern crate elasticlunr;
-extern crate strum;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Write};
@@ -13,7 +12,6 @@ use elasticlunr::pipeline::tokenize_chinese;
 #[cfg(feature = "ja")]
 use elasticlunr::pipeline::tokenize_japanese;
 use elasticlunr::*;
-use strum::IntoEnumIterator;
 
 fn get_lang_code(lang: Language) -> &'static str {
     match lang {
@@ -86,8 +84,8 @@ fn compare_to_fixture(lang: Language) {
 
 #[test]
 fn test_languages() {
-    for lang in Language::iter() {
+    for lang in lang::LANGUAGES {
         //write_output(lang);
-        compare_to_fixture(lang);
+        compare_to_fixture(*lang);
     }
 }

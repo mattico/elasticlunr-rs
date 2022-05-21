@@ -31,9 +31,6 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-extern crate strum;
-#[macro_use]
-extern crate strum_macros;
 
 #[cfg(feature = "rust-stemmers")]
 extern crate rust_stemmers;
