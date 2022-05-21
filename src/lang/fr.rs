@@ -37,30 +37,3 @@ make_stop_word_filter!([
 ]);
 
 make_stemmer!(Algorithm::French);
-
-#[cfg(feature = "bench")]
-mod benches {
-    extern crate test;
-
-    // # Results
-    // HashSet:  175,669 ns/iter (+/- 15,652)
-    // BTreeSet: 210,169 ns/iter (+/- 29,430)
-    // PHF:      159,961 ns/iter (+/- 16,492)
-
-    #[bench]
-    fn bench_stop_word(b: &mut test::Bencher) {
-        let text = include_str!("../../tests/data/fr.in.txt");
-        let tokens = ::pipeline::tokenize(text);
-        let tokens: Vec<_> = tokens
-            .into_iter()
-            .filter_map(|t| super::trimmer(t))
-            .collect();
-
-        b.iter(|| {
-            let tokens = tokens.clone();
-            for token in tokens {
-                test::black_box(super::stop_word_filter(token));
-            }
-        });
-    }
-}

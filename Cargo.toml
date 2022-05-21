@@ -17,7 +17,12 @@ maintenance = { status = "passively-maintained" }
 [lib]
 name = "elasticlunr"
 
+[[bench]]
+name = "bench"
+harness = false
+
 [dev-dependencies]
+criterion = "0.3.0"
 maplit = "1"
 
 [dependencies]
@@ -35,23 +40,20 @@ lindera-core = { version = "0.8", optional = true }
 
 [features]
 default = ["languages"]
-nightly = ["bench"]
-bench = []
-
-languages = ["da", "no", "de", "du", "es", "fi", "fr", "it", "pt", "ro", "ru", "sv", "tr", "zh", "ja", "ar"]
+languages = ["ar", "da", "de", "du", "es", "fi", "fr", "it", "ja", "no", "pt", "ro", "ru", "sv", "tr", "zh"]
+ar = []
 da = ["rust-stemmers"]
-no = ["rust-stemmers"]
 de = ["rust-stemmers"]
 du = ["rust-stemmers"]
 es = ["rust-stemmers"]
 fi = ["rust-stemmers"]
 fr = ["rust-stemmers"]
 it = ["rust-stemmers"]
+ja = ["lindera", "lindera-core"]
+no = ["rust-stemmers"]
 pt = ["rust-stemmers"]
 ro = ["rust-stemmers"]
 ru = ["rust-stemmers"]
 sv = ["rust-stemmers"]
 tr = ["rust-stemmers"]
 zh = ["jieba-rs"]
-ja = ["lindera", "lindera-core"]
-ar = []

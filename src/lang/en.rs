@@ -306,8 +306,6 @@ pub fn stemmer(input: String) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "bench")]
-    extern crate test;
     use super::*;
     use crate::pipeline::tokenize;
 
@@ -451,22 +449,5 @@ mod tests {
         for &(input, output) in cases.iter() {
             assert_eq!(&stemmer(input.into()).unwrap(), output);
         }
-    }
-
-    // # Results
-    // PHF:           2,507,473 ns/iter (+/- 197,005)
-    // Linear search: 2,481,133 ns/iter (+/- 216,998)
-
-    #[cfg(feature = "bench")]
-    #[bench]
-    fn bench_stem(b: &mut test::Bencher) {
-        let text = include_str!("../../tests/data/en.in.txt");
-        let tokens = ::pipeline::tokenize(text);
-        b.iter(|| {
-            let tokens = tokens.clone();
-            for token in tokens {
-                test::black_box(stemmer(token));
-            }
-        });
     }
 }
