@@ -12,7 +12,7 @@ impl StopWordFilter {
     pub fn new(name: &str, stop_words: &[&str]) -> Self {
         Self {
             name: name.into(),
-            stop_words: stop_words.iter().cloned().collect(),
+            stop_words: stop_words.iter().map(|s| s.to_string()).collect(),
         }
     }
 }
@@ -22,7 +22,7 @@ impl PipelineFn for StopWordFilter {
         self.name.clone()
     }
 
-    fn filter(&self, token: String) -> Option<String> {
+    fn filter(&mut self, token: String) -> Option<String> {
         if self.stop_words.contains(&token) {
             None
         } else {
@@ -39,7 +39,7 @@ pub struct Trimmer {
 impl Trimmer {
     pub fn new(name: &str, trim_chars: &str) -> Self {
         let name = name.into();
-        let trimmer = Regex::new(format!("^[^{0}]+|[^{0}]+$", trim_chars).unwrap()).unwrap();
+        let trimmer = Regex::new(&format!("^[^{0}]+|[^{0}]+$", trim_chars)).unwrap();
         Self { name, trimmer }
     }
 }
@@ -49,7 +49,7 @@ impl PipelineFn for Trimmer {
         self.name.clone()
     }
 
-    fn filter(&self, token: String) -> Option<String> {
+    fn filter(&mut self, token: String) -> Option<String> {
         let result = self.trimmer.replace_all(&token, "");
         if result.is_empty() {
             None
@@ -80,7 +80,7 @@ impl PipelineFn for RustStemmer {
         self.name.clone()
     }
 
-    fn filter(&self, token: String) -> Option<String> {
+    fn filter(&mut self, token: String) -> Option<String> {
         let result = self.stemmer.stem(&token);
         if result.is_empty() {
             None

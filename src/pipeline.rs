@@ -4,7 +4,7 @@
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 
 /// The function type used for the tokenizer.
-pub type TokenizerFn = fn(&str) -> Vec<String>;
+pub trait Tokenizer: Fn(&str) -> Vec<String> {}
 
 pub trait PipelineFn {
     fn name(&self) -> String;
@@ -12,7 +12,9 @@ pub trait PipelineFn {
     fn filter(&mut self, token: String) -> Option<String>;
 }
 
-impl PipelineFn for (String, dyn Fn(String) -> Option<String>) {
+pub struct FnWrapper(pub String, pub fn(String) -> Option<String>);
+
+impl PipelineFn for FnWrapper {
     fn name(&self) -> String {
         self.0.clone()
     }
@@ -23,10 +25,10 @@ impl PipelineFn for (String, dyn Fn(String) -> Option<String>) {
 }
 
 /// A sequence of `PipelineFn`s which are run on tokens to prepare them for searching.
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct Pipeline {
     #[serde(skip_deserializing)]
-    pub queue: Vec<dyn PipelineFn>,
+    pub queue: Vec<Box<dyn PipelineFn>>,
 }
 
 impl Serialize for Pipeline {
@@ -49,9 +51,9 @@ impl Pipeline {
         let mut ret = vec![];
         for token in tokens {
             let mut token = Some(token);
-            for &(_, func) in &self.queue {
+            for &func in &self.queue {
                 if let Some(t) = token {
-                    token = func(t);
+                    token = func.filter(t);
                 } else {
                     break;
                 }

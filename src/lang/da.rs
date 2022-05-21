@@ -1,9 +1,9 @@
 use super::{
-    common::{StopWordFilter, Trimmer},
+    common::{RustStemmer, StopWordFilter, Trimmer},
     Language,
 };
 use crate::pipeline::Pipeline;
-use rust_stemmers::{Algorithm, Stemmer};
+use rust_stemmers::Algorithm;
 
 const WORDS: &'static [&'static str] = &[
     "", "ad", "af", "alle", "alt", "anden", "at", "blev", "blive", "bliver", "da", "de", "dem",
@@ -25,15 +25,15 @@ const TRIM: &'static str =
 
 pub struct Danish {
     stop_words: StopWordFilter,
-    stemmer: Stemmer,
+    stemmer: RustStemmer,
     trimmer: Trimmer,
 }
 
 impl Danish {
     pub fn new() -> Self {
-        let stop_words = StopWordFilter::new(WORDS);
-        let stemmer = Stemmer::create(Algorithm::Danish);
-        let trimmer = Trimmer::new(TRIM);
+        let stop_words = StopWordFilter::new("stopWordFilter-da", WORDS);
+        let stemmer = RustStemmer::new("stemmer-da", Algorithm::Danish);
+        let trimmer = Trimmer::new("trimmer-da", TRIM);
         Self {
             stop_words,
             stemmer,
@@ -43,8 +43,12 @@ impl Danish {
 }
 
 impl Language for Danish {
-    const NAME: &'static str = "Danish";
-    const CODE: &'static str = "da";
+    fn name(&self) -> String {
+        "Danish".into()
+    }
+    fn code(&self) -> String {
+        "da".into()
+    }
 
     fn tokenize(&mut self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
@@ -52,11 +56,7 @@ impl Language for Danish {
 
     fn pipeline(&mut self) -> Pipeline {
         Pipeline {
-            queue: vec![
-                ("trimmer-da".into(), self.trimmer.filterer()),
-                ("stopWordFilter-da".into(), self.stop_words.filterer()),
-                ("stemmer-da".into(), |s| Some(self.stemmer.stem(&s).into())),
-            ],
+            queue: vec![self.trimmer, self.stop_words, self.stemmer],
         }
     }
 }

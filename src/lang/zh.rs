@@ -1,5 +1,5 @@
 use super::Language;
-use crate::pipeline::Pipeline;
+use crate::pipeline::{FnWrapper, Pipeline};
 
 pub struct Chinese {
     jieba: jieba_rs::Jieba,
@@ -14,8 +14,12 @@ impl Chinese {
 }
 
 impl Language for Chinese {
-    const NAME: &'static str = "Chinese";
-    const CODE: &'static str = "zh";
+    fn name(&self) -> String {
+        "Chinese".into()
+    }
+    fn code(&self) -> String {
+        "zh".into()
+    }
 
     fn tokenize(&mut self, text: &str) -> Vec<String> {
         self.jieba
@@ -28,9 +32,9 @@ impl Language for Chinese {
     fn pipeline(&mut self) -> Pipeline {
         Pipeline {
             queue: vec![
-                ("trimmer-zh".into(), trimmer),
-                ("stopWordFilter-zh".into(), stop_word_filter),
-                ("stemmer-zh".into(), stemmer),
+                Box::new(FnWrapper("trimmer-zh".into(), trimmer)),
+                Box::new(FnWrapper("stopWordFilter-zh".into(), stop_word_filter)),
+                Box::new(FnWrapper("stemmer-zh".into(), stemmer)),
             ],
         }
     }
@@ -46,7 +50,12 @@ pub fn trimmer(token: String) -> Option<String> {
     Some(ret)
 }
 
-make_stop_word_filter!(["的", "了"]);
+fn stop_word_filter(token: String) -> Option<String> {
+    match token {
+        "的" | "了" => None,
+        _ => Some(token),
+    }
+}
 
 fn stemmer(token: String) -> Option<String> {
     Some(token)

@@ -32,8 +32,12 @@ impl German {
 }
 
 impl Language for German {
-    const NAME: &'static str = "German";
-    const CODE: &'static str = "de";
+    fn name(&self) -> String {
+        "German".into()
+    }
+    fn code(&self) -> String {
+        "de".into()
+    }
 
     fn tokenize(&mut self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)

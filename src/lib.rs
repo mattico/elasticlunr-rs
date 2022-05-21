@@ -45,7 +45,8 @@ pub mod pipeline;
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use pipeline::TokenizerFn;
+use lang::en::English;
+use pipeline::Tokenizer;
 
 use crate::document_store::DocumentStore;
 use crate::inverted_index::InvertedIndex;
@@ -66,9 +67,10 @@ pub use crate::pipeline::Pipeline;
 /// ```
 pub struct IndexBuilder {
     save: bool,
-    fields: BTreeMap<String, Option<TokenizerFn>>,
+    fields: BTreeMap<String, Option<Box<dyn Tokenizer>>>,
     ref_field: String,
     pipeline: Option<Pipeline>,
+    language: Box<dyn Language>,
 }
 
 impl Default for IndexBuilder {
@@ -78,6 +80,7 @@ impl Default for IndexBuilder {
             fields: BTreeMap::new(),
             ref_field: "id".into(),
             pipeline: None,
+            language: Box::new(English::new()),
         }
     }
 }
@@ -85,6 +88,13 @@ impl Default for IndexBuilder {
 impl IndexBuilder {
     pub fn new() -> Self {
         Default::default()
+    }
+
+    pub fn with_language(language: Box<dyn Language>) -> Self {
+        Self {
+            language,
+            ..Default::default()
+        }
     }
 
     /// Set whether or not documents should be saved in the `Index`'s document store.
@@ -104,7 +114,7 @@ impl IndexBuilder {
     /// Add a document field to the `Index`, with a custom tokenizer for that field.
     ///
     /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
-    pub fn add_field_with_tokenizer(mut self, field: &str, tokenizer: TokenizerFn) -> Self {
+    pub fn add_field_with_tokenizer(mut self, field: &str, tokenizer: Box<dyn Tokenizer>) -> Self {
         self.fields.insert(field.into(), Some(tokenizer));
         self
     }
@@ -128,12 +138,6 @@ impl IndexBuilder {
         self
     }
 
-    /// Set the pipeline used by the `Index`.
-    pub fn set_pipeline(mut self, pipeline: Pipeline) -> Self {
-        self.pipeline = Some(pipeline);
-        self
-    }
-
     /// Build an `Index` from this builder.
     pub fn build(self) -> Index {
         let index = self
@@ -142,14 +146,22 @@ impl IndexBuilder {
             .map(|f| (f.clone(), InvertedIndex::new()))
             .collect();
 
+        let field_tokenizers = self
+            .fields
+            .values()
+            .map(|t| t.unwrap_or_else(|| Box::new(|text| self.language.tokenize(text))))
+            .collect();
+
         Index {
             index,
             fields: self.fields.keys().collect(),
+            field_tokenizers,
             ref_field: self.ref_field,
             document_store: DocumentStore::new(self.save),
-            pipeline: self.pipeline.unwrap_or_default(),
+            pipeline: self.language.pipeline(),
             version: crate::ELASTICLUNR_VERSION,
-            lang: Language::English,
+            lang: self.language.name(),
+            language: self.language,
         }
     }
 }
@@ -158,7 +170,9 @@ impl IndexBuilder {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
-    fields: BTreeSet<String>,
+    fields: Vec<String>,
+    #[serde(skip)]
+    field_tokenizers: Vec<Box<dyn Tokenizer>>,
     pipeline: Pipeline,
     #[serde(rename = "ref")]
     ref_field: String,
@@ -167,50 +181,51 @@ pub struct Index {
     document_store: DocumentStore,
     lang: String,
     #[serde(skip)]
-    language: 
+    language: Box<dyn Language>,
 }
 
 impl Index {
-    /// Create a new index with the provided fields for the given
-    /// [`Language`](lang/enum.Language.html).
+    /// Create a new index with the provided fields.
     ///
     /// # Example
     ///
     /// ```
-    /// # use elasticlunr::{Index, Language};
-    /// let mut index = Index::new(Language::English, &["title", "body"]);
+    /// # use elasticlunr::{Index};
+    /// let mut index = Index::new(&["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if multiple given fields are identical.
-    pub fn new<L, I>(lang: L, fields: I) -> Self
+    pub fn new<I>(fields: I) -> Self
     where
-        L: Language,
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut indices = BTreeMap::new();
-        let mut field_vec = Vec::new();
-        for field in fields {
-            let field = field.as_ref().to_string();
-            if field_vec.contains(&field) {
-                panic!("The Index already contains the field {}", field);
-            }
-            field_vec.push(field.clone());
-            indices.insert(field, InvertedIndex::new());
-        }
+        IndexBuilder::new().add_fields(fields).build()
+    }
 
-        Index {
-            fields: field_vec,
-            index: indices,
-            pipeline: lang.pipeline(),
-            ref_field: "id".into(),
-            version: crate::ELASTICLUNR_VERSION,
-            document_store: DocumentStore::new(true),
-            lang: L::NAME.into(),
-        }
+    /// Create a new index with the provided fields for the given
+    /// [`Language`](lang/enum.Language.html).
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use elasticlunr::{Index, lang::en::English};
+    /// let mut index = Index::for_language(Box::new(English::new()), &["title", "body"]);
+    /// index.add_doc("1", &["this is a title", "this is body text"]);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if multiple given fields are identical.
+    pub fn for_language<I>(lang: Box<dyn Language>, fields: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        IndexBuilder::with_language(lang).add_fields(fields).build()
     }
 
     /// Add the data from a document to the index.
@@ -229,71 +244,11 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let tokenizer = match self.lang {
-            #[cfg(feature = "zh")]
-            Language::Chinese => pipeline::tokenize_chinese,
-            #[cfg(feature = "ja")]
-            Language::Japanese => pipeline::tokenize_japanese,
-            _ => pipeline::tokenize,
-        };
-        self.add_doc_with_tokenizer(doc_ref, data, tokenizer)
-    }
-
-    /// Add the data from a document to the index.
-    ///
-    /// *NOTE: The elements of `data` should be provided in the same order as
-    /// the fields used to create the index.*
-    ///
-    /// # Example
-    /// ```
-    /// # use elasticlunr::Index;
-    /// fn css_tokenizer(text: &str) -> Vec<String> {
-    ///     text.split(|c: char| c.is_whitespace())
-    ///         .filter(|s| !s.is_empty())
-    ///         .map(|s| s.trim().to_lowercase())
-    ///         .collect()
-    /// }
-    /// let mut index = Index::new(&["title", "body"]);
-    /// index.add_doc_with_tokenizer("1", &["this is a title", "this is body text"], css_tokenizer);
-    /// ```
-    pub fn add_doc_with_tokenizer<I>(&mut self, doc_ref: &str, data: I, tokenizer: TokenizerFn)
-    where
-        I: IntoIterator,
-        I::Item: AsRef<str>,
-    {
-        self.add_doc_with_tokenizers(doc_ref, data, std::iter::repeat(tokenizer));
-    }
-
-    /// Add the data from a document to the index.
-    ///
-    /// *NOTE: The elements of `data` and `tokenizers` should be provided in
-    /// the same order as the fields used to create the index.*
-    ///
-    /// # Example
-    /// ```
-    /// # use elasticlunr::Index;
-    /// use elasticlunr::pipeline::{tokenize, TokenizerFn};
-    /// fn css_tokenizer(text: &str) -> Vec<String> {
-    ///     text.split(|c: char| c.is_whitespace())
-    ///         .filter(|s| !s.is_empty())
-    ///         .map(|s| s.trim().to_lowercase())
-    ///         .collect()
-    /// }
-    /// let mut index = Index::new(&["title", "body"]);
-    /// let tokenizers: Vec<TokenizerFn> = vec![tokenize, css_tokenizer];
-    /// index.add_doc_with_tokenizers("1", &["this is a title", "this is body text"], tokenizers);
-    /// ```
-    pub fn add_doc_with_tokenizers<I, T>(&mut self, doc_ref: &str, data: I, tokenizers: T)
-    where
-        I: IntoIterator,
-        I::Item: AsRef<str>,
-        T: IntoIterator<Item = TokenizerFn>,
-    {
         let mut doc = BTreeMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());
         let mut token_freq = BTreeMap::new();
 
-        for ((field, value), tokenizer) in self.fields.iter().zip(data).zip(tokenizers) {
+        for ((field, value), tokenizer) in self.fields.iter().zip(data).zip(self.field_tokenizers) {
             doc.insert(field.clone(), value.as_ref().to_string());
 
             if field == &self.ref_field {

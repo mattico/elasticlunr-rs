@@ -2,10 +2,7 @@
 //! language has a trimmer, a stop word filter, and a stemmer. Most users will not need to use
 //! these modules directly.
 
-use std::{
-    collections::HashSet,
-    fmt::{self, Display},
-};
+use std::fmt::{self, Display};
 
 pub mod common;
 
@@ -13,22 +10,16 @@ use crate::Pipeline;
 
 pub trait Language {
     /// The name of the language in English
-    const NAME: &'static str;
+    fn name(&self) -> String;
 
     /// The ISO 639-1 language code of the language
-    const CODE: &'static str;
+    fn code(&self) -> String;
 
     /// Produces suitably simplified search tokens for inserting into the search index
     fn tokenize(&mut self, text: &str) -> Vec<String>;
 
     /// Returns the [`Pipeline`] to process the tokens with
     fn pipeline(&mut self) -> Pipeline;
-}
-
-impl<L: Language> Display for L {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(self.NAME)
-    }
 }
 
 /// Splits a text string into a vector of individual tokens.
@@ -82,69 +73,18 @@ impl_language! {
     (Chinese, zh, #[cfg(feature = "zh")]),
     (Danish, da, #[cfg(feature = "da")]),
     (Dutch, du, #[cfg(feature = "du")]),
-    (Finnish, fi, #[cfg(feature = "fi")]),
-    (French, fr, #[cfg(feature = "fr")]),
+    // (Finnish, fi, #[cfg(feature = "fi")]),
+    // (French, fr, #[cfg(feature = "fr")]),
     (German, de, #[cfg(feature = "de")]),
-    (Italian, it, #[cfg(feature = "it")]),
+    // (Italian, it, #[cfg(feature = "it")]),
     (Japanese, ja, #[cfg(feature = "ja")]),
-    (Norwegian, no, #[cfg(feature = "no")]),
-    (Portuguese, pt, #[cfg(feature = "pt")]),
-    (Romanian, ro, #[cfg(feature = "ro")]),
-    (Russian, ru, #[cfg(feature = "ru")]),
-    (Spanish, es, #[cfg(feature = "es")]),
-    (Swedish, sv, #[cfg(feature = "sv")]),
-    (Turkish, tr, #[cfg(feature = "tr")]),
-}
-
-#[allow(unused_macros)]
-macro_rules! make_trimmer {
-    ($reg:expr) => {
-        pub fn trimmer(token: String) -> Option<String> {
-            use regex::Regex;
-            lazy_static! {
-                static ref START: Regex = Regex::new(concat!("^[^", $reg, "]+")).unwrap();
-                static ref END: Regex = Regex::new(concat!("[^", $reg, "]+$")).unwrap();
-            }
-            let token = START.replace(&token, "");
-            Some(END.replace(&token, "").into())
-        }
-    };
-}
-
-macro_rules! make_stop_word_filter {
-    ($words:expr) => {
-        pub fn stop_word_filter(token: String) -> Option<String> {
-            use std::collections::HashSet;
-            lazy_static! {
-                static ref WORDS: HashSet<&'static str> = {
-                    let words = $words;
-                    let mut set = HashSet::with_capacity(words.len());
-                    for word in words.iter() {
-                        set.insert(*word);
-                    }
-                    set
-                };
-            }
-            if WORDS.contains(token.as_str()) {
-                None
-            } else {
-                Some(token)
-            }
-        }
-    };
-}
-
-#[cfg(feature = "rust-stemmers")]
-macro_rules! make_stemmer {
-    ($lang:expr) => {
-        pub fn stemmer(token: String) -> Option<String> {
-            use rust_stemmers::{Algorithm, Stemmer};
-            lazy_static! {
-                static ref STEMMER: Stemmer = Stemmer::create($lang);
-            }
-            Some(STEMMER.stem(&token).into())
-        }
-    };
+    // (Norwegian, no, #[cfg(feature = "no")]),
+    // (Portuguese, pt, #[cfg(feature = "pt")]),
+    // (Romanian, ro, #[cfg(feature = "ro")]),
+    // (Russian, ru, #[cfg(feature = "ru")]),
+    // (Spanish, es, #[cfg(feature = "es")]),
+    // (Swedish, sv, #[cfg(feature = "sv")]),
+    // (Turkish, tr, #[cfg(feature = "tr")]),
 }
 
 #[cfg(test)]

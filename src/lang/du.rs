@@ -44,8 +44,12 @@ impl Dutch {
 }
 
 impl Language for Dutch {
-    const NAME: &'static str = "Dutch";
-    const CODE: &'static str = "du";
+    fn name(&self) -> String {
+        "Dutch".into()
+    }
+    fn code(&self) -> String {
+        "du".into()
+    }
 
     fn tokenize(&mut self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)

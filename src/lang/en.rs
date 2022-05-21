@@ -1,5 +1,5 @@
 use super::{common::StopWordFilter, Language};
-use crate::pipeline::Pipeline;
+use crate::pipeline::{Pipeline, PipelineFn};
 use regex::Regex;
 use std::collections::HashSet;
 
@@ -23,7 +23,7 @@ pub struct English {
 
 impl English {
     pub fn new() -> Self {
-        let stop_words = StopWordFilter::new(WORDS);
+        let stop_words = StopWordFilter::new("stopWordFilter", WORDS);
         let stemmer = Stemmer::new();
         Self {
             stop_words,
@@ -33,8 +33,12 @@ impl English {
 }
 
 impl Language for English {
-    const NAME: &'static str = "English";
-    const CODE: &'static str = "en";
+    fn name(&self) -> String {
+        "English".into()
+    }
+    fn code(&self) -> String {
+        "en".into()
+    }
 
     fn tokenize(&mut self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
@@ -44,8 +48,8 @@ impl Language for English {
         Pipeline {
             queue: vec![
                 ("trimmer".into(), trimmer),
-                ("stopWordFilter".into(), self.stop_words.filterer()),
-                ("stemmer".into(), |s| Some(self.stemmer.stem(s))),
+                self.stop_words,
+                self.stemmer,
             ],
         }
     }
@@ -121,6 +125,16 @@ struct Stemmer {
 
     re_5: Regex,
     re3_5: Regex,
+}
+
+impl PipelineFn for Stemmer {
+    fn name(&self) -> String {
+        "stemmer".into()
+    }
+
+    fn filter(&mut self, token: String) -> Option<String> {
+        Some(self.stem(token))
+    }
 }
 
 // vowel

@@ -1,5 +1,5 @@
 use super::Language;
-use crate::pipeline::Pipeline;
+use crate::pipeline::{FnWrapper, Pipeline};
 use regex::Regex;
 
 pub struct Arabic {}
@@ -11,8 +11,12 @@ impl Arabic {
 }
 
 impl Language for Arabic {
-    const NAME: &'static str = "Arabic";
-    const CODE: &'static str = "ar";
+    fn name(&self) -> String {
+        "Arabic".into()
+    }
+    fn code(&self) -> String {
+        "ar".into()
+    }
 
     fn tokenize(&mut self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
@@ -20,7 +24,7 @@ impl Language for Arabic {
 
     fn pipeline(&mut self) -> Pipeline {
         Pipeline {
-            queue: vec![("stemmer-ar".into(), stemmer)],
+            queue: vec![Box::new(FnWrapper("stemmer-ar".into(), stemmer))],
         }
     }
 }

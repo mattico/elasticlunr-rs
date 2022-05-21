@@ -24,8 +24,12 @@ impl Japanese {
 }
 
 impl Language for Japanese {
-    const NAME: &'static str = "Japanese";
-    const CODE: &'static str = "ja";
+    fn name(&self) -> String {
+        "Japanese".into()
+    }
+    fn code(&self) -> String {
+        "ja".into()
+    }
 
     fn tokenize(&mut self, text: &str) -> Vec<String> {
         self.tokenizer
