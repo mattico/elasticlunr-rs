@@ -2,7 +2,7 @@
 authors = ["Matt Ickstadt <mattico8@gmail.com>"]
 license = "MIT/Apache-2.0"
 name = "elasticlunr-rs"
-version = "2.3.13"
+version = "2.3.14"
 description = "A partial port of elasticlunr.js to Rust for generating static document search indexes"
 documentation = "https://docs.rs/elasticlunr-rs"
 repository = "https://github.com/mattico/elasticlunr-rs"
@@ -28,8 +28,9 @@ serde_derive = "1.0.34" # First verstion to support #[serde(flatten)]
 serde_json = "1"
 strum = "0.21"
 strum_macros = "0.21"
-jieba-rs = { version = "0.5.0", optional = true }
-lindera = { version = "0.3.4", optional = true }
+jieba-rs = { version = "0.6", optional = true }
+lindera = { version = "0.8", optional = true }
+lindera-core = { version = "0.8", optional = true }
 
 [features]
 default = ["languages"]
@@ -51,5 +52,5 @@ ru = ["rust-stemmers"]
 sv = ["rust-stemmers"]
 tr = ["rust-stemmers"]
 zh = ["jieba-rs"]
-ja = ["lindera"]
+ja = ["lindera", "lindera-core"]
 ar = []
