@@ -71,14 +71,14 @@ impl Serialize for Pipeline {
 
 impl Default for Pipeline {
     fn default() -> Self {
-        ::lang::en::make_pipeline()
+        crate::lang::en::make_pipeline()
     }
 }
 
 impl Pipeline {
     /// Returns a pipeline for the given [`Language`](../lang/enum.Language.html).
     #[deprecated(since = "2.2.0", note = "Use `Language::make_pipeline()`")]
-    pub fn for_language(lang: ::lang::Language) -> Pipeline {
+    pub fn for_language(lang: crate::lang::Language) -> Pipeline {
         lang.make_pipeline()
     }
 

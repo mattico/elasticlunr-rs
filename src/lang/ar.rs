@@ -1,6 +1,6 @@
 /// Simple Arabic stemmer based on lunr.ar.js from https://github.com/MihaiValentin/lunr-languages
 
-use pipeline::Pipeline;
+use crate::pipeline::Pipeline;
 use regex::Regex;
 
 pub fn make_pipeline() -> Pipeline {
