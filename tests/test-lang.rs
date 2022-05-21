@@ -1,7 +1,5 @@
 // Input text is excerpted from public domain books on gutenberg.org or wikisource.org
 
-extern crate elasticlunr;
-
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;

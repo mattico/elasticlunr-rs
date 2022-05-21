@@ -26,24 +26,13 @@
 
 #[macro_use]
 extern crate lazy_static;
-extern crate regex;
-extern crate serde;
+
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-
-#[cfg(feature = "rust-stemmers")]
-extern crate rust_stemmers;
 
 #[cfg(test)]
 #[macro_use]
 extern crate maplit;
-#[cfg(feature = "zh")]
-extern crate jieba_rs;
-#[cfg(feature = "ja")]
-extern crate lindera;
-#[cfg(feature = "ja")]
-extern crate lindera_core;
 
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";

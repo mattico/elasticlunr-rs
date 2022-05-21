@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate serde_json;
-extern crate elasticlunr;
 
 use elasticlunr::*;
 use std::fs::File;
