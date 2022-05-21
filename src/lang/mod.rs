@@ -94,7 +94,7 @@ macro_rules! impl_language {
                     _ => None,
                 }
             }
-        
+
             /// Returns the two-character [ISO 639-1][iso] language code for the `Language`.
             ///
             /// *Note:*
@@ -111,7 +111,7 @@ macro_rules! impl_language {
                     )+
                 }
             }
-        
+
             /// Creates a pipeline for the [`Language`](../lang/enum.Language.html).
             pub fn make_pipeline(&self) -> crate::pipeline::Pipeline {
                 match *self {

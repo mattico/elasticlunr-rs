@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use elasticlunr::{Index, pipeline::tokenize, lang};
+use elasticlunr::{lang, pipeline::tokenize, Index};
 
 fn bench_main(c: &mut Criterion) {
     // BTreeMap<String, IndexItem>: 3,165,389 ns/iter (+/- 420,869)
