@@ -31,7 +31,7 @@ pub fn tokenize_japanese(text: &str) -> Vec<String> {
         ..Default::default()
     };
     // NB: unwrap() is okay since the errors are only related to user-supplied dictionaries.
-    let mut tokenizer = Tokenizer::with_config(config).unwrap();
+    let tokenizer = Tokenizer::with_config(config).unwrap();
     tokenizer
         .tokenize(text)
         .unwrap()
