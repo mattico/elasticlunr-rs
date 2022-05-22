@@ -2,7 +2,7 @@ use super::{common::StopWordFilter, Language};
 use crate::pipeline::{FnWrapper, Pipeline, PipelineFn};
 use regex::Regex;
 
-const WORDS: &'static [&'static str] = &[
+const WORDS: &[&str] = &[
     "", "a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an",
     "and", "any", "are", "as", "at", "be", "because", "been", "but", "by", "can", "cannot",
     "could", "dear", "did", "do", "does", "either", "else", "ever", "every", "for", "from", "get",
@@ -171,10 +171,10 @@ impl Stemmer {
         let mgr1 = concat!("^(", CS!(), ")?", VS!(), CS!(), VS!(), CS!());
         let s_v = concat!("^(", CS!(), ")?", V!());
 
-        let re_mgr0 = Regex::new(&mgr0).unwrap();
-        let re_mgr1 = Regex::new(&mgr1).unwrap();
-        let re_meq1 = Regex::new(&meq1).unwrap();
-        let re_s_v = Regex::new(&s_v).unwrap();
+        let re_mgr0 = Regex::new(mgr0).unwrap();
+        let re_mgr1 = Regex::new(mgr1).unwrap();
+        let re_meq1 = Regex::new(meq1).unwrap();
+        let re_s_v = Regex::new(s_v).unwrap();
 
         let re_1a = Regex::new("^(.+?)(ss|i)es$").unwrap();
         let re2_1a = Regex::new("^(.+?)([^s])s$").unwrap();
@@ -255,7 +255,7 @@ impl Stemmer {
             }
         } else if let Some(caps) = self.re2_1b.captures(&w.clone()) {
             let stem = &caps[1];
-            if self.re_s_v.is_match(&stem) {
+            if self.re_s_v.is_match(stem) {
                 w = stem.into();
 
                 let mut re3_1b_2_matched = false;
@@ -265,7 +265,7 @@ impl Stemmer {
                 } else if let Some(m) = self.re3_1b_2.find(&w.clone()) {
                     let mut suffix = m.as_str().chars();
                     // Make sure the two characters are the same since we can't use backreferences
-                    if &suffix.next() == &suffix.next() {
+                    if suffix.next() == suffix.next() {
                         re3_1b_2_matched = true;
                         w.pop();
                     }
@@ -290,7 +290,7 @@ impl Stemmer {
         if let Some(caps) = self.re_2.captures(&w.clone()) {
             let stem = &caps[1];
             let suffix = &caps[2];
-            if self.re_mgr0.is_match(&stem) {
+            if self.re_mgr0.is_match(stem) {
                 w = concat_string(&[stem, STEP_2.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
             }
         }
@@ -299,7 +299,7 @@ impl Stemmer {
         if let Some(caps) = self.re_3.captures(&w.clone()) {
             let stem = &caps[1];
             let suffix = &caps[2];
-            if self.re_mgr0.is_match(&stem) {
+            if self.re_mgr0.is_match(stem) {
                 w = concat_string(&[stem, STEP_3.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
             }
         }
@@ -307,7 +307,7 @@ impl Stemmer {
         // Step 4
         if let Some(caps) = self.re_4.captures(&w.clone()) {
             let stem = &caps[1];
-            if self.re_mgr1.is_match(&stem) {
+            if self.re_mgr1.is_match(stem) {
                 w = stem.into();
             }
         } else if let Some(caps) = self.re2_4.captures(&w.clone()) {
@@ -320,8 +320,8 @@ impl Stemmer {
         // Step 5
         if let Some(caps) = self.re_5.captures(&w.clone()) {
             let stem = &caps[1];
-            if self.re_mgr1.is_match(&stem)
-                || (self.re_meq1.is_match(&stem) && !(self.re3_5.is_match(&stem)))
+            if self.re_mgr1.is_match(stem)
+                || (self.re_meq1.is_match(stem) && !(self.re3_5.is_match(stem)))
             {
                 w = stem.into();
             }

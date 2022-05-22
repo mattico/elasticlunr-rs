@@ -48,6 +48,8 @@ use lang::English;
 pub use lang::Language;
 pub use pipeline::Pipeline;
 
+type Tokenizer = Option<Box<dyn Fn(&str) -> Vec<String>>>;
+
 /// A builder for an `Index` with custom parameters.
 ///
 /// # Example
@@ -63,7 +65,7 @@ pub use pipeline::Pipeline;
 pub struct IndexBuilder {
     save: bool,
     fields: Vec<String>,
-    field_tokenizers: Vec<Option<Box<dyn Fn(&str) -> Vec<String>>>>,
+    field_tokenizers: Vec<Tokenizer>,
     ref_field: String,
     pipeline: Option<Pipeline>,
     language: Box<dyn Language>,
@@ -185,7 +187,7 @@ impl IndexBuilder {
 pub struct Index {
     fields: Vec<String>,
     #[serde(skip)]
-    field_tokenizers: Vec<Option<Box<dyn Fn(&str) -> Vec<String>>>>,
+    field_tokenizers: Vec<Tokenizer>,
     pipeline: Pipeline,
     #[serde(rename = "ref")]
     ref_field: String,
@@ -331,7 +333,7 @@ impl Index {
 
                 self.index
                     .get_mut(field)
-                    .expect(&format!("InvertedIndex does not exist for field {}", field))
+                    .unwrap_or_else(|| panic!("InvertedIndex does not exist for field {}", field))
                     .add_token(doc_ref, token, freq);
             }
         }

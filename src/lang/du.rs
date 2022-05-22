@@ -37,7 +37,7 @@ impl Language for Dutch {
     }
 }
 
-const STOP_WORDS: &'static [&'static str] = &[
+const STOP_WORDS: &[&str] = &[
     "", "aan", "al", "alles", "als", "altijd", "andere", "ben", "bij", "daar", "dan", "dat", "de",
     "der", "deze", "die", "dit", "doch", "doen", "door", "dus", "een", "eens", "en", "er", "ge",
     "geen", "geweest", "haar", "had", "heb", "hebben", "heeft", "hem", "het", "hier", "hij", "hoe",

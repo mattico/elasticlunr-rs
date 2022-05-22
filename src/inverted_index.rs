@@ -81,8 +81,6 @@ impl IndexItem {
                     item.docs.remove(doc_ref);
                     item.doc_freq -= 1;
                 }
-            } else {
-                return;
             }
         }
     }

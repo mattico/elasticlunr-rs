@@ -37,7 +37,7 @@ impl Language for French {
     }
 }
 
-const STOP_WORDS: &'static [&'static str] = &[
+const STOP_WORDS: &[&str] = &[
     "", "ai", "aie", "aient", "aies", "ait", "as", "au", "aura", "aurai", "auraient", "aurais",
     "aurait", "auras", "aurez", "auriez", "aurions", "aurons", "auront", "aux", "avaient", "avais",
     "avait", "avec", "avez", "aviez", "avions", "avons", "ayant", "ayez", "ayons", "c", "ce",

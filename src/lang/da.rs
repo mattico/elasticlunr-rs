@@ -37,7 +37,7 @@ impl Language for Danish {
     }
 }
 
-const STOP_WORDS: &'static [&'static str] = &[
+const STOP_WORDS: &[&str] = &[
     "", "ad", "af", "alle", "alt", "anden", "at", "blev", "blive", "bliver", "da", "de", "dem",
     "den", "denne", "der", "deres", "det", "dette", "dig", "din", "disse", "dog", "du", "efter",
     "eller", "en", "end", "er", "et", "for", "fra", "ham", "han", "hans", "har", "havde", "have",

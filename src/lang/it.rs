@@ -37,7 +37,7 @@ impl Language for Italian {
     }
 }
 
-const STOP_WORDS: &'static [&'static str] = &[
+const STOP_WORDS: &[&str] = &[
     "",
     "a",
     "abbia",

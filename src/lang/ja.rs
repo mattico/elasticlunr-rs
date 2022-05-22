@@ -47,14 +47,14 @@ impl Language for Japanese {
     fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                Box::new(RegexTrimmer::new("trimmer-ja".into(), WORD_CHARS)),
+                Box::new(RegexTrimmer::new("trimmer-ja", WORD_CHARS)),
                 Box::new(FnWrapper("stemmer-ja".into(), stemmer)),
             ],
         }
     }
 }
 
-const WORD_CHARS: &'static str = r"0-9A-Za-z\p{Hiragana}\p{Katakana}\p{Unified_Ideograph}";
+const WORD_CHARS: &str = r"0-9A-Za-z\p{Hiragana}\p{Katakana}\p{Unified_Ideograph}";
 
 fn stemmer(token: String) -> Option<String> {
     Some(token)

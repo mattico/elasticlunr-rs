@@ -37,7 +37,7 @@ impl Language for Swedish {
     }
 }
 
-const STOP_WORDS: &'static [&'static str] = &[
+const STOP_WORDS: &[&str] = &[
     "", "alla", "allt", "att", "av", "blev", "bli", "blir", "blivit", "de", "dem", "den", "denna",
     "deras", "dess", "dessa", "det", "detta", "dig", "din", "dina", "ditt", "du", "där", "då",
     "efter", "ej", "eller", "en", "er", "era", "ert", "ett", "från", "för", "ha", "hade", "han",
