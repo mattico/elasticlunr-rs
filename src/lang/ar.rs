@@ -18,11 +18,11 @@ impl Language for Arabic {
         "ar".into()
     }
 
-    fn tokenize(&mut self, text: &str) -> Vec<String> {
+    fn tokenize(&self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
     }
 
-    fn pipeline(&mut self) -> Pipeline {
+    fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![Box::new(FnWrapper("stemmer-ar".into(), stemmer))],
         }

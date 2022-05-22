@@ -43,10 +43,9 @@ pub mod inverted_index;
 pub mod lang;
 pub mod pipeline;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use lang::en::English;
-use pipeline::Tokenizer;
 
 use crate::document_store::DocumentStore;
 use crate::inverted_index::InvertedIndex;
@@ -67,7 +66,7 @@ pub use crate::pipeline::Pipeline;
 /// ```
 pub struct IndexBuilder {
     save: bool,
-    fields: BTreeMap<String, Option<Box<dyn Tokenizer>>>,
+    fields: BTreeMap<String, Option<Box<dyn Fn(&str) -> Vec<String>>>>,
     ref_field: String,
     pipeline: Option<Pipeline>,
     language: Box<dyn Language>,
@@ -114,7 +113,11 @@ impl IndexBuilder {
     /// Add a document field to the `Index`, with a custom tokenizer for that field.
     ///
     /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
-    pub fn add_field_with_tokenizer(mut self, field: &str, tokenizer: Box<dyn Tokenizer>) -> Self {
+    pub fn add_field_with_tokenizer(
+        mut self,
+        field: &str,
+        tokenizer: Box<dyn Fn(&str) -> Vec<String>>,
+    ) -> Self {
         self.fields.insert(field.into(), Some(tokenizer));
         self
     }
@@ -128,7 +131,7 @@ impl IndexBuilder {
         I::Item: AsRef<str>,
     {
         self.fields
-            .extend(fields.into_iter().map(|f| f.as_ref().into()));
+            .extend(fields.into_iter().map(|f| (f.as_ref().into(), None)));
         self
     }
 
@@ -146,42 +149,81 @@ impl IndexBuilder {
             .map(|f| (f.clone(), InvertedIndex::new()))
             .collect();
 
-        let field_tokenizers = self
-            .fields
-            .values()
-            .map(|t| t.unwrap_or_else(|| Box::new(|text| self.language.tokenize(text))))
-            .collect();
+        let fields = self.fields.keys().cloned().collect();
+
+        let field_tokenizers = self.fields.into_values().collect();
 
         Index {
             index,
-            fields: self.fields.keys().collect(),
+            fields,
             field_tokenizers,
             ref_field: self.ref_field,
             document_store: DocumentStore::new(self.save),
-            pipeline: self.language.pipeline(),
+            pipeline: self
+                .pipeline
+                .unwrap_or_else(|| self.language.make_pipeline()),
             version: crate::ELASTICLUNR_VERSION,
-            lang: self.language.name(),
-            language: self.language,
+            lang: self.language,
         }
     }
 }
 
 /// An elasticlunr search index.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
     fields: Vec<String>,
     #[serde(skip)]
-    field_tokenizers: Vec<Box<dyn Tokenizer>>,
+    field_tokenizers: Vec<Option<Box<dyn Fn(&str) -> Vec<String>>>>,
     pipeline: Pipeline,
     #[serde(rename = "ref")]
     ref_field: String,
     version: &'static str,
     index: BTreeMap<String, InvertedIndex>,
     document_store: DocumentStore,
-    lang: String,
-    #[serde(skip)]
-    language: Box<dyn Language>,
+    #[serde(with = "ser_lang")]
+    lang: Box<dyn Language>,
+}
+
+mod ser_lang {
+    use crate::Language;
+    use serde::de;
+    use serde::{Deserializer, Serializer};
+    use std::fmt;
+
+    pub fn serialize<S>(lang: &Box<dyn Language>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&lang.name())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Box<dyn Language>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(LanguageVisitor)
+    }
+
+    struct LanguageVisitor;
+
+    impl<'de> de::Visitor<'de> for LanguageVisitor {
+        type Value = Box<dyn Language>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a capitalized language name")
+        }
+
+        fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            match crate::lang::from_name(v) {
+                Some(l) => Ok(l),
+                None => Err(E::custom(format!("Unknown language name: {}", v))),
+            }
+        }
+    }
 }
 
 impl Index {
@@ -248,14 +290,20 @@ impl Index {
         doc.insert(self.ref_field.clone(), doc_ref.into());
         let mut token_freq = BTreeMap::new();
 
-        for ((field, value), tokenizer) in self.fields.iter().zip(data).zip(self.field_tokenizers) {
+        for ((field, value), tokenizer) in
+            self.fields.iter().zip(data).zip(&mut self.field_tokenizers)
+        {
             doc.insert(field.clone(), value.as_ref().to_string());
 
             if field == &self.ref_field {
                 continue;
             }
 
-            let raw_tokens = tokenizer(value.as_ref());
+            let raw_tokens = if let Some(tokenizer) = tokenizer {
+                tokenizer(value.as_ref())
+            } else {
+                self.lang.tokenize(value.as_ref())
+            };
 
             let tokens = self.pipeline.run(raw_tokens);
 

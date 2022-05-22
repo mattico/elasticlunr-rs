@@ -3,7 +3,7 @@ use super::{
     Language,
 };
 use crate::pipeline::Pipeline;
-use rust_stemmers::{Algorithm, Stemmer};
+use rust_stemmers::Algorithm;
 
 const WORDS: &'static [&'static str] = &[
     "", "aan", "al", "alles", "als", "altijd", "andere", "ben", "bij", "daar", "dan", "dat", "de",
@@ -24,22 +24,11 @@ const TRIM: &'static str =
     \\uA78B-\\uA7AD\\uA7B0-\\uA7B7\\uA7F7-\\uA7FF\\uAB30-\\uAB5A\\uAB5C-\\uAB64\\uFB00-\\uFB06\
     \\uFF21-\\uFF3A\\uFF41-\\uFF5A";
 
-pub struct Dutch {
-    trimmer: Trimmer,
-    stop_words: StopWordFilter,
-    stemmer: Stemmer,
-}
+pub struct Dutch {}
 
 impl Dutch {
     pub fn new() -> Self {
-        let trimmer = Trimmer::new("trimmer-du", TRIM);
-        let stop_words = StopWordFilter::new("stopWordFilter-du", WORDS);
-        let stemmer = RustStemmer::new("stemmer-du", Algorithm::Dutch);
-        Self {
-            trimmer,
-            stop_words,
-            stemmer,
-        }
+        Self {}
     }
 }
 
@@ -51,13 +40,17 @@ impl Language for Dutch {
         "du".into()
     }
 
-    fn tokenize(&mut self, text: &str) -> Vec<String> {
+    fn tokenize(&self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
     }
 
-    fn pipeline(&mut self) -> Pipeline {
+    fn make_pipeline(&self) -> Pipeline {
         Pipeline {
-            queue: vec![self.trimmer, self.stop_words, self.stemmer],
+            queue: vec![
+                Box::new(Trimmer::new("trimmer-du", TRIM)),
+                Box::new(StopWordFilter::new("stopWordFilter-du", WORDS)),
+                Box::new(RustStemmer::new("stemmer-du", Algorithm::Dutch)),
+            ],
         }
     }
 }

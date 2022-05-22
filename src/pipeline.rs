@@ -3,15 +3,13 @@
 
 use serde::ser::{Serialize, SerializeSeq, Serializer};
 
-/// The function type used for the tokenizer.
-pub trait Tokenizer: Fn(&str) -> Vec<String> {}
-
 pub trait PipelineFn {
     fn name(&self) -> String;
 
-    fn filter(&mut self, token: String) -> Option<String>;
+    fn filter(&self, token: String) -> Option<String>;
 }
 
+#[derive(Clone)]
 pub struct FnWrapper(pub String, pub fn(String) -> Option<String>);
 
 impl PipelineFn for FnWrapper {
@@ -19,7 +17,7 @@ impl PipelineFn for FnWrapper {
         self.0.clone()
     }
 
-    fn filter(&mut self, token: String) -> Option<String> {
+    fn filter(&self, token: String) -> Option<String> {
         (self.1)(token)
     }
 }
@@ -37,7 +35,7 @@ impl Serialize for Pipeline {
         S: Serializer,
     {
         let mut seq = serializer.serialize_seq(Some(self.queue.len()))?;
-        for &elem in &self.queue {
+        for elem in &self.queue {
             seq.serialize_element(&elem.name())?;
         }
         seq.end()
@@ -51,7 +49,7 @@ impl Pipeline {
         let mut ret = vec![];
         for token in tokens {
             let mut token = Some(token);
-            for &func in &self.queue {
+            for func in &self.queue {
                 if let Some(t) = token {
                     token = func.filter(t);
                 } else {

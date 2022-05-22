@@ -1,5 +1,5 @@
 use super::Language;
-use crate::pipeline::Pipeline;
+use crate::pipeline::{FnWrapper, Pipeline};
 use lindera::tokenizer::{Tokenizer, TokenizerConfig};
 use lindera_core::viterbi::Mode;
 
@@ -31,7 +31,7 @@ impl Language for Japanese {
         "ja".into()
     }
 
-    fn tokenize(&mut self, text: &str) -> Vec<String> {
+    fn tokenize(&self, text: &str) -> Vec<String> {
         self.tokenizer
             .tokenize(text)
             .unwrap()
@@ -43,11 +43,11 @@ impl Language for Japanese {
             .collect()
     }
 
-    fn pipeline(&mut self) -> Pipeline {
+    fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                ("trimmer-ja".into(), trimmer),
-                ("stemmer-ja".into(), stemmer),
+                Box::new(FnWrapper("trimmer-ja".into(), trimmer)),
+                Box::new(FnWrapper("stemmer-ja".into(), stemmer)),
             ],
         }
     }

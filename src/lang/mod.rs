@@ -2,8 +2,6 @@
 //! language has a trimmer, a stop word filter, and a stemmer. Most users will not need to use
 //! these modules directly.
 
-use std::fmt::{self, Display};
-
 pub mod common;
 
 use crate::Pipeline;
@@ -16,10 +14,10 @@ pub trait Language {
     fn code(&self) -> String;
 
     /// Produces suitably simplified search tokens for inserting into the search index
-    fn tokenize(&mut self, text: &str) -> Vec<String>;
+    fn tokenize(&self, text: &str) -> Vec<String>;
 
     /// Returns the [`Pipeline`] to process the tokens with
-    fn pipeline(&mut self) -> Pipeline;
+    fn make_pipeline(&self) -> Pipeline;
 }
 
 /// Splits a text string into a vector of individual tokens.
@@ -55,6 +53,19 @@ macro_rules! impl_language {
                 $(
                     $(#[$cfgs])?
                     stringify!($code) => Some(Box::new($code::$name::new())),
+                )+
+                _ => None,
+            }
+        }
+
+        /// Returns the [`Language`] for the given English language name if the
+        /// language is supported. Returns `None` if not supported. The first letter must
+        /// be capitalized.
+        pub fn from_name(name: &str) -> Option<Box<dyn Language>> {
+            match name {
+                $(
+                    $(#[$cfgs])?
+                    stringify!($name) => Some(Box::new($code::$name::new())),
                 )+
                 _ => None,
             }

@@ -1,9 +1,9 @@
 use super::{
-    common::{StopWordFilter, Trimmer},
+    common::{RustStemmer, StopWordFilter, Trimmer},
     Language,
 };
 use crate::pipeline::Pipeline;
-use rust_stemmers::{Algorithm, Stemmer};
+use rust_stemmers::Algorithm;
 
 const TRIM: &'static str =
     "A-Za-z\\xAA\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02B8\\u02E0-\\u02E4\\u1D00-\\u1D25\
@@ -12,22 +12,11 @@ const TRIM: &'static str =
     \\uA78B-\\uA7AD\\uA7B0-\\uA7B7\\uA7F7-\\uA7FF\\uAB30-\\uAB5A\\uAB5C-\\uAB64\\uFB00-\\uFB06\
     \\uFF21-\\uFF3A\\uFF41-\\uFF5A";
 
-pub struct German {
-    stop_words: StopWordFilter,
-    stemmer: Stemmer,
-    trimmer: Trimmer,
-}
+pub struct German {}
 
 impl German {
     pub fn new() -> Self {
-        let stop_words = StopWordFilter::new(WORDS);
-        let stemmer = Stemmer::create(Algorithm::German);
-        let trimmer = Trimmer::new(TRIM);
-        Self {
-            stop_words,
-            stemmer,
-            trimmer,
-        }
+        Self {}
     }
 }
 
@@ -39,16 +28,16 @@ impl Language for German {
         "de".into()
     }
 
-    fn tokenize(&mut self, text: &str) -> Vec<String> {
+    fn tokenize(&self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
     }
 
-    fn pipeline(&mut self) -> Pipeline {
+    fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                ("trimmer-de".into(), self.trimmer.filterer()),
-                ("stopWordFilter-de".into(), self.stop_words.filterer()),
-                ("stemmer-de".into(), |s| Some(self.stemmer.stem(&s).into())),
+                Box::new(Trimmer::new("trimmer-de", TRIM)),
+                Box::new(StopWordFilter::new("stopWordFilter-de", WORDS)),
+                Box::new(RustStemmer::new("stemmer-de", Algorithm::German)),
             ],
         }
     }

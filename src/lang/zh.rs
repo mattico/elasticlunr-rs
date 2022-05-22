@@ -21,15 +21,15 @@ impl Language for Chinese {
         "zh".into()
     }
 
-    fn tokenize(&mut self, text: &str) -> Vec<String> {
+    fn tokenize(&self, text: &str) -> Vec<String> {
         self.jieba
             .cut_for_search(text, false)
             .iter()
-            .cloned()
+            .map(|s| s.to_string())
             .collect()
     }
 
-    fn pipeline(&mut self) -> Pipeline {
+    fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
                 Box::new(FnWrapper("trimmer-zh".into(), trimmer)),
@@ -51,7 +51,7 @@ pub fn trimmer(token: String) -> Option<String> {
 }
 
 fn stop_word_filter(token: String) -> Option<String> {
-    match token {
+    match token.as_str() {
         "的" | "了" => None,
         _ => Some(token),
     }

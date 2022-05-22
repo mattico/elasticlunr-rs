@@ -23,22 +23,11 @@ const TRIM: &'static str =
     \\uA78B-\\uA7AD\\uA7B0-\\uA7B7\\uA7F7-\\uA7FF\\uAB30-\\uAB5A\\uAB5C-\\uAB64\\uFB00-\\uFB06\
     \\uFF21-\\uFF3A\\uFF41-\\uFF5A";
 
-pub struct Danish {
-    stop_words: StopWordFilter,
-    stemmer: RustStemmer,
-    trimmer: Trimmer,
-}
+pub struct Danish {}
 
 impl Danish {
     pub fn new() -> Self {
-        let stop_words = StopWordFilter::new("stopWordFilter-da", WORDS);
-        let stemmer = RustStemmer::new("stemmer-da", Algorithm::Danish);
-        let trimmer = Trimmer::new("trimmer-da", TRIM);
-        Self {
-            stop_words,
-            stemmer,
-            trimmer,
-        }
+        Self {}
     }
 }
 
@@ -50,13 +39,17 @@ impl Language for Danish {
         "da".into()
     }
 
-    fn tokenize(&mut self, text: &str) -> Vec<String> {
+    fn tokenize(&self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
     }
 
-    fn pipeline(&mut self) -> Pipeline {
+    fn make_pipeline(&self) -> Pipeline {
         Pipeline {
-            queue: vec![self.trimmer, self.stop_words, self.stemmer],
+            queue: vec![
+                Box::new(Trimmer::new("trimmer-da", TRIM)),
+                Box::new(StopWordFilter::new("stopWordFilter-da", WORDS)),
+                Box::new(RustStemmer::new("stemmer-da", Algorithm::Danish)),
+            ],
         }
     }
 }

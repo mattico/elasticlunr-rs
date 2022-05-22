@@ -1,7 +1,6 @@
 use super::{common::StopWordFilter, Language};
-use crate::pipeline::{Pipeline, PipelineFn};
+use crate::pipeline::{FnWrapper, Pipeline, PipelineFn};
 use regex::Regex;
-use std::collections::HashSet;
 
 const WORDS: &'static [&'static str] = &[
     "", "a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an",
@@ -40,16 +39,16 @@ impl Language for English {
         "en".into()
     }
 
-    fn tokenize(&mut self, text: &str) -> Vec<String> {
+    fn tokenize(&self, text: &str) -> Vec<String> {
         super::tokenize_whitespace(text)
     }
 
-    fn pipeline(&mut self) -> Pipeline {
+    fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                ("trimmer".into(), trimmer),
-                self.stop_words,
-                self.stemmer,
+                Box::new(FnWrapper("trimmer".into(), trimmer)),
+                Box::new(self.stop_words.clone()),
+                Box::new(self.stemmer.clone()),
             ],
         }
     }
@@ -101,6 +100,7 @@ static STEP_3: &[(&str, &str)] = &[
 // It's not very efficient and very not-rusty, but it
 // generates identical output.
 
+#[derive(Clone)]
 struct Stemmer {
     re_mgr0: Regex,
     re_mgr1: Regex,
@@ -132,7 +132,7 @@ impl PipelineFn for Stemmer {
         "stemmer".into()
     }
 
-    fn filter(&mut self, token: String) -> Option<String> {
+    fn filter(&self, token: String) -> Option<String> {
         Some(self.stem(token))
     }
 }
@@ -456,7 +456,7 @@ mod tests {
 
         let stemmer = Stemmer::new();
         for &(input, output) in cases.iter() {
-            assert_eq!(&stemmer.stem(input.into()).unwrap(), output);
+            assert_eq!(&stemmer.stem(input.into()), output);
         }
     }
 }

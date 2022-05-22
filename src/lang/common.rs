@@ -3,6 +3,7 @@ use regex::Regex;
 use rust_stemmers::{Algorithm, Stemmer};
 use std::collections::HashSet;
 
+#[derive(Clone)]
 pub struct StopWordFilter {
     name: String,
     stop_words: HashSet<String>,
@@ -22,7 +23,7 @@ impl PipelineFn for StopWordFilter {
         self.name.clone()
     }
 
-    fn filter(&mut self, token: String) -> Option<String> {
+    fn filter(&self, token: String) -> Option<String> {
         if self.stop_words.contains(&token) {
             None
         } else {
@@ -31,6 +32,7 @@ impl PipelineFn for StopWordFilter {
     }
 }
 
+#[derive(Clone)]
 pub struct Trimmer {
     name: String,
     trimmer: Regex,
@@ -49,7 +51,7 @@ impl PipelineFn for Trimmer {
         self.name.clone()
     }
 
-    fn filter(&mut self, token: String) -> Option<String> {
+    fn filter(&self, token: String) -> Option<String> {
         let result = self.trimmer.replace_all(&token, "");
         if result.is_empty() {
             None
@@ -80,7 +82,7 @@ impl PipelineFn for RustStemmer {
         self.name.clone()
     }
 
-    fn filter(&mut self, token: String) -> Option<String> {
+    fn filter(&self, token: String) -> Option<String> {
         let result = self.stemmer.stem(&token);
         if result.is_empty() {
             None
