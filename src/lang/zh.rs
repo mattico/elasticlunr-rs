@@ -1,4 +1,4 @@
-use super::Language;
+use super::{common::Trimmer, Language};
 use crate::pipeline::{FnWrapper, Pipeline};
 
 pub struct Chinese {
@@ -32,7 +32,7 @@ impl Language for Chinese {
     fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                Box::new(FnWrapper("trimmer-zh".into(), trimmer)),
+                Box::new(Trimmer::new("trimmer-zh", r"\p{Han}\p{Latin}")),
                 Box::new(FnWrapper("stopWordFilter-zh".into(), stop_word_filter)),
                 Box::new(FnWrapper("stemmer-zh".into(), stemmer)),
             ],
@@ -40,16 +40,7 @@ impl Language for Chinese {
     }
 }
 
-pub fn trimmer(token: String) -> Option<String> {
-    let ret: String = token.trim_matches(|c: char| !is_valid_char(c)).into();
-
-    if ret.eq("") {
-        return None;
-    }
-
-    Some(ret)
-}
-
+// TODO: lunr.zh.js has a much larger set of stop words
 fn stop_word_filter(token: String) -> Option<String> {
     match token.as_str() {
         "的" | "了" => None,
@@ -57,23 +48,7 @@ fn stop_word_filter(token: String) -> Option<String> {
     }
 }
 
+// lunr.zh.js has an empty stemmer as well
 fn stemmer(token: String) -> Option<String> {
     Some(token)
-}
-
-fn is_valid_char(c: char) -> bool {
-    let min_max_list = [
-        [19668, 40869], // min and max Chinese char
-        ['a' as u32, 'z' as u32],
-        ['A' as u32, 'Z' as u32],
-    ];
-
-    let c = c as u32;
-    for min_max in min_max_list.iter() {
-        if c >= min_max[0] && c <= min_max[1] {
-            return true;
-        }
-    }
-
-    false
 }
