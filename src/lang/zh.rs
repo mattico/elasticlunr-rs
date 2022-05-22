@@ -1,6 +1,7 @@
 use super::{common::RegexTrimmer, Language};
 use crate::pipeline::{FnWrapper, Pipeline};
 
+#[derive(Clone)]
 pub struct Chinese {
     jieba: jieba_rs::Jieba,
 }

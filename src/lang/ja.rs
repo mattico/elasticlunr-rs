@@ -3,6 +3,7 @@ use crate::pipeline::{FnWrapper, Pipeline};
 use lindera::tokenizer::{Tokenizer, TokenizerConfig};
 use lindera_core::viterbi::Mode;
 
+#[derive(Clone)]
 pub struct Japanese {
     tokenizer: Tokenizer,
 }

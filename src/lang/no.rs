@@ -5,6 +5,7 @@ use super::{
 use crate::pipeline::Pipeline;
 use rust_stemmers::Algorithm;
 
+#[derive(Clone)]
 pub struct Norwegian {}
 
 impl Norwegian {

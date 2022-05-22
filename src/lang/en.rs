@@ -15,6 +15,7 @@ const WORDS: &'static [&'static str] = &[
     "which", "while", "who", "whom", "why", "will", "with", "would", "yet", "you", "your",
 ];
 
+#[derive(Clone)]
 pub struct English {
     stop_words: StopWordFilter,
     stemmer: Stemmer,
