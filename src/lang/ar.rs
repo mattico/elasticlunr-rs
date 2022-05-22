@@ -1,5 +1,5 @@
 use super::Language;
-use crate::pipeline::{FnWrapper, Pipeline};
+use crate::pipeline::{Pipeline, PipelineFn};
 use regex::Regex;
 
 pub struct Arabic {}
@@ -24,22 +24,40 @@ impl Language for Arabic {
 
     fn make_pipeline(&self) -> Pipeline {
         Pipeline {
-            queue: vec![Box::new(FnWrapper("stemmer-ar".into(), stemmer))],
+            queue: vec![Box::new(Stemmer::new())],
         }
     }
 }
 
-fn stemmer(token: String) -> Option<String> {
-    lazy_static! {
-        static ref DIACRITICS: Regex = Regex::new("[\u{064b}-\u{065b}]").unwrap();
-        static ref ALEFS: Regex = Regex::new("[\u{0622}\u{0623}\u{0625}\u{0671}\u{0649}]").unwrap();
-    }
-    // remove elongating character
-    let token = token.replace('\u{0640}', "");
-    // remove diacritics
-    let token = DIACRITICS.replace(&token, "");
-    // replace all variations of alef (آأإٱى) to a plain alef (ا)
-    let token = ALEFS.replace(&token, "\u{0627}");
+struct Stemmer {
+    diacritics: Regex,
+    alefs: Regex,
+}
 
-    Some(token.into())
+impl Stemmer {
+    pub fn new() -> Self {
+        let diacritics = Regex::new("[\u{0640}\u{064b}-\u{065b}]").unwrap();
+        let alefs = Regex::new("[\u{0622}\u{0623}\u{0625}\u{0671}\u{0649}]").unwrap();
+        Self { diacritics, alefs }
+    }
+}
+
+impl PipelineFn for Stemmer {
+    fn name(&self) -> String {
+        "stemmer-ar".into()
+    }
+
+    fn filter(&self, token: String) -> Option<String> {
+        // remove diacritics and elongating character
+        let result = self.diacritics.replace(&token, "");
+        // replace all variations of alef (آأإٱى) to a plain alef (ا)
+        let result = self.alefs.replace(&result, "\u{0627}");
+        if result.is_empty() {
+            None
+        } else if result == token {
+            Some(token)
+        } else {
+            Some(result.into())
+        }
+    }
 }
