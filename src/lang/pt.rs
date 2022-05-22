@@ -1,5 +1,5 @@
 use super::{
-    common::{RustStemmer, StopWordFilter, Trimmer},
+    common::{RustStemmer, StopWordFilter, RegexTrimmer},
     Language,
 };
 use crate::pipeline::Pipeline;
@@ -28,7 +28,7 @@ impl Language for Portuguese {
     fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                Box::new(Trimmer::new("trimmer-pt", r"\p{Latin}")),
+                Box::new(RegexTrimmer::new("trimmer-pt", r"\p{Latin}")),
                 Box::new(StopWordFilter::new("stopWordFilter-pt", STOP_WORDS)),
                 Box::new(RustStemmer::new("stemmer-pt", Algorithm::Portuguese)),
             ],

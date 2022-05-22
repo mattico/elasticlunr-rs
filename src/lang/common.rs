@@ -33,12 +33,12 @@ impl PipelineFn for StopWordFilter {
 }
 
 #[derive(Clone)]
-pub struct Trimmer {
+pub struct RegexTrimmer {
     name: String,
     trimmer: Regex,
 }
 
-impl Trimmer {
+impl RegexTrimmer {
     pub fn new(name: &str, word_chars: &str) -> Self {
         let name = name.into();
         let trimmer = Regex::new(&format!("^[^{0}]+|[^{0}]+$", word_chars)).unwrap();
@@ -46,7 +46,7 @@ impl Trimmer {
     }
 }
 
-impl PipelineFn for Trimmer {
+impl PipelineFn for RegexTrimmer {
     fn name(&self) -> String {
         self.name.clone()
     }

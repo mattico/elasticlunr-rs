@@ -1,5 +1,5 @@
 use super::{
-    common::{RustStemmer, StopWordFilter, Trimmer},
+    common::{RustStemmer, StopWordFilter, RegexTrimmer},
     Language,
 };
 use crate::pipeline::Pipeline;
@@ -28,7 +28,7 @@ impl Language for Turkish {
     fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                Box::new(Trimmer::new("trimmer-tr", r"\p{Latin}")),
+                Box::new(RegexTrimmer::new("trimmer-tr", r"\p{Latin}")),
                 Box::new(StopWordFilter::new("stopWordFilter-tr", STOP_WORDS)),
                 Box::new(RustStemmer::new("stemmer-tr", Algorithm::Turkish)),
             ],

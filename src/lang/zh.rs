@@ -1,4 +1,4 @@
-use super::{common::Trimmer, Language};
+use super::{common::RegexTrimmer, Language};
 use crate::pipeline::{FnWrapper, Pipeline};
 
 pub struct Chinese {
@@ -32,7 +32,7 @@ impl Language for Chinese {
     fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                Box::new(Trimmer::new("trimmer-zh", r"\p{Han}\p{Latin}")),
+                Box::new(RegexTrimmer::new("trimmer-zh", r"\p{Han}\p{Latin}")),
                 Box::new(FnWrapper("stopWordFilter-zh".into(), stop_word_filter)),
                 Box::new(FnWrapper("stemmer-zh".into(), stemmer)),
             ],
