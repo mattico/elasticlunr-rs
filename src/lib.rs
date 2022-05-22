@@ -45,12 +45,11 @@ pub mod pipeline;
 
 use std::collections::BTreeMap;
 
+use document_store::DocumentStore;
+use inverted_index::InvertedIndex;
 use lang::English;
-
-use crate::document_store::DocumentStore;
-use crate::inverted_index::InvertedIndex;
-pub use crate::lang::Language;
-pub use crate::pipeline::Pipeline;
+pub use lang::Language;
+pub use pipeline::Pipeline;
 
 /// A builder for an `Index` with custom parameters.
 ///
@@ -66,7 +65,8 @@ pub use crate::pipeline::Pipeline;
 /// ```
 pub struct IndexBuilder {
     save: bool,
-    fields: BTreeMap<String, Option<Box<dyn Fn(&str) -> Vec<String>>>>,
+    fields: Vec<String>,
+    field_tokenizers: Vec<Option<Box<dyn Fn(&str) -> Vec<String>>>>,
     ref_field: String,
     pipeline: Option<Pipeline>,
     language: Box<dyn Language>,
@@ -76,7 +76,8 @@ impl Default for IndexBuilder {
     fn default() -> Self {
         IndexBuilder {
             save: true,
-            fields: BTreeMap::new(),
+            fields: Vec::new(),
+            field_tokenizers: Vec::new(),
             ref_field: "id".into(),
             pipeline: None,
             language: Box::new(English::new()),
@@ -104,34 +105,51 @@ impl IndexBuilder {
 
     /// Add a document field to the `Index`.
     ///
-    /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
+    /// # Panics
+    ///
+    /// Panics if a field with the name already exists.
     pub fn add_field(mut self, field: &str) -> Self {
-        self.fields.insert(field.into(), None);
+        let field = field.into();
+        if self.fields.contains(&field) {
+            panic!("Duplicate fields in index: {}", field);
+        }
+        self.fields.push(field);
+        self.field_tokenizers.push(None);
         self
     }
 
     /// Add a document field to the `Index`, with a custom tokenizer for that field.
     ///
-    /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
+    /// # Panics
+    ///
+    /// Panics if a field with the name already exists.
     pub fn add_field_with_tokenizer(
         mut self,
         field: &str,
         tokenizer: Box<dyn Fn(&str) -> Vec<String>>,
     ) -> Self {
-        self.fields.insert(field.into(), Some(tokenizer));
+        let field = field.into();
+        if self.fields.contains(&field) {
+            panic!("Duplicate fields in index: {}", field);
+        }
+        self.fields.push(field);
+        self.field_tokenizers.push(Some(tokenizer));
         self
     }
 
     /// Add the document fields to the `Index`.
     ///
-    /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
+    /// # Panics
+    ///
+    /// Panics if two fields have the same name.
     pub fn add_fields<I>(mut self, fields: I) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        self.fields
-            .extend(fields.into_iter().map(|f| (f.as_ref().into(), None)));
+        for field in fields {
+            self = self.add_field(field.as_ref())
+        }
         self
     }
 
@@ -145,18 +163,14 @@ impl IndexBuilder {
     pub fn build(self) -> Index {
         let index = self
             .fields
-            .keys()
+            .iter()
             .map(|f| (f.clone(), InvertedIndex::new()))
             .collect();
 
-        let fields = self.fields.keys().cloned().collect();
-
-        let field_tokenizers = self.fields.into_values().collect();
-
         Index {
             index,
-            fields,
-            field_tokenizers,
+            fields: self.fields,
+            field_tokenizers: self.field_tokenizers,
             ref_field: self.ref_field,
             document_store: DocumentStore::new(self.save),
             pipeline: self
@@ -239,7 +253,7 @@ impl Index {
     ///
     /// # Panics
     ///
-    /// Panics if multiple given fields are identical.
+    /// Panics if a field with the name already exists.
     pub fn new<I>(fields: I) -> Self
     where
         I: IntoIterator,
@@ -254,14 +268,14 @@ impl Index {
     /// # Example
     ///
     /// ```
-    /// # use elasticlunr::{Index, lang::en::English};
-    /// let mut index = Index::with_language(Box::new(English::new()), &["title", "body"]);
+    /// use elasticlunr::{Index, lang::English};
+    /// let mut index = Index::with_language(English::new(), &["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
     ///
     /// # Panics
     ///
-    /// Panics if multiple given fields are identical.
+    /// Panics if a field with the name already exists.
     pub fn with_language<I, L>(lang: L, fields: I) -> Self
     where
         L: Language + 'static,
@@ -291,9 +305,9 @@ impl Index {
         doc.insert(self.ref_field.clone(), doc_ref.into());
         let mut token_freq = BTreeMap::new();
 
-        for ((field, value), tokenizer) in
-            self.fields.iter().zip(data).zip(&mut self.field_tokenizers)
-        {
+        for (i, value) in data.into_iter().enumerate() {
+            let field = &self.fields[i];
+            let tokenizer = self.field_tokenizers[i].as_ref();
             doc.insert(field.clone(), value.as_ref().to_string());
 
             if field == &self.ref_field {
@@ -350,7 +364,6 @@ mod tests {
     #[test]
     fn add_field_to_builder() {
         let idx = IndexBuilder::new()
-            .add_field("foo")
             .add_fields(&["foo", "bar", "baz"])
             .build();
 

@@ -19,7 +19,7 @@ fn write_output(lang: &dyn Language) {
         .read_to_string(&mut input_str)
         .unwrap();
 
-    let output = base.join(&format!("{}.out.rs.txt", code));
+    let output = base.join(&format!("{}.out.txt", code));
     let mut output = File::create(&output).unwrap();
 
     let pipeline = lang.make_pipeline();
@@ -46,7 +46,8 @@ fn compare_to_fixture(lang: &dyn Language) {
     let output = base.join(&format!("{}.out.txt", code));
     let mut output = BufReader::new(File::open(&output).unwrap()).lines();
 
-    let tokens = lang.tokenize(&input_str);
+    let pipeline = lang.make_pipeline();
+    let tokens = pipeline.run(lang.tokenize(&input_str));
 
     for tok in tokens {
         assert_eq!(
@@ -61,7 +62,7 @@ fn compare_to_fixture(lang: &dyn Language) {
 #[test]
 fn test_languages() {
     for lang in lang::languages() {
-        //write_output(lang);
+        //write_output(lang.as_ref());
         compare_to_fixture(lang.as_ref());
     }
 }

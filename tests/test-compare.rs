@@ -32,10 +32,8 @@ const DOCS: &'static [[&'static str; 2]] = &[
 fn create_index() -> serde_json::Value {
     let mut index = Index::new(&["title", "body"]);
 
-    let mut i = 1;
-    for doc in DOCS.iter() {
-        index.add_doc(&format!("{}", i), doc);
-        i += 1;
+    for (i, doc) in DOCS.iter().enumerate() {
+        index.add_doc(&(i + 1).to_string(), doc);
     }
     json!(index)
 }
@@ -64,10 +62,8 @@ const DOCS_JA: &'static [[&'static str; 2]] = &[
 fn create_index_ja() -> serde_json::Value {
     let mut index = Index::with_language(lang::Japanese::new(), &["title", "body"]);
 
-    let mut i = 1;
-    for doc in DOCS_JA.iter() {
-        index.add_doc(&format!("{}", i), doc);
-        i += 1;
+    for (i, doc) in DOCS_JA.iter().enumerate() {
+        index.add_doc(&(i + 1).to_string(), doc);
     }
     json!(index)
 }
