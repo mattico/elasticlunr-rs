@@ -17,18 +17,13 @@ const WORDS: &[&str] = &[
 
 #[derive(Clone)]
 pub struct English {
-    stop_words: StopWordFilter,
     stemmer: Stemmer,
 }
 
 impl English {
     pub fn new() -> Self {
-        let stop_words = StopWordFilter::new("stopWordFilter", WORDS);
         let stemmer = Stemmer::new();
-        Self {
-            stop_words,
-            stemmer,
-        }
+        Self { stemmer }
     }
 }
 
@@ -48,7 +43,7 @@ impl Language for English {
         Pipeline {
             queue: vec![
                 Box::new(FnWrapper("trimmer".into(), trimmer)),
-                Box::new(self.stop_words.clone()),
+                Box::new(StopWordFilter::new("stopWordFilter", WORDS)),
                 Box::new(self.stemmer.clone()),
             ],
         }
