@@ -34,6 +34,7 @@ macro_rules! impl_language {
         pub fn languages() -> Vec<Box<dyn Language>> {
             vec![
                 $(
+                    $(#[$cfgs])?
                     Box::new($code::$name::new()),
                 )+
             ]

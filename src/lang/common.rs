@@ -1,6 +1,5 @@
 use crate::pipeline::PipelineFn;
 use regex::Regex;
-use rust_stemmers::{Algorithm, Stemmer};
 use std::collections::HashSet;
 
 #[derive(Clone)]
@@ -63,20 +62,23 @@ impl PipelineFn for RegexTrimmer {
     }
 }
 
+#[cfg(feature = "rust-stemmers")]
 pub struct RustStemmer {
     name: String,
-    stemmer: Stemmer,
+    stemmer: rust_stemmers::Stemmer,
 }
 
+#[cfg(feature = "rust-stemmers")]
 impl RustStemmer {
-    pub fn new(name: &str, algo: Algorithm) -> Self {
+    pub fn new(name: &str, algo: rust_stemmers::Algorithm) -> Self {
         Self {
             name: name.into(),
-            stemmer: Stemmer::create(algo),
+            stemmer: rust_stemmers::Stemmer::create(algo),
         }
     }
 }
 
+#[cfg(feature = "rust-stemmers")]
 impl PipelineFn for RustStemmer {
     fn name(&self) -> String {
         self.name.clone()

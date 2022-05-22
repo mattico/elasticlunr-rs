@@ -36,7 +36,6 @@ lindera = { version = "0.13", optional = true, features = ["ipadic"] }
 lindera-core = { version = "0.13", optional = true }
 
 [features]
-default = ["languages"]
 languages = ["ar", "da", "de", "du", "es", "fi", "fr", "it", "ja", "no", "pt", "ro", "ru", "sv", "tr", "zh"]
 ar = []
 da = ["rust-stemmers"]
