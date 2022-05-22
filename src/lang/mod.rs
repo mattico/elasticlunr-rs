@@ -73,7 +73,10 @@ macro_rules! impl_language {
 
         $(
             $(#[$cfgs])?
-            pub mod $code;
+            mod $code;
+
+            $(#[$cfgs])?
+            pub use $code::$name;
         )+
     };
 }
@@ -84,18 +87,18 @@ impl_language! {
     (Chinese, zh, #[cfg(feature = "zh")]),
     (Danish, da, #[cfg(feature = "da")]),
     (Dutch, du, #[cfg(feature = "du")]),
-    // (Finnish, fi, #[cfg(feature = "fi")]),
-    // (French, fr, #[cfg(feature = "fr")]),
+    (Finnish, fi, #[cfg(feature = "fi")]),
+    (French, fr, #[cfg(feature = "fr")]),
     (German, de, #[cfg(feature = "de")]),
-    // (Italian, it, #[cfg(feature = "it")]),
+    (Italian, it, #[cfg(feature = "it")]),
     (Japanese, ja, #[cfg(feature = "ja")]),
-    // (Norwegian, no, #[cfg(feature = "no")]),
-    // (Portuguese, pt, #[cfg(feature = "pt")]),
-    // (Romanian, ro, #[cfg(feature = "ro")]),
-    // (Russian, ru, #[cfg(feature = "ru")]),
-    // (Spanish, es, #[cfg(feature = "es")]),
-    // (Swedish, sv, #[cfg(feature = "sv")]),
-    // (Turkish, tr, #[cfg(feature = "tr")]),
+    (Norwegian, no, #[cfg(feature = "no")]),
+    (Portuguese, pt, #[cfg(feature = "pt")]),
+    (Romanian, ro, #[cfg(feature = "ro")]),
+    (Russian, ru, #[cfg(feature = "ru")]),
+    (Spanish, es, #[cfg(feature = "es")]),
+    (Swedish, sv, #[cfg(feature = "sv")]),
+    (Turkish, tr, #[cfg(feature = "tr")]),
 }
 
 #[cfg(test)]

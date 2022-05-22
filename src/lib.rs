@@ -45,7 +45,7 @@ pub mod pipeline;
 
 use std::collections::BTreeMap;
 
-use lang::en::English;
+use lang::English;
 
 use crate::document_store::DocumentStore;
 use crate::inverted_index::InvertedIndex;
@@ -89,9 +89,9 @@ impl IndexBuilder {
         Default::default()
     }
 
-    pub fn with_language(language: Box<dyn Language>) -> Self {
+    pub fn with_language<L: Language + 'static>(language: L) -> Self {
         Self {
-            language,
+            language: Box::new(language),
             ..Default::default()
         }
     }
@@ -255,15 +255,16 @@ impl Index {
     ///
     /// ```
     /// # use elasticlunr::{Index, lang::en::English};
-    /// let mut index = Index::for_language(Box::new(English::new()), &["title", "body"]);
+    /// let mut index = Index::with_language(Box::new(English::new()), &["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if multiple given fields are identical.
-    pub fn for_language<I>(lang: Box<dyn Language>, fields: I) -> Self
+    pub fn with_language<I, L>(lang: L, fields: I) -> Self
     where
+        L: Language + 'static,
         I: IntoIterator,
         I::Item: AsRef<str>,
     {

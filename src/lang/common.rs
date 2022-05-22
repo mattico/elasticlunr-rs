@@ -39,9 +39,9 @@ pub struct Trimmer {
 }
 
 impl Trimmer {
-    pub fn new(name: &str, trim_chars: &str) -> Self {
+    pub fn new(name: &str, word_chars: &str) -> Self {
         let name = name.into();
-        let trimmer = Regex::new(&format!("^[^{0}]+|[^{0}]+$", trim_chars)).unwrap();
+        let trimmer = Regex::new(&format!("^[^{0}]+|[^{0}]+$", word_chars)).unwrap();
         Self { name, trimmer }
     }
 }

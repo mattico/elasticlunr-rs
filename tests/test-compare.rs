@@ -62,7 +62,7 @@ const DOCS_JA: &'static [[&'static str; 2]] = &[
 
 #[cfg(feature = "ja")]
 fn create_index_ja() -> serde_json::Value {
-    let mut index = Index::with_language(Language::Japanese, &["title", "body"]);
+    let mut index = Index::with_language(lang::Japanese::new(), &["title", "body"]);
 
     let mut i = 1;
     for doc in DOCS_JA.iter() {
