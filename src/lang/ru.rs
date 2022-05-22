@@ -28,16 +28,13 @@ impl Language for Russian {
     fn make_pipeline(&self) -> Pipeline {
         Pipeline {
             queue: vec![
-                Box::new(Trimmer::new("trimmer-ru", WORD_CHARS)),
+                Box::new(Trimmer::new("trimmer-ru", r"\p{Cyrillic}")),
                 Box::new(StopWordFilter::new("stopWordFilter-ru", STOP_WORDS)),
                 Box::new(RustStemmer::new("stemmer-ru", Algorithm::Russian)),
             ],
         }
     }
 }
-
-const WORD_CHARS: &'static str =
-    "\\u0400-\\u0484\\u0487-\\u052F\\u1D2B\\u1D78\\u2DE0-\\u2DFF\\uA640-\\uA69F\\uFE2E\\uFE2F";
 
 const STOP_WORDS: &'static [&'static str] = &[
     "",
