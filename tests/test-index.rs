@@ -1,11 +1,66 @@
-#[macro_use]
-extern crate serde_json;
-
 use elasticlunr::*;
-use std::fs::File;
+use serde_json::json;
+use std::fs::{self, File};
 use std::path::Path;
 
-const DOCS: &'static [[&'static str; 2]] = &[
+fn create_index<L: Language + 'static>(
+    lang: L,
+    docs: &'static [[&'static str; 2]],
+) -> serde_json::Value {
+    let mut index = Index::with_language(lang, &["title", "body"]);
+    for (i, doc) in docs.iter().enumerate() {
+        index.add_doc(&(i + 1).to_string(), doc);
+    }
+    json!(index)
+}
+
+fn generate_fixture<L: Language + 'static>(
+    lang: L,
+    docs: &'static [[&'static str; 2]],
+) -> serde_json::Value {
+    let code = lang.code();
+    let src = create_index(lang, docs);
+    let dest = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join(format!("tests/searchindex_fixture_{}.json", code));
+    let dest = File::create(&dest).unwrap();
+    serde_json::to_writer_pretty(dest, &src).unwrap();
+    src
+}
+
+fn read_fixture(lang: &dyn Language) -> serde_json::Value {
+    let src = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join(format!("tests/searchindex_fixture_{}.json", lang.code()));
+    let json = fs::read_to_string(src).unwrap();
+    serde_json::from_str(&json).expect("Unable to deserialize the fixture")
+}
+
+const GENERATE_FIXTURE: bool = false;
+
+fn check_index<L: Language + Clone + 'static>(lang: L, docs: &'static [[&'static str; 2]]) {
+    let new_index = create_index(lang.clone(), docs);
+    let name = lang.name();
+    let fixture_index = if GENERATE_FIXTURE {
+        generate_fixture(lang, docs)
+    } else {
+        read_fixture(&lang)
+    };
+    if new_index != fixture_index {
+        panic!("The {} search index has changed from the fixture", name);
+    }
+}
+
+#[test]
+fn en_search_index_hasnt_changed_accidentally() {
+    check_index(lang::English::new(), DOCS_EN);
+}
+
+#[cfg(feature = "ja")]
+#[test]
+fn ja_search_index_hasnt_changed_accidentally() {
+    check_index(lang::Japanese::new(), DOCS_JA);
+}
+
+const DOCS_EN: &'static [[&'static str; 2]] = &[
     [
         "Chapter 1",
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
@@ -29,15 +84,6 @@ const DOCS: &'static [[&'static str; 2]] = &[
     ["Chapter 6", "Spatiëring shouldn’t cause a panic."],
 ];
 
-fn create_index() -> serde_json::Value {
-    let mut index = Index::new(&["title", "body"]);
-
-    for (i, doc) in DOCS.iter().enumerate() {
-        index.add_doc(&(i + 1).to_string(), doc);
-    }
-    json!(index)
-}
-
 #[cfg(feature = "ja")]
 const DOCS_JA: &'static [[&'static str; 2]] = &[
     [
@@ -57,70 +103,3 @@ const DOCS_JA: &'static [[&'static str; 2]] = &[
         "第一毛をもって装飾されべきはずの顔がつるつるしてまるで薬缶だ。その後猫にもだいぶ逢ったがこんな片輪には一度も出会わした事がない。のみならず顔の真中があまりに突起している。",
     ],
 ];
-
-#[cfg(feature = "ja")]
-fn create_index_ja() -> serde_json::Value {
-    let mut index = Index::with_language(lang::Japanese::new(), &["title", "body"]);
-
-    for (i, doc) in DOCS_JA.iter().enumerate() {
-        index.add_doc(&(i + 1).to_string(), doc);
-    }
-    json!(index)
-}
-
-const GENERATE_FIXTURE: bool = false;
-
-fn get_fixture() -> serde_json::Value {
-    if GENERATE_FIXTURE {
-        let src = create_index();
-
-        let dest = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/searchindex_fixture.json");
-        let dest = File::create(&dest).unwrap();
-        serde_json::to_writer_pretty(dest, &src).unwrap();
-
-        src
-    } else {
-        let json = include_str!("searchindex_fixture.json");
-        serde_json::from_str(json).expect("Unable to deserialize the fixture")
-    }
-}
-
-#[cfg(feature = "ja")]
-const GENERATE_FIXTURE_JA: bool = false;
-
-#[cfg(feature = "ja")]
-fn get_fixture_ja() -> serde_json::Value {
-    if GENERATE_FIXTURE_JA {
-        let src = create_index_ja();
-
-        let dest = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/searchindex_fixture_ja.json");
-        let dest = File::create(&dest).unwrap();
-        serde_json::to_writer_pretty(dest, &src).unwrap();
-
-        src
-    } else {
-        let json = include_str!("searchindex_fixture_ja.json");
-        serde_json::from_str(json).expect("Unable to deserialize the fixture of Japanese")
-    }
-}
-
-#[test]
-fn search_index_hasnt_changed_accidentally() {
-    let new_index = create_index();
-    let fixture_index = get_fixture();
-
-    if new_index != fixture_index {
-        panic!("The search index has changed from the fixture");
-    }
-}
-
-#[cfg(feature = "ja")]
-#[test]
-fn ja_search_index_hasnt_changed_accidentally() {
-    let new_index = create_index_ja();
-    let fixture_index = get_fixture_ja();
-
-    if new_index != fixture_index {
-        panic!("The search index has changed from the fixture of Japanese");
-    }
-}
