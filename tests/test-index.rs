@@ -3,10 +3,7 @@ use serde_json::json;
 use std::fs::{self, File};
 use std::path::Path;
 
-fn create_index<L: Language + 'static>(
-    lang: L,
-    docs: &'static [[&'static str; 2]],
-) -> serde_json::Value {
+fn create_index(lang: Box<dyn Language>, docs: &'static [[&'static str; 2]]) -> serde_json::Value {
     let mut index = Index::with_language(lang, &["title", "body"]);
     for (i, doc) in docs.iter().enumerate() {
         index.add_doc(&(i + 1).to_string(), doc);
@@ -14,8 +11,8 @@ fn create_index<L: Language + 'static>(
     json!(index)
 }
 
-fn generate_fixture<L: Language + 'static>(
-    lang: L,
+fn generate_fixture(
+    lang: Box<dyn Language>,
     docs: &'static [[&'static str; 2]],
 ) -> serde_json::Value {
     let code = lang.code();
@@ -37,10 +34,10 @@ fn read_fixture(lang: &dyn Language) -> serde_json::Value {
 const GENERATE_FIXTURE: bool = false;
 
 fn check_index<L: Language + Clone + 'static>(lang: L, docs: &'static [[&'static str; 2]]) {
-    let new_index = create_index(lang.clone(), docs);
+    let new_index = create_index(Box::new(lang.clone()), docs);
     let name = lang.name();
     let fixture_index = if GENERATE_FIXTURE {
-        generate_fixture(lang, docs)
+        generate_fixture(Box::new(lang), docs)
     } else {
         read_fixture(&lang)
     };

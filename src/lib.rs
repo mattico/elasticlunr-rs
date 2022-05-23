@@ -11,7 +11,7 @@
 //! [`Index`](struct.Index.html) or [`IndexBuilder`](struct.IndexBuilder.html) types.
 //!
 //! The [`Language`] trait can be used to implement a custom language.
-//! 
+//!
 //! ## Example
 //!
 //! ```
@@ -91,9 +91,9 @@ impl IndexBuilder {
         Default::default()
     }
 
-    pub fn with_language<L: Language + 'static>(language: L) -> Self {
+    pub fn with_language(language: Box<dyn Language>) -> Self {
         Self {
-            language: Box::new(language),
+            language,
             ..Default::default()
         }
     }
@@ -270,16 +270,15 @@ impl Index {
     ///
     /// ```
     /// use elasticlunr::{Index, lang::English};
-    /// let mut index = Index::with_language(English::new(), &["title", "body"]);
+    /// let mut index = Index::with_language(Box::new(English::new()), &["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if a field with the name already exists.
-    pub fn with_language<I, L>(lang: L, fields: I) -> Self
+    pub fn with_language<I>(lang: Box<dyn Language>, fields: I) -> Self
     where
-        L: Language + 'static,
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
