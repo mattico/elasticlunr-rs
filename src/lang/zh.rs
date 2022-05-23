@@ -1,50 +1,55 @@
-use pipeline::Pipeline;
+use super::{common::RegexTrimmer, Language};
+use crate::pipeline::{FnWrapper, Pipeline};
 
-
-pub fn make_pipeline() -> Pipeline {
-    Pipeline {
-        queue: vec![
-            ("trimmer-zh".into(), trimmer),
-            ("stopWordFilter-zh".into(), stop_word_filter),
-            ("stemmer-zh".into(), stemmer),
-        ],
-    }
+#[derive(Clone)]
+pub struct Chinese {
+    jieba: jieba_rs::Jieba,
 }
 
-
-pub fn trimmer(token: String) -> Option<String> {
-    let ret: String = token.
-        trim_matches(|c: char| !is_valid_char(c)  )
-        .into();
-
-    if ret.eq("") {
-        return None;
-    }
-
-    Some(ret)
-}
-
-make_stop_word_filter!([
-    "的", "了"
-]);
-
-fn stemmer(token: String) -> Option<String> {
-    Some(token)
-}
-
-fn is_valid_char(c: char) -> bool {
-    let min_max_list = [
-        [19668, 40869], // min and max Chinese char
-        ['a' as u32, 'z' as u32],
-        ['A' as u32, 'Z' as u32]
-    ];
-
-    let c = c as u32;
-    for min_max in min_max_list.iter() {
-        if c >= min_max[0] && c <= min_max[1] {
-            return true;
+impl Chinese {
+    pub fn new() -> Self {
+        Self {
+            jieba: jieba_rs::Jieba::new(),
         }
     }
+}
 
-    false
+impl Language for Chinese {
+    fn name(&self) -> String {
+        "Chinese".into()
+    }
+    fn code(&self) -> String {
+        "zh".into()
+    }
+
+    fn tokenize(&self, text: &str) -> Vec<String> {
+        self.jieba
+            .cut_for_search(text, false)
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
+    }
+
+    fn make_pipeline(&self) -> Pipeline {
+        Pipeline {
+            queue: vec![
+                Box::new(RegexTrimmer::new("trimmer-zh", r"\p{Unified_Ideograph}\p{Latin}")),
+                Box::new(FnWrapper("stopWordFilter-zh".into(), stop_word_filter)),
+                Box::new(FnWrapper("stemmer-zh".into(), stemmer)),
+            ],
+        }
+    }
+}
+
+// TODO: lunr.zh.js has a much larger set of stop words
+fn stop_word_filter(token: String) -> Option<String> {
+    match token.as_str() {
+        "的" | "了" => None,
+        _ => Some(token),
+    }
+}
+
+// lunr.zh.js has an empty stemmer as well
+fn stemmer(token: String) -> Option<String> {
+    Some(token)
 }

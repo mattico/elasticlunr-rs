@@ -10,6 +10,8 @@
 //! Access to all index-generating functionality is provided. Most users will only need to use the
 //! [`Index`](struct.Index.html) or [`IndexBuilder`](struct.IndexBuilder.html) types.
 //!
+//! The [`Language`] trait can be used to implement a custom language.
+//! 
 //! ## Example
 //!
 //! ```
@@ -24,31 +26,12 @@
 //! file.write_all(index.to_json_pretty().as_bytes());
 //! ```
 
-#![cfg_attr(feature = "bench", feature(test))]
-
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-extern crate strum;
-#[macro_use]
-extern crate strum_macros;
-
-#[cfg(feature = "rust-stemmers")]
-extern crate rust_stemmers;
 
 #[cfg(test)]
 #[macro_use]
 extern crate maplit;
-#[cfg(feature = "zh")]
-extern crate jieba_rs;
-#[cfg(feature = "ja")]
-extern crate lindera;
-#[cfg(feature = "ja")]
-extern crate lindera_core;
 
 /// The version of elasticlunr.js this library was designed for.
 pub const ELASTICLUNR_VERSION: &str = "0.9.5";
@@ -59,13 +42,15 @@ pub mod inverted_index;
 pub mod lang;
 pub mod pipeline;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use document_store::DocumentStore;
 use inverted_index::InvertedIndex;
+use lang::English;
 pub use lang::Language;
 pub use pipeline::Pipeline;
-use pipeline::TokenizerFn;
+
+type Tokenizer = Option<Box<dyn Fn(&str) -> Vec<String>>>;
 
 /// A builder for an `Index` with custom parameters.
 ///
@@ -81,18 +66,22 @@ use pipeline::TokenizerFn;
 /// ```
 pub struct IndexBuilder {
     save: bool,
-    fields: BTreeSet<String>,
+    fields: Vec<String>,
+    field_tokenizers: Vec<Tokenizer>,
     ref_field: String,
     pipeline: Option<Pipeline>,
+    language: Box<dyn Language>,
 }
 
 impl Default for IndexBuilder {
     fn default() -> Self {
         IndexBuilder {
             save: true,
-            fields: BTreeSet::new(),
+            fields: Vec::new(),
+            field_tokenizers: Vec::new(),
             ref_field: "id".into(),
             pipeline: None,
+            language: Box::new(English::new()),
         }
     }
 }
@@ -100,6 +89,13 @@ impl Default for IndexBuilder {
 impl IndexBuilder {
     pub fn new() -> Self {
         Default::default()
+    }
+
+    pub fn with_language<L: Language + 'static>(language: L) -> Self {
+        Self {
+            language: Box::new(language),
+            ..Default::default()
+        }
     }
 
     /// Set whether or not documents should be saved in the `Index`'s document store.
@@ -110,34 +106,57 @@ impl IndexBuilder {
 
     /// Add a document field to the `Index`.
     ///
-    /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
+    /// # Panics
+    ///
+    /// Panics if a field with the name already exists.
     pub fn add_field(mut self, field: &str) -> Self {
-        self.fields.insert(field.into());
+        let field = field.into();
+        if self.fields.contains(&field) {
+            panic!("Duplicate fields in index: {}", field);
+        }
+        self.fields.push(field);
+        self.field_tokenizers.push(None);
+        self
+    }
+
+    /// Add a document field to the `Index`, with a custom tokenizer for that field.
+    ///
+    /// # Panics
+    ///
+    /// Panics if a field with the name already exists.
+    pub fn add_field_with_tokenizer(
+        mut self,
+        field: &str,
+        tokenizer: Box<dyn Fn(&str) -> Vec<String>>,
+    ) -> Self {
+        let field = field.into();
+        if self.fields.contains(&field) {
+            panic!("Duplicate fields in index: {}", field);
+        }
+        self.fields.push(field);
+        self.field_tokenizers.push(Some(tokenizer));
         self
     }
 
     /// Add the document fields to the `Index`.
     ///
-    /// If the `Index` already contains a field with an identical name, adding it again is a no-op.
+    /// # Panics
+    ///
+    /// Panics if two fields have the same name.
     pub fn add_fields<I>(mut self, fields: I) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        self.fields
-            .extend(fields.into_iter().map(|f| f.as_ref().into()));
+        for field in fields {
+            self = self.add_field(field.as_ref())
+        }
         self
     }
 
     /// Set the key used to store the document reference field.
     pub fn set_ref(mut self, ref_field: &str) -> Self {
         self.ref_field = ref_field.into();
-        self
-    }
-
-    /// Set the pipeline used by the `Index`.
-    pub fn set_pipeline(mut self, pipeline: Pipeline) -> Self {
-        self.pipeline = Some(pipeline);
         self
     }
 
@@ -151,29 +170,75 @@ impl IndexBuilder {
 
         Index {
             index,
-            fields: self.fields.into_iter().collect(),
+            fields: self.fields,
+            field_tokenizers: self.field_tokenizers,
             ref_field: self.ref_field,
             document_store: DocumentStore::new(self.save),
-            pipeline: self.pipeline.unwrap_or_default(),
-            version: ::ELASTICLUNR_VERSION,
-            lang: Language::English,
+            pipeline: self
+                .pipeline
+                .unwrap_or_else(|| self.language.make_pipeline()),
+            version: crate::ELASTICLUNR_VERSION,
+            lang: self.language,
         }
     }
 }
 
 /// An elasticlunr search index.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
-    // TODO(3.0): Use a BTreeSet<String>
-    pub fields: Vec<String>,
-    pub pipeline: Pipeline,
+    fields: Vec<String>,
+    #[serde(skip)]
+    field_tokenizers: Vec<Tokenizer>,
+    pipeline: Pipeline,
     #[serde(rename = "ref")]
-    pub ref_field: String,
-    pub version: &'static str,
+    ref_field: String,
+    version: &'static str,
     index: BTreeMap<String, InvertedIndex>,
-    pub document_store: DocumentStore,
-    lang: Language,
+    document_store: DocumentStore,
+    #[serde(with = "ser_lang")]
+    lang: Box<dyn Language>,
+}
+
+mod ser_lang {
+    use crate::Language;
+    use serde::de;
+    use serde::{Deserializer, Serializer};
+    use std::fmt;
+
+    pub fn serialize<S>(lang: &Box<dyn Language>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&lang.name())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Box<dyn Language>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(LanguageVisitor)
+    }
+
+    struct LanguageVisitor;
+
+    impl<'de> de::Visitor<'de> for LanguageVisitor {
+        type Value = Box<dyn Language>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a capitalized language name")
+        }
+
+        fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            match crate::lang::from_name(v) {
+                Some(l) => Ok(l),
+                None => Err(E::custom(format!("Unknown language name: {}", v))),
+            }
+        }
+    }
 }
 
 impl Index {
@@ -182,20 +247,20 @@ impl Index {
     /// # Example
     ///
     /// ```
-    /// # use elasticlunr::Index;
-    /// let mut index = Index::new(&["title", "body", "breadcrumbs"]);
-    /// index.add_doc("1", &["How to Foo", "First, you need to `bar`.", "Chapter 1 > How to Foo"]);
+    /// # use elasticlunr::{Index};
+    /// let mut index = Index::new(&["title", "body"]);
+    /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
     ///
     /// # Panics
     ///
-    /// Panics if multiple given fields are identical.
+    /// Panics if a field with the name already exists.
     pub fn new<I>(fields: I) -> Self
     where
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        Index::with_language(Language::English, fields)
+        IndexBuilder::new().add_fields(fields).build()
     }
 
     /// Create a new index with the provided fields for the given
@@ -204,39 +269,21 @@ impl Index {
     /// # Example
     ///
     /// ```
-    /// # use elasticlunr::{Index, Language};
-    /// let mut index = Index::with_language(Language::English, &["title", "body"]);
+    /// use elasticlunr::{Index, lang::English};
+    /// let mut index = Index::with_language(English::new(), &["title", "body"]);
     /// index.add_doc("1", &["this is a title", "this is body text"]);
     /// ```
     ///
     /// # Panics
     ///
-    /// Panics if multiple given fields are identical.
-    pub fn with_language<I>(lang: Language, fields: I) -> Self
+    /// Panics if a field with the name already exists.
+    pub fn with_language<I, L>(lang: L, fields: I) -> Self
     where
+        L: Language + 'static,
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let mut indices = BTreeMap::new();
-        let mut field_vec = Vec::new();
-        for field in fields {
-            let field = field.as_ref().to_string();
-            if field_vec.contains(&field) {
-                panic!("The Index already contains the field {}", field);
-            }
-            field_vec.push(field.clone());
-            indices.insert(field, InvertedIndex::new());
-        }
-
-        Index {
-            fields: field_vec,
-            index: indices,
-            pipeline: lang.make_pipeline(),
-            ref_field: "id".into(),
-            version: ::ELASTICLUNR_VERSION,
-            document_store: DocumentStore::new(true),
-            lang: lang,
-        }
+        IndexBuilder::with_language(lang).add_fields(fields).build()
     }
 
     /// Add the data from a document to the index.
@@ -255,78 +302,24 @@ impl Index {
         I: IntoIterator,
         I::Item: AsRef<str>,
     {
-        let tokenizer = match self.lang {
-            #[cfg(feature = "zh")]
-            Language::Chinese => pipeline::tokenize_chinese,
-            #[cfg(feature = "ja")]
-            Language::Japanese => pipeline::tokenize_japanese,
-            _ => pipeline::tokenize,
-        };
-        self.add_doc_with_tokenizer(doc_ref, data, tokenizer)
-    }
-
-    /// Add the data from a document to the index.
-    ///
-    /// *NOTE: The elements of `data` should be provided in the same order as
-    /// the fields used to create the index.*
-    ///
-    /// # Example
-    /// ```
-    /// # use elasticlunr::Index;
-    /// fn css_tokenizer(text: &str) -> Vec<String> {
-    ///     text.split(|c: char| c.is_whitespace())
-    ///         .filter(|s| !s.is_empty())
-    ///         .map(|s| s.trim().to_lowercase())
-    ///         .collect()
-    /// }
-    /// let mut index = Index::new(&["title", "body"]);
-    /// index.add_doc_with_tokenizer("1", &["this is a title", "this is body text"], css_tokenizer);
-    /// ```
-    pub fn add_doc_with_tokenizer<I>(&mut self, doc_ref: &str, data: I, tokenizer: TokenizerFn)
-    where
-        I: IntoIterator,
-        I::Item: AsRef<str>,
-    {
-        self.add_doc_with_tokenizers(doc_ref, data, std::iter::repeat(tokenizer));
-    }
-
-    /// Add the data from a document to the index.
-    ///
-    /// *NOTE: The elements of `data` and `tokenizers` should be provided in
-    /// the same order as the fields used to create the index.*
-    ///
-    /// # Example
-    /// ```
-    /// # use elasticlunr::Index;
-    /// use elasticlunr::pipeline::{tokenize, TokenizerFn};
-    /// fn css_tokenizer(text: &str) -> Vec<String> {
-    ///     text.split(|c: char| c.is_whitespace())
-    ///         .filter(|s| !s.is_empty())
-    ///         .map(|s| s.trim().to_lowercase())
-    ///         .collect()
-    /// }
-    /// let mut index = Index::new(&["title", "body"]);
-    /// let tokenizers: Vec<TokenizerFn> = vec![tokenize, css_tokenizer];
-    /// index.add_doc_with_tokenizers("1", &["this is a title", "this is body text"], tokenizers);
-    /// ```
-    pub fn add_doc_with_tokenizers<I, T>(&mut self, doc_ref: &str, data: I, tokenizers: T)
-    where
-        I: IntoIterator,
-        I::Item: AsRef<str>,
-        T: IntoIterator<Item=TokenizerFn>,
-    {
         let mut doc = BTreeMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());
         let mut token_freq = BTreeMap::new();
 
-        for ((field, value), tokenizer) in self.fields.iter().zip(data).zip(tokenizers) {
+        for (i, value) in data.into_iter().enumerate() {
+            let field = &self.fields[i];
+            let tokenizer = self.field_tokenizers[i].as_ref();
             doc.insert(field.clone(), value.as_ref().to_string());
 
             if field == &self.ref_field {
                 continue;
             }
 
-            let raw_tokens = tokenizer(value.as_ref());
+            let raw_tokens = if let Some(tokenizer) = tokenizer {
+                tokenizer(value.as_ref())
+            } else {
+                self.lang.tokenize(value.as_ref())
+            };
 
             let tokens = self.pipeline.run(raw_tokens);
 
@@ -342,7 +335,7 @@ impl Index {
 
                 self.index
                     .get_mut(field)
-                    .expect(&format!("InvertedIndex does not exist for field {}", field))
+                    .unwrap_or_else(|| panic!("InvertedIndex does not exist for field {}", field))
                     .add_token(doc_ref, token, freq);
             }
         }
@@ -372,7 +365,6 @@ mod tests {
     #[test]
     fn add_field_to_builder() {
         let idx = IndexBuilder::new()
-            .add_field("foo")
             .add_fields(&["foo", "bar", "baz"])
             .build();
 

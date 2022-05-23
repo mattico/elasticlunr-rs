@@ -1,31 +1,13 @@
 // Input text is excerpted from public domain books on gutenberg.org or wikisource.org
 
-extern crate elasticlunr;
-extern crate strum;
-
+use elasticlunr::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
 
-use elasticlunr::pipeline::tokenize;
-#[cfg(feature = "zh")]
-use elasticlunr::pipeline::tokenize_chinese;
-#[cfg(feature = "ja")]
-use elasticlunr::pipeline::tokenize_japanese;
-use elasticlunr::*;
-use strum::IntoEnumIterator;
-
-fn get_lang_code(lang: Language) -> &'static str {
-    match lang {
-        #[cfg(feature = "du")]
-        Language::Dutch => "du",
-        _ => lang.to_code(),
-    }
-}
-
 #[allow(dead_code)]
-fn write_output(lang: Language) {
-    let code = get_lang_code(lang);
+fn write_output(lang: &dyn Language) {
+    let code = lang.code();
     let base = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");
@@ -37,19 +19,19 @@ fn write_output(lang: Language) {
         .read_to_string(&mut input_str)
         .unwrap();
 
-    let output = base.join(&format!("{}.out.rs.txt", code));
+    let output = base.join(&format!("{}.out.txt", code));
     let mut output = File::create(&output).unwrap();
 
     let pipeline = lang.make_pipeline();
-    let tokens = pipeline.run(tokenize(&input_str));
+    let tokens = pipeline.run(lang.tokenize(&input_str));
 
     for tok in tokens {
         writeln!(&mut output, "{}", tok).unwrap();
     }
 }
 
-fn compare_to_fixture(lang: Language) {
-    let code = get_lang_code(lang);
+fn compare_to_fixture(lang: &dyn Language) {
+    let code = lang.code();
     let base = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("data");
@@ -65,29 +47,22 @@ fn compare_to_fixture(lang: Language) {
     let mut output = BufReader::new(File::open(&output).unwrap()).lines();
 
     let pipeline = lang.make_pipeline();
-
-    let tokens = match lang {
-        #[cfg(feature = "zh")]
-        Language::Chinese => pipeline.run(tokenize_chinese(&input_str)),
-        #[cfg(feature = "ja")]
-        Language::Japanese => pipeline.run(tokenize_japanese(&input_str)),
-        _ => pipeline.run(tokenize(&input_str)),
-    };
+    let tokens = pipeline.run(lang.tokenize(&input_str));
 
     for tok in tokens {
         assert_eq!(
             tok,
             output.next().unwrap().unwrap(),
-            "Comparing pipeline tokens to fixture for {:?}",
-            lang
+            "Comparing pipeline tokens to fixture for {}",
+            lang.name()
         );
     }
 }
 
 #[test]
 fn test_languages() {
-    for lang in Language::iter() {
-        //write_output(lang);
-        compare_to_fixture(lang);
+    for lang in lang::languages() {
+        //write_output(lang.as_ref());
+        compare_to_fixture(lang.as_ref());
     }
 }

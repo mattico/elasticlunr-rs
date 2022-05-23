@@ -1,25 +1,8 @@
-use pipeline::Pipeline;
+use super::{common::StopWordFilter, Language};
+use crate::pipeline::{FnWrapper, Pipeline, PipelineFn};
 use regex::Regex;
 
-pub fn make_pipeline() -> Pipeline {
-    Pipeline {
-        queue: vec![
-            ("trimmer".into(), trimmer),
-            ("stopWordFilter".into(), stop_word_filter),
-            ("stemmer".into(), stemmer),
-        ],
-    }
-}
-
-pub fn trimmer(token: String) -> Option<String> {
-    Some(
-        token
-            .trim_matches(|c: char| !c.is_digit(36) && c != '_')
-            .into(),
-    )
-}
-
-make_stop_word_filter!([
+const WORDS: &[&str] = &[
     "", "a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an",
     "and", "any", "are", "as", "at", "be", "because", "been", "but", "by", "can", "cannot",
     "could", "dear", "did", "do", "does", "either", "else", "ever", "every", "for", "from", "get",
@@ -30,7 +13,50 @@ make_stop_word_filter!([
     "so", "some", "than", "that", "the", "their", "them", "then", "there", "these", "they", "this",
     "tis", "to", "too", "twas", "us", "wants", "was", "we", "were", "what", "when", "where",
     "which", "while", "who", "whom", "why", "will", "with", "would", "yet", "you", "your",
-]);
+];
+
+#[derive(Clone)]
+pub struct English {
+    stemmer: Stemmer,
+}
+
+impl English {
+    pub fn new() -> Self {
+        let stemmer = Stemmer::new();
+        Self { stemmer }
+    }
+}
+
+impl Language for English {
+    fn name(&self) -> String {
+        "English".into()
+    }
+    fn code(&self) -> String {
+        "en".into()
+    }
+
+    fn tokenize(&self, text: &str) -> Vec<String> {
+        super::tokenize_whitespace(text)
+    }
+
+    fn make_pipeline(&self) -> Pipeline {
+        Pipeline {
+            queue: vec![
+                Box::new(FnWrapper("trimmer".into(), trimmer)),
+                Box::new(StopWordFilter::new("stopWordFilter", WORDS)),
+                Box::new(self.stemmer.clone()),
+            ],
+        }
+    }
+}
+
+fn trimmer(token: String) -> Option<String> {
+    Some(
+        token
+            .trim_matches(|c: char| !c.is_digit(36) && c != '_')
+            .into(),
+    )
+}
 
 static STEP_2: &[(&str, &str)] = &[
     ("ational", "ate"),
@@ -70,6 +96,7 @@ static STEP_3: &[(&str, &str)] = &[
 // It's not very efficient and very not-rusty, but it
 // generates identical output.
 
+#[derive(Clone)]
 struct Stemmer {
     re_mgr0: Regex,
     re_mgr1: Regex,
@@ -94,6 +121,16 @@ struct Stemmer {
 
     re_5: Regex,
     re3_5: Regex,
+}
+
+impl PipelineFn for Stemmer {
+    fn name(&self) -> String {
+        "stemmer".into()
+    }
+
+    fn filter(&self, token: String) -> Option<String> {
+        Some(self.stem(token))
+    }
 }
 
 // vowel
@@ -129,10 +166,10 @@ impl Stemmer {
         let mgr1 = concat!("^(", CS!(), ")?", VS!(), CS!(), VS!(), CS!());
         let s_v = concat!("^(", CS!(), ")?", V!());
 
-        let re_mgr0 = Regex::new(&mgr0).unwrap();
-        let re_mgr1 = Regex::new(&mgr1).unwrap();
-        let re_meq1 = Regex::new(&meq1).unwrap();
-        let re_s_v = Regex::new(&s_v).unwrap();
+        let re_mgr0 = Regex::new(mgr0).unwrap();
+        let re_mgr1 = Regex::new(mgr1).unwrap();
+        let re_meq1 = Regex::new(meq1).unwrap();
+        let re_s_v = Regex::new(s_v).unwrap();
 
         let re_1a = Regex::new("^(.+?)(ss|i)es$").unwrap();
         let re2_1a = Regex::new("^(.+?)([^s])s$").unwrap();
@@ -146,13 +183,15 @@ impl Stemmer {
         let re_2 = Regex::new(
             "^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|\
              ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$",
-        ).unwrap();
+        )
+        .unwrap();
 
         let re_3 = Regex::new("^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$").unwrap();
 
         let re_4 = Regex::new(
             "^(.+?)(al|ance|ence|er|ic|able|ible|ant|ement|ment|ent|ou|ism|ate|iti|ous|ive|ize)$",
-        ).unwrap();
+        )
+        .unwrap();
         let re2_4 = Regex::new("^(.+?)(s|t)(ion)$").unwrap();
 
         let re_5 = Regex::new("^(.+?)e$").unwrap();
@@ -211,7 +250,7 @@ impl Stemmer {
             }
         } else if let Some(caps) = self.re2_1b.captures(&w.clone()) {
             let stem = &caps[1];
-            if self.re_s_v.is_match(&stem) {
+            if self.re_s_v.is_match(stem) {
                 w = stem.into();
 
                 let mut re3_1b_2_matched = false;
@@ -221,7 +260,7 @@ impl Stemmer {
                 } else if let Some(m) = self.re3_1b_2.find(&w.clone()) {
                     let mut suffix = m.as_str().chars();
                     // Make sure the two characters are the same since we can't use backreferences
-                    if &suffix.next() == &suffix.next() {
+                    if suffix.next() == suffix.next() {
                         re3_1b_2_matched = true;
                         w.pop();
                     }
@@ -246,7 +285,7 @@ impl Stemmer {
         if let Some(caps) = self.re_2.captures(&w.clone()) {
             let stem = &caps[1];
             let suffix = &caps[2];
-            if self.re_mgr0.is_match(&stem) {
+            if self.re_mgr0.is_match(stem) {
                 w = concat_string(&[stem, STEP_2.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
             }
         }
@@ -255,7 +294,7 @@ impl Stemmer {
         if let Some(caps) = self.re_3.captures(&w.clone()) {
             let stem = &caps[1];
             let suffix = &caps[2];
-            if self.re_mgr0.is_match(&stem) {
+            if self.re_mgr0.is_match(stem) {
                 w = concat_string(&[stem, STEP_3.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
             }
         }
@@ -263,7 +302,7 @@ impl Stemmer {
         // Step 4
         if let Some(caps) = self.re_4.captures(&w.clone()) {
             let stem = &caps[1];
-            if self.re_mgr1.is_match(&stem) {
+            if self.re_mgr1.is_match(stem) {
                 w = stem.into();
             }
         } else if let Some(caps) = self.re2_4.captures(&w.clone()) {
@@ -276,8 +315,8 @@ impl Stemmer {
         // Step 5
         if let Some(caps) = self.re_5.captures(&w.clone()) {
             let stem = &caps[1];
-            if self.re_mgr1.is_match(&stem)
-                || (self.re_meq1.is_match(&stem) && !(self.re3_5.is_match(&stem)))
+            if self.re_mgr1.is_match(stem)
+                || (self.re_meq1.is_match(stem) && !(self.re3_5.is_match(stem)))
             {
                 w = stem.into();
             }
@@ -297,46 +336,9 @@ impl Stemmer {
     }
 }
 
-pub fn stemmer(input: String) -> Option<String> {
-    lazy_static! {
-        static ref STEMMER: Stemmer = Stemmer::new();
-    }
-    Some(STEMMER.stem(input))
-}
-
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "bench")]
-    extern crate test;
     use super::*;
-    use pipeline::tokenize;
-
-    #[test]
-    fn split_simple_strings() {
-        let string = "this is a simple string";
-        assert_eq!(&tokenize(string), &["this", "is", "a", "simple", "string"]);
-    }
-
-    #[test]
-    fn multiple_white_space() {
-        let string = "  foo    bar  ";
-        assert_eq!(&tokenize(string), &["foo", "bar"]);
-    }
-
-    #[test]
-    fn hyphens() {
-        let string = "take the New York-San Francisco flight";
-        assert_eq!(
-            &tokenize(string),
-            &["take", "the", "new", "york", "san", "francisco", "flight"]
-        );
-    }
-
-    #[test]
-    fn splitting_strings_with_hyphens() {
-        let string = "Solve for A - B";
-        assert_eq!(&tokenize(string), &["solve", "for", "a", "b"]);
-    }
 
     macro_rules! pipeline_eq {
         ($func:expr, $input:expr, $output:expr) => {
@@ -448,25 +450,9 @@ mod tests {
             ("try", "tri"),
         ];
 
+        let stemmer = Stemmer::new();
         for &(input, output) in cases.iter() {
-            assert_eq!(&stemmer(input.into()).unwrap(), output);
+            assert_eq!(&stemmer.stem(input.into()), output);
         }
-    }
-
-    // # Results
-    // PHF:           2,507,473 ns/iter (+/- 197,005)
-    // Linear search: 2,481,133 ns/iter (+/- 216,998)
-
-    #[cfg(feature = "bench")]
-    #[bench]
-    fn bench_stem(b: &mut test::Bencher) {
-        let text = include_str!("../../tests/data/en.in.txt");
-        let tokens = ::pipeline::tokenize(text);
-        b.iter(|| {
-            let tokens = tokens.clone();
-            for token in tokens {
-                test::black_box(stemmer(token));
-            }
-        });
     }
 }

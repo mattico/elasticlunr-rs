@@ -1,27 +1,63 @@
-/// Simple Arabic stemmer based on lunr.ar.js from https://github.com/MihaiValentin/lunr-languages
-
-use pipeline::Pipeline;
+use super::Language;
+use crate::pipeline::{Pipeline, PipelineFn};
 use regex::Regex;
 
-pub fn make_pipeline() -> Pipeline {
-    Pipeline {
-        queue: vec![
-            ("stemmer-ar".into(), stemmer),
-        ],
+pub struct Arabic {}
+
+impl Arabic {
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
-fn stemmer(token: String) -> Option<String> {
-    lazy_static! {
-        static ref DIACRITICS: Regex = Regex::new("[\u{064b}-\u{065b}]").unwrap();
-        static ref ALEFS: Regex = Regex::new("[\u{0622}\u{0623}\u{0625}\u{0671}\u{0649}]").unwrap();
+impl Language for Arabic {
+    fn name(&self) -> String {
+        "Arabic".into()
     }
-    // remove elongating character
-    let token = token.replace('\u{0640}', "");
-    // remove diacritics
-    let token = DIACRITICS.replace(&token, "");
-    // replace all variations of alef (آأإٱى) to a plain alef (ا)
-    let token = ALEFS.replace(&token, "\u{0627}");
+    fn code(&self) -> String {
+        "ar".into()
+    }
 
-    Some(token.into())
+    fn tokenize(&self, text: &str) -> Vec<String> {
+        super::tokenize_whitespace(text)
+    }
+
+    fn make_pipeline(&self) -> Pipeline {
+        Pipeline {
+            queue: vec![Box::new(Stemmer::new())],
+        }
+    }
+}
+
+struct Stemmer {
+    diacritics: Regex,
+    alefs: Regex,
+}
+
+impl Stemmer {
+    pub fn new() -> Self {
+        let diacritics = Regex::new("[\u{0640}\u{064b}-\u{065b}]").unwrap();
+        let alefs = Regex::new("[\u{0622}\u{0623}\u{0625}\u{0671}\u{0649}]").unwrap();
+        Self { diacritics, alefs }
+    }
+}
+
+impl PipelineFn for Stemmer {
+    fn name(&self) -> String {
+        "stemmer-ar".into()
+    }
+
+    fn filter(&self, token: String) -> Option<String> {
+        // remove diacritics and elongating character
+        let result = self.diacritics.replace(&token, "");
+        // replace all variations of alef (آأإٱى) to a plain alef (ا)
+        let result = self.alefs.replace(&result, "\u{0627}");
+        if result.is_empty() {
+            None
+        } else if result == token {
+            Some(token)
+        } else {
+            Some(result.into())
+        }
+    }
 }

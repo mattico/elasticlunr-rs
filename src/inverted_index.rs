@@ -81,8 +81,6 @@ impl IndexItem {
                     item.docs.remove(doc_ref);
                     item.doc_freq -= 1;
                 }
-            } else {
-                return;
             }
         }
     }
@@ -228,7 +226,7 @@ mod tests {
         inverted_index.add_token("123", token, 1.);
         assert_eq!(
             inverted_index.get_docs(token).unwrap(),
-            btreemap!{
+            btreemap! {
                 "123".into() => 1.
             }
         );
@@ -240,7 +238,7 @@ mod tests {
 
         assert_eq!(
             inverted_index.get_docs(token).unwrap(),
-            btreemap!{
+            btreemap! {
                 "123".into() => 1.
             }
         );
@@ -250,7 +248,7 @@ mod tests {
 
         assert_eq!(
             inverted_index.get_docs(token).unwrap(),
-            btreemap!{
+            btreemap! {
                 "123".into() => 1.,
                 "234".into() => 100.,
                 "345".into() => 101.,
@@ -291,7 +289,7 @@ mod tests {
         inverted_index.add_token("123", "foo", 1.);
         assert_eq!(
             inverted_index.get_docs("foo").unwrap(),
-            btreemap!{
+            btreemap! {
                 "123".into() => 1.,
             }
         );
@@ -312,7 +310,7 @@ mod tests {
 
         assert_eq!(
             inverted_index.get_docs("foo").unwrap(),
-            btreemap!{
+            btreemap! {
                 "123".into() => 1.
             }
         );

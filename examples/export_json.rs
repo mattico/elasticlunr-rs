@@ -1,5 +1,3 @@
-extern crate elasticlunr;
-
 use elasticlunr::Index;
 use std::fs::File;
 use std::io::Write;

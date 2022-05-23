@@ -1,20 +1,43 @@
-use pipeline::Pipeline;
+use super::{
+    common::{RustStemmer, StopWordFilter, RegexTrimmer},
+    Language,
+};
+use crate::pipeline::Pipeline;
+use rust_stemmers::Algorithm;
 
-pub fn make_pipeline() -> Pipeline {
-    Pipeline {
-        queue: vec![
-            ("trimmer-ru".into(), trimmer),
-            ("stopWordFilter-ru".into(), stop_word_filter),
-            ("stemmer-ru".into(), stemmer),
-        ],
+#[derive(Clone)]
+pub struct Russian {}
+
+impl Russian {
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
-make_trimmer!(
-    "\\u0400-\\u0484\\u0487-\\u052F\\u1D2B\\u1D78\\u2DE0-\\u2DFF\\uA640-\\uA69F\\uFE2E\\uFE2F"
-);
+impl Language for Russian {
+    fn name(&self) -> String {
+        "Russian".into()
+    }
+    fn code(&self) -> String {
+        "ru".into()
+    }
 
-make_stop_word_filter!([
+    fn tokenize(&self, text: &str) -> Vec<String> {
+        super::tokenize_whitespace(text)
+    }
+
+    fn make_pipeline(&self) -> Pipeline {
+        Pipeline {
+            queue: vec![
+                Box::new(RegexTrimmer::new("trimmer-ru", r"\p{Cyrillic}")),
+                Box::new(StopWordFilter::new("stopWordFilter-ru", STOP_WORDS)),
+                Box::new(RustStemmer::new("stemmer-ru", Algorithm::Russian)),
+            ],
+        }
+    }
+}
+
+const STOP_WORDS: &[&str] = &[
     "",
     "алло",
     "без",
@@ -437,6 +460,4 @@ make_stop_word_filter!([
     "эту",
     "я",
     "﻿а",
-]);
-
-make_stemmer!(Algorithm::Russian);
+];

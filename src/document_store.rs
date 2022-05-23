@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn add_doc_tokens() {
         let mut store = DocumentStore::new(true);
-        let doc = btreemap!{ "title".into() => "eggs bread".into() };
+        let doc = btreemap! { "title".into() => "eggs bread".into() };
 
         store.add_doc("1", doc.clone());
         assert_eq!(store.get_doc("1").unwrap(), doc);
@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn create_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc = btreemap!{ "title".into() => "eggs bread".into() };
+        let doc = btreemap! { "title".into() => "eggs bread".into() };
 
         store.add_doc("1", doc);
         assert_eq!(store.len(), 1);
@@ -110,8 +110,8 @@ mod tests {
     #[test]
     fn add_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = btreemap!{ "title".into() => "eggs bread".into() };
-        let doc2 = btreemap!{ "title".into() => "hello world".into() };
+        let doc1 = btreemap! { "title".into() => "eggs bread".into() };
+        let doc2 = btreemap! { "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -136,8 +136,8 @@ mod tests {
     #[test]
     fn get_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = btreemap!{ "title".into() => "eggs bread".into() };
-        let doc2 = btreemap!{ "title".into() => "hello world".into() };
+        let doc1 = btreemap! { "title".into() => "eggs bread".into() };
+        let doc2 = btreemap! { "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -150,8 +150,8 @@ mod tests {
     #[test]
     fn get_nonexistant_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = btreemap!{ "title".into() => "eggs bread".into() };
-        let doc2 = btreemap!{ "title".into() => "hello world".into() };
+        let doc1 = btreemap! { "title".into() => "eggs bread".into() };
+        let doc2 = btreemap! { "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -164,8 +164,8 @@ mod tests {
     #[test]
     fn remove_doc_no_store() {
         let mut store = DocumentStore::new(false);
-        let doc1 = btreemap!{ "title".into() => "eggs bread".into() };
-        let doc2 = btreemap!{ "title".into() => "hello world".into() };
+        let doc1 = btreemap! { "title".into() => "eggs bread".into() };
+        let doc2 = btreemap! { "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -179,8 +179,8 @@ mod tests {
     #[test]
     fn remove_nonexistant_doc() {
         let mut store = DocumentStore::new(false);
-        let doc1 = btreemap!{ "title".into() => "eggs bread".into() };
-        let doc2 = btreemap!{ "title".into() => "hello world".into() };
+        let doc1 = btreemap! { "title".into() => "eggs bread".into() };
+        let doc2 = btreemap! { "title".into() => "hello world".into() };
 
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
@@ -196,7 +196,7 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", btreemap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("1", btreemap! { "title".into() => "eggs bread".into() });
         assert_eq!(store.len(), 1);
     }
 
@@ -205,10 +205,10 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert_eq!(store.len(), 0);
-        store.add_doc("1", btreemap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("1", btreemap! { "title".into() => "eggs bread".into() });
         assert_eq!(
             store.get_doc("1").unwrap(),
-            btreemap!{ "title".into() => "eggs bread".into() }
+            btreemap! { "title".into() => "eggs bread".into() }
         );
     }
 
@@ -219,26 +219,26 @@ mod tests {
         assert_eq!(store.len(), 0);
         store.add_doc(
             "1",
-            btreemap!{
+            btreemap! {
                 "title".into() => "eggs bread".into()
             },
         );
         store.add_doc(
             "2",
-            btreemap!{
+            btreemap! {
                 "title".into() => "boo bar".into()
             },
         );
         store.add_doc(
             "3",
-            btreemap!{
+            btreemap! {
                 "title".into() => "oracle".into(),
                 "body".into() => "Oracle is demonspawn".into()
             },
         );
         assert_eq!(
             store.get_doc("3").unwrap(),
-            btreemap!{
+            btreemap! {
                 "title".into() => "oracle".into(),
                 "body".into() => "Oracle is demonspawn".into()
             }
@@ -253,19 +253,19 @@ mod tests {
         assert_eq!(store.len(), 0);
         store.add_doc(
             "1",
-            btreemap!{
+            btreemap! {
                 "title".into() => "eggs bread".into()
             },
         );
         store.add_doc(
             "2",
-            btreemap!{
+            btreemap! {
                 "title".into() => "boo bar".into()
             },
         );
         store.add_doc(
             "3",
-            btreemap!{
+            btreemap! {
                 "title".into() => "oracle".into(),
                 "body".into() => "Oracle is demonspawn".into()
             },
@@ -280,7 +280,7 @@ mod tests {
         let mut store = DocumentStore::new(true);
 
         assert!(!store.has_doc("foo"));
-        store.add_doc("foo", btreemap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", btreemap! { "title".into() => "eggs bread".into() });
         assert!(store.has_doc("foo"));
     }
 
@@ -288,7 +288,7 @@ mod tests {
     fn remove_doc() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", btreemap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", btreemap! { "title".into() => "eggs bread".into() });
         assert!(store.has_doc("foo"));
         assert_eq!(store.len(), 1);
         store.remove_doc("foo");
@@ -300,7 +300,7 @@ mod tests {
     fn remove_nonexistant_store() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", btreemap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", btreemap! { "title".into() => "eggs bread".into() });
         assert!(store.has_doc("foo"));
         assert_eq!(store.len(), 1);
         store.remove_doc("bar");
@@ -312,7 +312,7 @@ mod tests {
     fn add_field_len() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", btreemap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", btreemap! { "title".into() => "eggs bread".into() });
         store.add_field_length("foo", "title", 2);
         assert_eq!(store.get_field_length("foo", "title"), 2);
     }
@@ -321,7 +321,7 @@ mod tests {
     fn add_field_length_multiple() {
         let mut store = DocumentStore::new(true);
 
-        store.add_doc("foo", btreemap!{ "title".into() => "eggs bread".into() });
+        store.add_doc("foo", btreemap! { "title".into() => "eggs bread".into() });
         store.add_field_length("foo", "title", 2);
         store.add_field_length("foo", "body", 10);
         assert_eq!(store.get_field_length("foo", "title"), 2);
