@@ -162,23 +162,31 @@ impl IndexBuilder {
 
     /// Build an `Index` from this builder.
     pub fn build(self) -> Index {
-        let index = self
-            .fields
+        let IndexBuilder {
+            save,
+            fields,
+            field_tokenizers,
+            ref_field,
+            pipeline,
+            language,
+        } = self;
+
+        let index = fields
             .iter()
             .map(|f| (f.clone(), InvertedIndex::new()))
             .collect();
 
+        let pipeline = pipeline.unwrap_or_else(|| language.make_pipeline());
+
         Index {
             index,
-            fields: self.fields,
-            field_tokenizers: self.field_tokenizers,
-            ref_field: self.ref_field,
-            document_store: DocumentStore::new(self.save),
-            pipeline: self
-                .pipeline
-                .unwrap_or_else(|| self.language.make_pipeline()),
+            fields: fields,
+            field_tokenizers: field_tokenizers,
+            ref_field: ref_field,
+            document_store: DocumentStore::new(save),
+            pipeline,
             version: crate::ELASTICLUNR_VERSION,
-            lang: self.language,
+            lang: language,
         }
     }
 }

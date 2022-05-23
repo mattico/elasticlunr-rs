@@ -9,7 +9,8 @@ repository = "https://github.com/mattico/elasticlunr-rs"
 keywords = ["search", "index", "indexing", "lunr", "elasticlunr"]
 exclude = ["tests/lunr-fixture-gen/**", "js/**"]
 readme = "README.md"
-edition = "2021"
+edition = "2018"
+rust-version = "1.54"
 
 [badges]
 maintenance = { status = "passively-maintained" }

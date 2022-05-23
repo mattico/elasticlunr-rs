@@ -22,6 +22,10 @@ let mut file = File::create("out.json").unwrap();
 file.write_all(index.to_json_pretty().as_bytes());
 ```
 
+## Minimum Supported Rust Version
+
+1.54.0
+
 ## License
 
 This repository is offered under the terms of the
