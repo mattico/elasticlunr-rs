@@ -13,7 +13,7 @@ pub trait Language {
     /// The ISO 639-1 language code of the language
     fn code(&self) -> String;
 
-    /// Produces suitably simplified search tokens for inserting into the search index
+    /// Separates the input text into individual tokens. In most languages a token is a word, separated by whitespace.
     fn tokenize(&self, text: &str) -> Vec<String>;
 
     /// Returns the [`Pipeline`] to process the tokens with

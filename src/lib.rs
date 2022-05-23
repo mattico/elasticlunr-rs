@@ -10,6 +10,8 @@
 //! Access to all index-generating functionality is provided. Most users will only need to use the
 //! [`Index`](struct.Index.html) or [`IndexBuilder`](struct.IndexBuilder.html) types.
 //!
+//! The [`Language`] trait can be used to implement a custom language.
+//! 
 //! ## Example
 //!
 //! ```
