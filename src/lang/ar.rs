@@ -2,6 +2,9 @@ use super::Language;
 use crate::pipeline::{Pipeline, PipelineFn};
 use regex::Regex;
 
+/// Arabic Language
+/// 
+/// Designed for the included Javascript implementation. See `js/lunr.ar.js`.
 pub struct Arabic {}
 
 impl Arabic {
