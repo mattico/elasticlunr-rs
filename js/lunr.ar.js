@@ -4,8 +4,6 @@
  * Copyright 2018, Dalia Al-Shahrabi
  * http://www.mozilla.org/MPL/
  */
-/*!
- */
 
 /**
  * export the module via AMD, CommonJS or as a browser global

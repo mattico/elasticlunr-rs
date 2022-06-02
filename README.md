@@ -26,6 +26,12 @@ file.write_all(index.to_json_pretty().as_bytes());
 
 1.54.0
 
+## Languages
+
+This library includes optional support for non-English languages, see the features in `Cargo.toml`. Like in the JavaScript
+version, the language support is designed to be compatible with the [lunr-languages plugins][lunr-languages]. Some
+languages use a modified version, which is included in the `js` directory of the repository.
+
 ## License
 
 This repository is offered under the terms of the
@@ -45,5 +51,8 @@ used under license. See LICENSE-JS for details.
 Includes stop word lists ported from [stopwords-filter][swft] Copyright (C) 2012 
 David J. Brenes, used under license. See LICENSE-WORDS for details.
 
+Bundled javascript code in the repository (not included in the cargo package) may have other licenses.
+
+[lunr-languages]: https://github.com/MihaiValentin/lunr-languages
 [eljs]: https://github.com/weixsong/elasticlunr.js
 [swft]: https://github.com/brenes/stopwords-filter

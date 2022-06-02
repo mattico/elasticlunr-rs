@@ -4,7 +4,7 @@ use regex::Regex;
 
 /// Arabic Language
 /// 
-/// Designed for the included Javascript implementation. See `js/lunr.ar.js`.
+/// Designed to be compatibile with the included Javascript implementation. See `js/lunr.ar.js`.
 pub struct Arabic {}
 
 impl Arabic {
