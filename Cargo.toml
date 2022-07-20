@@ -33,8 +33,8 @@ serde = "1"
 serde_derive = "1.0.34" # First verstion to support #[serde(flatten)]
 serde_json = "1"
 jieba-rs = { version = "0.6", optional = true }
-lindera = { version = "0.13", optional = true, features = ["ipadic"] }
-lindera-core = { version = "0.13", optional = true }
+lindera = { version = "0.14", optional = true, features = ["ipadic"] }
+lindera-core = { version = "0.13.5", optional = true }
 
 [features]
 languages = ["ar", "da", "de", "du", "es", "fi", "fr", "it", "ja", "no", "pt", "ro", "ru", "sv", "tr", "zh"]
