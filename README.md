@@ -4,7 +4,7 @@
 [![Documentation](https://docs.rs/elasticlunr-rs/badge.svg)](https://docs.rs/elasticlunr-rs)
 [![Crates.io](https://img.shields.io/crates/v/elasticlunr-rs.svg)](https://crates.io/crates/elasticlunr-rs)
 ![Maintenance](https://img.shields.io/badge/Maintenance-Passive-yellow)
-![MSRV](https://img.shields.io/badge/MSRV-1.56.1-orange)
+![MSRV](https://img.shields.io/badge/MSRV-1.57.0-orange)
 
 A partial port of [elasticlunr.js][eljs] to Rust. Intended to be used for 
 generating compatible search indices.
@@ -25,9 +25,12 @@ file.write_all(index.to_json_pretty().as_bytes());
 
 ## Minimum Supported Rust Version
 
-1.56.1
+1.57.0
 
 Changing the minimum supported Rust version is not considered a breaking change for semver purposes.
+
+The supported version is constrained by the version supported by our transitive dependencies. Earlier rustc versions may
+work if you have older versions of these in your `Cargo.lock`, but this is not tested.
 
 ## Languages
 
