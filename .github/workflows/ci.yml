@@ -29,22 +29,22 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      - name: Build (no features)
+      - name: Build (all features)
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --no-default-features
+          args: --all-features
 
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
 
-      - name: Test (no features)
+      - name: Test (all features)
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --no-default-features
+          args: --all-features
 
       - name: Test
         uses: actions-rs/cargo@v1
