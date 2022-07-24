@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2022-07-23
+### Changed
+ - Updated dependencies and MSRVs to fix builds. ([#47](https://github.com/mattico/elasticlunr-rs/pull/47) et. al.)
+
 ## [3.0.0] - 2022-06-01
 ### Added
  - Language support for Arabic ([#40](https://github.com/mattico/elasticlunr-rs/pull/40])).
@@ -31,3 +35,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/mattico/elasticlunr-rs/compare/v3.0.0...HEAD
 [3.0.0]: https://github.com/mattico/elasticlunr-rs/compare/v2.3.14...v3.0.0
+[3.0.1]: https://github.com/mattico/elasticlunr-rs/compare/v3.0.0...v3.0.1
