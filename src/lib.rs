@@ -25,6 +25,15 @@
 //! let mut file = File::create("out.json").unwrap();
 //! file.write_all(index.to_json_pretty().as_bytes());
 //! ```
+//! 
+//! ## Stack overflow and limiting maximum token size
+//! 
+//! Adding very long tokens[^1] to the index can cause stack overflow, which often causes a segmentation fault. Some
+//! lanuguage implementations may have recursive functions that are susceptible to stack overflow on long tokens. Serde
+//! serialization is recursive and especially susceptible to causing stack overflow.
+//! 
+//! [^1]: In most languages a token is a word. In languages like Mandarin Chinese, different algorithms are used to 
+//! separate characters into related groups.
 
 #[macro_use]
 extern crate serde_derive;
@@ -71,6 +80,7 @@ pub struct IndexBuilder {
     ref_field: String,
     pipeline: Option<Pipeline>,
     language: Box<dyn Language>,
+    max_token_length: usize,
 }
 
 impl Default for IndexBuilder {
@@ -82,6 +92,7 @@ impl Default for IndexBuilder {
             ref_field: "id".into(),
             pipeline: None,
             language: Box::new(English::new()),
+            max_token_length: usize::MAX,
         }
     }
 }
@@ -160,6 +171,17 @@ impl IndexBuilder {
         self
     }
 
+    /// Configure the maximum length of tokens which will be added to the index.
+    /// 
+    /// Can be used to prevent stack overflow from serializing indexes containing long tokens.
+    /// Very long tokens are unlikely to be useful in the search index, anyway.
+    /// 
+    /// Defaults to `usize::MAX` which has no effect.
+    pub fn max_token_length(mut self, max_token_length: usize) -> Self {
+        self.max_token_length = max_token_length;
+        self
+    }
+
     /// Build an `Index` from this builder.
     pub fn build(self) -> Index {
         let IndexBuilder {
@@ -169,6 +191,7 @@ impl IndexBuilder {
             ref_field,
             pipeline,
             language,
+            max_token_length,
         } = self;
 
         let index = fields
@@ -187,6 +210,7 @@ impl IndexBuilder {
             pipeline,
             version: crate::ELASTICLUNR_VERSION,
             lang: language,
+            max_token_length,
         }
     }
 }
@@ -206,6 +230,8 @@ pub struct Index {
     document_store: DocumentStore,
     #[serde(with = "ser_lang")]
     lang: Box<dyn Language>,
+    #[serde(skip)]
+    max_token_length: usize,
 }
 
 mod ser_lang {
@@ -328,7 +354,10 @@ impl Index {
                 self.lang.tokenize(value.as_ref())
             };
 
-            let tokens = self.pipeline.run(raw_tokens);
+            let mut tokens = self.pipeline.run(raw_tokens);
+            if self.max_token_length < usize::MAX {
+                tokens = tokens.into_iter().filter(|x| x.len() > self.max_token_length).collect();
+            }
 
             self.document_store
                 .add_field_length(doc_ref, field, tokens.len());
