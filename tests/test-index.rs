@@ -57,7 +57,7 @@ fn ja_search_index_hasnt_changed_accidentally() {
     check_index(lang::Japanese::new(), DOCS_JA);
 }
 
-const DOCS_EN: &'static [[&'static str; 2]] = &[
+const DOCS_EN: &[[&str; 2]] = &[
     [
         "Chapter 1",
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit",

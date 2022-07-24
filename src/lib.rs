@@ -180,9 +180,9 @@ impl IndexBuilder {
 
         Index {
             index,
-            fields: fields,
-            field_tokenizers: field_tokenizers,
-            ref_field: ref_field,
+            fields,
+            field_tokenizers,
+            ref_field,
             document_store: DocumentStore::new(save),
             pipeline,
             version: crate::ELASTICLUNR_VERSION,
