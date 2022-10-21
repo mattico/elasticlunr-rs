@@ -1,6 +1,5 @@
 use super::{common::StopWordFilter, Language};
 use crate::pipeline::{FnWrapper, Pipeline, PipelineFn};
-use regex::Regex;
 
 const WORDS: &[&str] = &[
     "", "a", "able", "about", "across", "after", "all", "almost", "also", "am", "among", "an",
@@ -58,70 +57,12 @@ fn trimmer(token: String) -> Option<String> {
     )
 }
 
-static STEP_2: &[(&str, &str)] = &[
-    ("ational", "ate"),
-    ("tional", "tion"),
-    ("enci", "ence"),
-    ("anci", "ance"),
-    ("izer", "ize"),
-    ("bli", "ble"),
-    ("alli", "al"),
-    ("entli", "ent"),
-    ("eli", "e"),
-    ("ousli", "ous"),
-    ("ization", "ize"),
-    ("ation", "ate"),
-    ("ator", "ate"),
-    ("alism", "al"),
-    ("iveness", "ive"),
-    ("fulness", "ful"),
-    ("ousness", "ous"),
-    ("aliti", "al"),
-    ("iviti", "ive"),
-    ("biliti", "ble"),
-    ("logi", "log"),
-];
-
-static STEP_3: &[(&str, &str)] = &[
-    ("icate", "ic"),
-    ("ative", ""),
-    ("alize", "al"),
-    ("iciti", "ic"),
-    ("ical", "ic"),
-    ("ful", ""),
-    ("ness", ""),
-];
-
 // This is a direct port of the stemmer from elasticlunr.js
 // It's not very efficient and very not-rusty, but it
 // generates identical output.
 
 #[derive(Clone)]
-struct Stemmer {
-    re_mgr0: Regex,
-    re_mgr1: Regex,
-    re_meq1: Regex,
-    re_s_v: Regex,
-
-    re_1a: Regex,
-    re2_1a: Regex,
-    re_1b: Regex,
-    re2_1b: Regex,
-    re2_1b_2: Regex,
-    re3_1b_2: Regex,
-    re4_1b_2: Regex,
-
-    re_1c: Regex,
-    re_2: Regex,
-
-    re_3: Regex,
-
-    re_4: Regex,
-    re2_4: Regex,
-
-    re_5: Regex,
-    re3_5: Regex,
-}
+struct Stemmer;
 
 impl PipelineFn for Stemmer {
     fn name(&self) -> String {
@@ -129,210 +70,538 @@ impl PipelineFn for Stemmer {
     }
 
     fn filter(&self, token: String) -> Option<String> {
-        Some(self.stem(token))
+        self.stem(&token)
     }
-}
-
-// vowel
-macro_rules! V {
-    () => {
-        "[aeiouy]"
-    };
-}
-
-// consonant sequence
-macro_rules! CS {
-    () => {
-        "[^aeiou][^aeiouy]*"
-    };
-}
-
-// vowel sequence
-macro_rules! VS {
-    () => {
-        "[aeiouy][aeiou]*"
-    };
-}
-
-#[inline]
-fn concat_string(strs: &[&str]) -> String {
-    strs.iter().cloned().collect()
 }
 
 impl Stemmer {
     fn new() -> Self {
-        let mgr0 = concat!("^(", CS!(), ")?", VS!(), CS!());
-        let meq1 = concat!("^(", CS!(), ")?", VS!(), CS!(), "(", VS!(), ")?$");
-        let mgr1 = concat!("^(", CS!(), ")?", VS!(), CS!(), VS!(), CS!());
-        let s_v = concat!("^(", CS!(), ")?", V!());
+        Self
+    }
 
-        let re_mgr0 = Regex::new(mgr0).unwrap();
-        let re_mgr1 = Regex::new(mgr1).unwrap();
-        let re_meq1 = Regex::new(meq1).unwrap();
-        let re_s_v = Regex::new(s_v).unwrap();
+    fn stem(&self, word: &str) -> Option<String> {
+        get(word).ok()
+    }
+}
 
-        let re_1a = Regex::new("^(.+?)(ss|i)es$").unwrap();
-        let re2_1a = Regex::new("^(.+?)([^s])s$").unwrap();
-        let re_1b = Regex::new("^(.+?)eed$").unwrap();
-        let re2_1b = Regex::new("^(.+?)(ed|ing)$").unwrap();
-        let re2_1b_2 = Regex::new("(at|bl|iz)$").unwrap();
-        let re3_1b_2 = Regex::new("([^aeiouylsz]{2})$").unwrap();
-        let re4_1b_2 = Regex::new(concat!("^", CS!(), V!(), "[^aeiouwxy]$")).unwrap();
+/// Member b is a vector of bytes holding a word to be stemmed.
+/// The letters are in b[0], b[1] ... ending at b[z->k]. Member k is readjusted
+/// downwards as the stemming progresses. Zero termination is not in fact used
+/// in the algorithm.
+///
+/// Note that only lower case sequences are stemmed. get(...) automatically
+/// lowercases the string before processing.
+///
+///
+/// Typical usage is:
+///
+///     let b = "pencils";
+///     let res = stem::get(b);
+///     assert_eq!(res, Ok("pencil".to_string()));
+///
+struct PorterStemmer {
+    b: Vec<u8>,
+    k: usize,
+    j: usize,
+}
 
-        let re_1c = Regex::new("^(.+?[^aeiou])y$").unwrap();
-        let re_2 = Regex::new(
-            "^(.+?)(ational|tional|enci|anci|izer|bli|alli|entli|eli|ousli|\
-             ization|ation|ator|alism|iveness|fulness|ousness|aliti|iviti|biliti|logi)$",
-        )
-        .unwrap();
+impl PorterStemmer {
+    fn new(word: &str) -> Result<PorterStemmer, &'static str> {
+        let b = word.to_ascii_lowercase().into_bytes();
+        let k = b.len();
+        Ok(PorterStemmer { b: b, k: k, j: 0 })
+    }
 
-        let re_3 = Regex::new("^(.+?)(icate|ative|alize|iciti|ical|ful|ness)$").unwrap();
-
-        let re_4 = Regex::new(
-            "^(.+?)(al|ance|ence|er|ic|able|ible|ant|ement|ment|ent|ou|ism|ate|iti|ous|ive|ize)$",
-        )
-        .unwrap();
-        let re2_4 = Regex::new("^(.+?)(s|t)(ion)$").unwrap();
-
-        let re_5 = Regex::new("^(.+?)e$").unwrap();
-        let re3_5 = Regex::new(concat!("^", CS!(), V!(), "[^aeiouwxy]$")).unwrap();
-
-        Stemmer {
-            re_mgr0,
-            re_mgr1,
-            re_meq1,
-            re_s_v,
-            re_1a,
-            re2_1a,
-            re_1b,
-            re2_1b,
-            re2_1b_2,
-            re3_1b_2,
-            re4_1b_2,
-            re_1c,
-            re_2,
-            re_3,
-            re_4,
-            re2_4,
-            re_5,
-            re3_5,
+    /// stem.is_consonant(i) is true <=> stem[i] is a consonant
+    #[inline]
+    fn is_consonant(&self, i: usize) -> bool {
+        match self.b[i] {
+            b'a' | b'e' | b'i' | b'o' | b'u' => false,
+            b'y' => {
+                if i == 0 {
+                    true
+                } else {
+                    !self.is_consonant(i - 1)
+                }
+            }
+            _ => true,
         }
     }
 
-    /// Implements the Porter stemming algorithm
-    pub fn stem(&self, mut w: String) -> String {
-        if w.len() < 3 {
-            return w;
-        }
-
-        let starts_with_y = w.as_bytes()[0] == b'y';
-        if starts_with_y {
-            w.remove(0);
-            w.insert(0, 'Y');
-        }
-
-        // TODO: There's probably a better way to handle the
-        // borrowchecker than cloning w a million times
-
-        // Step 1a
-        if let Some(caps) = self.re_1a.captures(&w.clone()) {
-            w = concat_string(&[&caps[1], &caps[2]]);
-        }
-        if let Some(caps) = self.re2_1a.captures(&w.clone()) {
-            w = concat_string(&[&caps[1], &caps[2]]);
-        }
-
-        // Step 1b
-        if let Some(caps) = self.re_1b.captures(&w.clone()) {
-            let stem = &caps[1];
-            if self.re_mgr0.is_match(stem) {
-                w.pop();
+    /// stem.measure() measures the number of consonant sequences in [0, j).
+    /// if c is a consonant sequence and v a vowel sequence, and <..> indicates
+    /// arbitrary presence,
+    ///
+    /// ~~~notrust
+    ///    <c><v>       gives 0
+    ///    <c>vc<v>     gives 1
+    ///    <c>vcvc<v>   gives 2
+    ///    <c>vcvcvc<v> gives 3
+    ///    ....
+    /// ~~~
+    fn measure(&self) -> usize {
+        let mut n = 0;
+        let mut i = 0;
+        let j = self.j;
+        loop {
+            if i >= j {
+                return n;
             }
-        } else if let Some(caps) = self.re2_1b.captures(&w.clone()) {
-            let stem = &caps[1];
-            if self.re_s_v.is_match(stem) {
-                w = stem.into();
-
-                let mut re3_1b_2_matched = false;
-
-                if self.re2_1b_2.is_match(&w) {
-                    w.push('e');
-                } else if let Some(m) = self.re3_1b_2.find(&w.clone()) {
-                    let mut suffix = m.as_str().chars();
-                    // Make sure the two characters are the same since we can't use backreferences
-                    if suffix.next() == suffix.next() {
-                        re3_1b_2_matched = true;
-                        w.pop();
-                    }
+            if !self.is_consonant(i) {
+                break;
+            }
+            i += 1;
+        }
+        i += 1;
+        loop {
+            loop {
+                if i >= j {
+                    return n;
                 }
+                if self.is_consonant(i) {
+                    break;
+                }
+                i += 1;
+            }
+            i += 1;
+            n += 1;
+            loop {
+                if i >= j {
+                    return n;
+                }
+                if !self.is_consonant(i) {
+                    break;
+                }
+                i += 1;
+            }
+            i += 1;
+        }
+    }
 
-                // re4_1b_2 still runs if re3_1b_2 matches but
-                // the matched chcaracters are not the same
-                if !re3_1b_2_matched && self.re4_1b_2.is_match(&w) {
-                    w.push('e');
+    /// stem.has_vowel() is TRUE <=> [0, j-1) contains a vowel
+    fn has_vowel(&self) -> bool {
+        for i in 0..self.j {
+            if !self.is_consonant(i) {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// stem.double_consonant(i) is TRUE <=> i,(i-1) contain a double consonant.
+    #[inline]
+    fn double_consonant(&self, i: usize) -> bool {
+        if i < 1 {
+            false
+        } else if self.b[i] != self.b[i - 1] {
+            false
+        } else {
+            self.is_consonant(i)
+        }
+    }
+
+    /// cvc(z, i) is TRUE <=> i-2,i-1,i has the form consonant - vowel - consonant
+    /// and also if the second c is not w,x or y. this is used when trying to
+    /// restore an e at the end of a short word. e.g.
+    ///
+    /// ~~~notrust
+    ///    cav(e), lov(e), hop(e), crim(e), but
+    ///    snow, box, tray.
+    /// ~~~
+    fn cvc(&self, i: usize) -> bool {
+        if i < 2 || !self.is_consonant(i) || self.is_consonant(i - 1) || !self.is_consonant(i - 2) {
+            false
+        } else {
+            match self.b[i] {
+                b'w' | b'x' | b'y' => false,
+                _ => true,
+            }
+        }
+    }
+
+    /// stem.ends(s) is true <=> [0, k) ends with the string s.
+    fn ends(&mut self, _s: &str) -> bool {
+        let s = _s.as_bytes();
+        let len = s.len();
+        if len > self.k {
+            false
+        } else {
+            if &self.b[self.k - len..self.k] == s {
+                self.j = self.k - len;
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    /// stem.setto(s) sets [j,k) to the characters in the string s,
+    /// readjusting k.
+    fn set_to(&mut self, s: &str) {
+        let s = s.as_bytes();
+        let len = s.len();
+        for i in 0..(len) {
+            self.b[self.j + i] = s[i];
+        }
+        self.k = self.j + len;
+    }
+
+    /// self.replace(s) is used further down.
+    #[inline]
+    fn r(&mut self, s: &str) {
+        if self.measure() > 0 {
+            self.set_to(s);
+        }
+    }
+
+    /// stem.step1ab() gets rid of plurals and -ed or -ing. e.g.
+    ///
+    /// ~~~~notrust
+    ///     caresses  ->  caress
+    ///     ponies    ->  poni
+    ///     ties      ->  ti
+    ///     caress    ->  caress
+    ///     cats      ->  cat
+    ///
+    ///     feed      ->  feed
+    ///     agreed    ->  agree
+    ///     disabled  ->  disable
+    ///
+    ///     matting   ->  mat
+    ///     mating    ->  mate
+    ///     meeting   ->  meet
+    ///     milling   ->  mill
+    ///     messing   ->  mess
+    ///
+    ///     meetings  ->  meet
+    /// ~~~~
+    fn step1ab(&mut self) {
+        if self.b[self.k - 1] == b's' {
+            if self.ends("sses") {
+                self.k -= 2;
+            } else if self.ends("ies") {
+                self.set_to("i");
+            } else if self.b[self.k - 2] != b's' {
+                self.k -= 1;
+            }
+        }
+        if self.ends("eed") {
+            if self.measure() > 0 {
+                self.k -= 1
+            }
+        } else if (self.ends("ed") || self.ends("ing")) && self.has_vowel() {
+            self.k = self.j;
+            if self.ends("at") {
+                self.set_to("ate");
+            } else if self.ends("bl") {
+                self.set_to("ble");
+            } else if self.ends("iz") {
+                self.set_to("ize");
+            } else if self.double_consonant(self.k - 1) {
+                self.k -= 1;
+                match self.b[self.k - 1] {
+                    b'l' | b's' | b'z' => self.k += 1,
+                    _ => (),
+                }
+            } else if self.measure() == 1 && self.cvc(self.k - 1) {
+                self.set_to("e");
+            }
+        }
+    }
+
+    /// stem.step1c() turns terminal y to i when there is another vowel in the stem.
+    fn step1c(&mut self) {
+        if self.ends("y") && self.is_consonant(self.k - 2) && self.k > 2 {
+            self.b[self.k - 1] = b'i';
+        }
+    }
+
+    /// stem.step2() maps double suffices to single ones. so -ization ( = -ize
+    /// plus -ation) maps to -ize etc. note that the string before the suffix
+    /// must give m(z) > 0.
+    fn step2(&mut self) {
+        match self.b[self.k - 2] {
+            b'a' => {
+                if self.ends("ational") {
+                    self.r("ate");
+                    return;
+                }
+                if self.ends("tional") {
+                    self.r("tion");
+                    return;
                 }
             }
-        }
+            b'c' => {
+                if self.ends("enci") {
+                    self.r("ence");
+                    return;
+                }
+                if self.ends("anci") {
+                    self.r("ance");
+                    return;
+                }
+            }
+            b'e' => {
+                if self.ends("izer") {
+                    self.r("ize");
+                    return;
+                }
+            }
+            b'l' => {
+                if self.ends("bli") {
+                    self.r("ble");
+                    return;
+                } /*-DEPARTURE-*/
 
-        // Step 1c - replace suffix y or Y by i if preceded by a non-vowel which is not the first
-        // letter of the word (so cry -> cri, by -> by, say -> say)
-        if let Some(caps) = self.re_1c.captures(&w.clone()) {
-            let stem = &caps[1];
-            w = concat_string(&[stem, "i"]);
-        }
+                /* To match the published algorithm, replace this line with
+                'l' => {
+                    if self.ends("abli") { self.r("able"); return } */
 
-        // Step 2
-        if let Some(caps) = self.re_2.captures(&w.clone()) {
-            let stem = &caps[1];
-            let suffix = &caps[2];
-            if self.re_mgr0.is_match(stem) {
-                w = concat_string(&[stem, STEP_2.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
+                if self.ends("alli") {
+                    self.r("al");
+                    return;
+                }
+                if self.ends("entli") {
+                    self.r("ent");
+                    return;
+                }
+                if self.ends("eli") {
+                    self.r("e");
+                    return;
+                }
+                if self.ends("ousli") {
+                    self.r("ous");
+                    return;
+                }
+            }
+            b'o' => {
+                if self.ends("ization") {
+                    self.r("ize");
+                    return;
+                }
+                if self.ends("ation") {
+                    self.r("ate");
+                    return;
+                }
+                if self.ends("ator") {
+                    self.r("ate");
+                    return;
+                }
+            }
+            b's' => {
+                if self.ends("alism") {
+                    self.r("al");
+                    return;
+                }
+                if self.ends("iveness") {
+                    self.r("ive");
+                    return;
+                }
+                if self.ends("fulness") {
+                    self.r("ful");
+                    return;
+                }
+                if self.ends("ousness") {
+                    self.r("ous");
+                    return;
+                }
+            }
+            b't' => {
+                if self.ends("aliti") {
+                    self.r("al");
+                    return;
+                }
+                if self.ends("iviti") {
+                    self.r("ive");
+                    return;
+                }
+                if self.ends("biliti") {
+                    self.r("ble");
+                    return;
+                }
+            }
+            b'g' => {
+                if self.ends("logi") {
+                    self.r("log");
+                    return;
+                }
+            } /*-DEPARTURE-*/
+            /* To match the published algorithm, delete this line */
+            _ => (),
+        }
+    }
+
+    /// stem.step3() deals with -ic-, -full, -ness etc. similar strategy to step2.
+    fn step3(&mut self) {
+        match self.b[self.k - 1] {
+            b'e' => {
+                if self.ends("icate") {
+                    self.r("ic");
+                    return;
+                }
+                if self.ends("ative") {
+                    self.r("");
+                    return;
+                }
+                if self.ends("alize") {
+                    self.r("al");
+                    return;
+                }
+            }
+            b'i' => {
+                if self.ends("iciti") {
+                    self.r("ic");
+                    return;
+                }
+            }
+            b'l' => {
+                if self.ends("ical") {
+                    self.r("ic");
+                    return;
+                }
+                if self.ends("ful") {
+                    self.r("");
+                    return;
+                }
+            }
+            b's' => {
+                if self.ends("ness") {
+                    self.r("");
+                    return;
+                }
+            }
+            _ => (),
+        }
+    }
+
+    /// stem.step4() takes off -ant, -ence etc., in context <c>vcvc<v>.
+    fn step4(&mut self) {
+        match self.b[self.k - 2] {
+            b'a' => {
+                if self.ends("al") {
+                } else {
+                    return;
+                }
+            }
+            b'c' => {
+                if self.ends("ance") {
+                } else if self.ends("ence") {
+                } else {
+                    return;
+                }
+            }
+            b'e' => {
+                if self.ends("er") {
+                } else {
+                    return;
+                }
+            }
+            b'i' => {
+                if self.ends("ic") {
+                } else {
+                    return;
+                }
+            }
+            b'l' => {
+                if self.ends("able") {
+                } else if self.ends("ible") {
+                } else {
+                    return;
+                }
+            }
+            b'n' => {
+                if self.ends("ant") {
+                } else if self.ends("ement") {
+                } else if self.ends("ment") {
+                } else if self.ends("ent") {
+                } else {
+                    return;
+                }
+            }
+            b'o' => {
+                if self.ends("ion") && (self.b[self.j - 1] == b's' || self.b[self.j - 1] == b't') {
+                } else if self.ends("ou") {
+                } else {
+                    return;
+                }
+                /* takes care of -ous */
+            }
+            b's' => {
+                if self.ends("ism") {
+                } else {
+                    return;
+                }
+            }
+            b't' => {
+                if self.ends("ate") {
+                } else if self.ends("iti") {
+                } else {
+                    return;
+                }
+            }
+            b'u' => {
+                if self.ends("ous") {
+                } else {
+                    return;
+                }
+            }
+            b'v' => {
+                if self.ends("ive") {
+                } else {
+                    return;
+                }
+            }
+            b'z' => {
+                if self.ends("ize") {
+                } else {
+                    return;
+                }
+            }
+            _ => return,
+        }
+        if self.measure() > 1 {
+            self.k = self.j
+        }
+    }
+
+    /// stem.step5() removes a final -e if self.measure() > 0, and changes -ll
+    /// to -l if self.measure() > 1.
+    fn step5(&mut self) {
+        self.j = self.k;
+        if self.b[self.k - 1] == b'e' {
+            let a = self.measure();
+            if a > 1 || a == 1 && !self.cvc(self.k - 2) {
+                self.k -= 1
             }
         }
+        if self.b[self.k - 1] == b'l' && self.double_consonant(self.k - 1) && self.measure() > 1 {
+            self.k -= 1;
+        }
+    }
 
-        // Step 3
-        if let Some(caps) = self.re_3.captures(&w.clone()) {
-            let stem = &caps[1];
-            let suffix = &caps[2];
-            if self.re_mgr0.is_match(stem) {
-                w = concat_string(&[stem, STEP_3.iter().find(|&&(k, _)| k == suffix).unwrap().1]);
+    #[inline]
+    fn get(&self) -> String {
+        String::from_utf8(self.b[..self.k].to_vec()).unwrap()
+    }
+}
+
+fn get(word: &str) -> Result<String, &str> {
+    if word.len() > 2 {
+        match PorterStemmer::new(word) {
+            Ok(w) => {
+                let mut mw = w;
+                mw.step1ab();
+                mw.step1c();
+                mw.step2();
+                mw.step3();
+                mw.step4();
+                mw.step5();
+                Ok(mw.get())
             }
+            Err(e) => Err(e),
         }
-
-        // Step 4
-        if let Some(caps) = self.re_4.captures(&w.clone()) {
-            let stem = &caps[1];
-            if self.re_mgr1.is_match(stem) {
-                w = stem.into();
-            }
-        } else if let Some(caps) = self.re2_4.captures(&w.clone()) {
-            let stem = concat_string(&[&caps[1], &caps[2]]);
-            if self.re_mgr1.is_match(&stem) {
-                w = stem;
-            }
-        }
-
-        // Step 5
-        if let Some(caps) = self.re_5.captures(&w.clone()) {
-            let stem = &caps[1];
-            if self.re_mgr1.is_match(stem)
-                || (self.re_meq1.is_match(stem) && !(self.re3_5.is_match(stem)))
-            {
-                w = stem.into();
-            }
-        }
-
-        if w.ends_with("ll") && self.re_mgr1.is_match(&w) {
-            w.pop();
-        }
-
-        // replace the original 'y'
-        if starts_with_y {
-            w.remove(0);
-            w.insert(0, 'y');
-        }
-
-        w
+    } else {
+        Ok(word.to_owned())
     }
 }
 
@@ -448,11 +717,13 @@ mod tests {
             ("knots", "knot"),
             ("lay", "lay"),
             ("try", "tri"),
+            ("by", "by"),
         ];
 
         let stemmer = Stemmer::new();
         for &(input, output) in cases.iter() {
-            assert_eq!(&stemmer.stem(input.into()), output);
+            let result = stemmer.stem(input.into()).unwrap();
+            assert_eq!(&result, output);
         }
     }
 }
