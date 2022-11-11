@@ -57,10 +57,6 @@ fn trimmer(token: String) -> Option<String> {
     )
 }
 
-// This is a direct port of the stemmer from elasticlunr.js
-// It's not very efficient and very not-rusty, but it
-// generates identical output.
-
 #[derive(Clone)]
 struct Stemmer;
 
@@ -83,6 +79,14 @@ impl Stemmer {
         get(word).ok()
     }
 }
+
+/// This stemmer implementation is taken directly from rust-stem
+/// (https://github.com/minhnhdo/rust-stem) which is licensed under the MIT
+/// License as follows:
+/// 
+/// The MIT License (MIT)
+///
+/// Copyright (c) 2013 Do Nhat Minh
 
 /// Member b is a vector of bytes holding a word to be stemmed.
 /// The letters are in b[0], b[1] ... ending at b[z->k]. Member k is readjusted
