@@ -95,14 +95,6 @@ impl Stemmer {
 ///
 /// Note that only lower case sequences are stemmed. get(...) automatically
 /// lowercases the string before processing.
-///
-///
-/// Typical usage is:
-///
-///     let b = "pencils";
-///     let res = stem::get(b);
-///     assert_eq!(res, Ok("pencil".to_string()));
-///
 struct PorterStemmer {
     b: Vec<u8>,
     k: usize,
