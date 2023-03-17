@@ -91,6 +91,7 @@ impl_language! {
     (Finnish, fi, #[cfg(feature = "fi")]),
     (French, fr, #[cfg(feature = "fr")]),
     (German, de, #[cfg(feature = "de")]),
+    (Hungarian, hu, #[cfg(feature = "hu")]),
     (Italian, it, #[cfg(feature = "it")]),
     (Japanese, ja, #[cfg(feature = "ja")]),
     (Korean, ko, #[cfg(feature = "ko")]),
