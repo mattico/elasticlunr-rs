@@ -25,7 +25,7 @@ file.write_all(index.to_json_pretty().as_bytes());
 
 ## Minimum Supported Rust Version
 
-1.57.0
+1.60.0
 
 Changing the minimum supported Rust version is not considered a breaking change for semver purposes.
 
