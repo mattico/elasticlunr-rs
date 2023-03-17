@@ -6,8 +6,9 @@
 ![Maintenance](https://img.shields.io/badge/Maintenance-Passive-yellow)
 ![MSRV](https://img.shields.io/badge/MSRV-1.57.0-orange)
 
-A partial port of [elasticlunr.js][eljs] to Rust. Intended to be used for 
-generating compatible search indices.
+A partial port of [elasticlunr.js][eljs] to Rust. Intended to be used for generating compatible search indices.
+
+This library is passively maintained to support existing users. New users are encouraged to use a different library such as [stork](https://github.com/jameslittle230/stork).
 
 ## Example
 
