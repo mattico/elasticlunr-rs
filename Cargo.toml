@@ -10,7 +10,7 @@ keywords = ["search", "index", "indexing", "lunr", "elasticlunr"]
 exclude = ["tests/lunr-fixture-gen/", "js/", ".github/"]
 readme = "README.md"
 edition = "2018"
-rust-version = "1.57.0"
+rust-version = "1.57.0" # Some dependencies require 1.60.0 at time of writing, but older versions of those can work.
 
 [badges]
 maintenance = { status = "passively-maintained" }

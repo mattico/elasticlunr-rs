@@ -4,7 +4,7 @@
 [![Documentation](https://docs.rs/elasticlunr-rs/badge.svg)](https://docs.rs/elasticlunr-rs)
 [![Crates.io](https://img.shields.io/crates/v/elasticlunr-rs.svg)](https://crates.io/crates/elasticlunr-rs)
 ![Maintenance](https://img.shields.io/badge/Maintenance-Passive-yellow)
-![MSRV](https://img.shields.io/badge/MSRV-1.57.0-orange)
+![MSRV](https://img.shields.io/badge/MSRV-1.60.0-orange)
 
 A partial port of [elasticlunr.js][eljs] to Rust. Intended to be used for generating compatible search indices.
 
