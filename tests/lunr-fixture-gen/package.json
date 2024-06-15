@@ -2,10 +2,11 @@
   "name": "lunr-fixture-gen",
   "main": "index.js",
   "dependencies": {
-    "lunr": "^2.1.6",
-    "lunr-languages": "^1.0.0"
+    "@node-rs/jieba": "^1.10.3",
+    "lunr": "^2.3.9",
+    "lunr-languages": "^1.14.0"
   },
   "scripts": {
-    "test": "node index.js"
+    "build": "node index.js"
   }
 }

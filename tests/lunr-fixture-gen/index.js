@@ -1,5 +1,6 @@
-var lunr = require('lunr');
+let lunr = require('lunr');
 require("lunr-languages/lunr.stemmer.support.js")(lunr);
+
 const fs = require('fs');
 
 for (let file of fs.readdirSync("../data")) {
@@ -8,23 +9,27 @@ for (let file of fs.readdirSync("../data")) {
         let inp = fs.readFileSync(`../data/${code}.in.txt`);
         let outf = fs.openSync(`../data/${code}.out.txt`, 'w');
 
-        var pipeline = new lunr.Pipeline;
-        if (code !== "en")
-        {
+        let pipeline = new lunr.Pipeline;
+        if (code !== "en") {
+            if (code === 'ja') {
+                let TinySegmenter = require('lunr-languages/tinyseg');
+                TinySegmenter(lunr);
+            }
             require(`lunr-languages/lunr.${code}.js`)(lunr);
 
-            pipeline.add(lunr[code].trimmer);
-            pipeline.add(lunr[code].stopWordFilter);
-            pipeline.add(lunr[code].stemmer);
+            let lang = lunr[code];
+            if (lang.trimmer) pipeline.add(lang.trimmer);
+            if (lang.stopWordFilter) pipeline.add(lang.stopWordFilter);
+            if (lang.stemmer) pipeline.add(lang.stemmer);
         } else {
             pipeline.add(lunr.trimmer);
             pipeline.add(lunr.stopWordFilter);
             pipeline.add(lunr.stemmer);
         }
-        var tokens = lunr.tokenizer(inp);
+        let tokens = lunr.tokenizer(inp);
         tokens = pipeline.run(tokens);
 
-        for (var tok of tokens) {
+        for (let tok of tokens) {
             tok = tok.toString();
             if (tok && tok.length > 0)
                 fs.writeSync(outf, tok + '\n');
