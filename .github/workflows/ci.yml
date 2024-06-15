@@ -26,6 +26,23 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
+      - name: Install node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: tests/lunr-fixture-gen/package-lock.json
+
+      - name: Run lunr-fixture-gen
+        run: |
+          cd tests/lunr-fixture-gen
+          npm install
+          npm run build
+
+      - name: Check that the fixtures haven't changed
+        run: |
+          git diff --exit-code tests/lunr-fixture-gen
+
       - name: Build (all features)
         run: cargo build --all-features
 
