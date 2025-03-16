@@ -8,7 +8,7 @@
 
 A partial port of [elasticlunr.js][eljs] to Rust. Intended to be used for generating compatible search indices.
 
-This library is passively maintained to support existing users. New users are encouraged to use a different library such as [stork](https://github.com/jameslittle230/stork).
+This library is passively maintained to support existing users. New users are encouraged to use a different library such as [tinysearch](https://github.com/tinysearch/tinysearch) or [Pagefind](https://pagefind.app/).
 
 ## Example
 
