@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.2] - 2023-03-17
+### Changed
+ - Updated Minimum Supported Rust Version to 1.60.0.
+ - Updated Criterion to 0.4.0.
+
+### Added
+ - Language support for Korean ([#50](https://github.com/mattico/elasticlunr-rs/pull/50))
+ - Language support for Hungarian ([#51](https://github.com/mattico/elasticlunr-rs/pull/51))
+
 ## [3.0.1] - 2022-07-23
 ### Changed
  - Updated dependencies and MSRVs to fix builds. ([#47](https://github.com/mattico/elasticlunr-rs/pull/47) et. al.)
