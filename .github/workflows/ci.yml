@@ -19,36 +19,24 @@ jobs:
           - stable
           - beta
           - nightly
-          - '1.60.0'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup ${{ matrix.rust }} toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
 
       - name: Build (all features)
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features
+        run: cargo build --all-features
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
+        run: cargo build
 
       - name: Test (all features)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features
+        run: cargo test --all-features
 
       - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+        run: cargo test
