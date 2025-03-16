@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.3] - 2025-03-16
+### Changed
+ - Rewrote the English stemmer for improved performance ([#48](https://github.com/mattico/elasticlunr-rs/pull/48))
+ - Changed the rust-version in Cargo.toml to match the Minimum Supported Rust Version (1.60.0).
+ - Added support for either Criterion 0.4.0 or 0.5.0
+ - Updated the Cargo.toml license specification to better match the situation described in the README.
+
+## [3.0.2] - 2023-03-17
+### Changed
+ - Updated Minimum Supported Rust Version to 1.60.0.
+ - Updated Criterion to 0.4.0.
+
+### Added
+ - Language support for Korean ([#50](https://github.com/mattico/elasticlunr-rs/pull/50))
+ - Language support for Hungarian ([#51](https://github.com/mattico/elasticlunr-rs/pull/51))
+
 ## [3.0.1] - 2022-07-23
 ### Changed
  - Updated dependencies and MSRVs to fix builds. ([#47](https://github.com/mattico/elasticlunr-rs/pull/47) et. al.)
@@ -33,6 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Remove the `Language` enum. Use the `Language` trait implementations in the `lang` modules, and the free functions `lang::from_name`, `lang::from_code`, and `lang::languages`.
 
 
-[Unreleased]: https://github.com/mattico/elasticlunr-rs/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/mattico/elasticlunr-rs/compare/v3.0.3...HEAD
 [3.0.0]: https://github.com/mattico/elasticlunr-rs/compare/v2.3.14...v3.0.0
 [3.0.1]: https://github.com/mattico/elasticlunr-rs/compare/v3.0.0...v3.0.1
+[3.0.2]: https://github.com/mattico/elasticlunr-rs/compare/v3.0.1...v3.0.2
+[3.0.3]: https://github.com/mattico/elasticlunr-rs/compare/v3.0.2...v3.0.3

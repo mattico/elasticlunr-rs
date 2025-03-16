@@ -1,16 +1,16 @@
 [package]
 authors = ["Matt Ickstadt <mattico8@gmail.com>"]
-license = "MIT/Apache-2.0"
+license = "(MIT OR Apache-2.0) AND MIT"
 name = "elasticlunr-rs"
-version = "3.0.2"
+version = "3.0.3"
 description = "A partial port of elasticlunr.js to Rust for generating static document search indexes"
 documentation = "https://docs.rs/elasticlunr-rs"
 repository = "https://github.com/mattico/elasticlunr-rs"
 keywords = ["search", "index", "indexing", "lunr", "elasticlunr"]
-exclude = ["tests/lunr-fixture-gen/", "js/", ".github/"]
+exclude = ["tests/lunr-fixture-gen/", "js/", ".github/", ".vscode/"]
 readme = "README.md"
 edition = "2018"
-rust-version = "1.57.0" # Some dependencies require 1.60.0 at time of writing, but older versions of those can work.
+rust-version = "1.60.0"
 
 [badges]
 maintenance = { status = "passively-maintained" }
@@ -23,7 +23,7 @@ name = "bench"
 harness = false
 
 [dev-dependencies]
-criterion = "0.4.0"
+criterion = ">=0.4.0,<0.6.0"
 maplit = "1"
 
 [dependencies]

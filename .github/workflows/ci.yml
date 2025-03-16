@@ -6,9 +6,6 @@ on:
     tags: [ '*' ]
   workflow_dispatch:
   pull_request:
-    branches: [ master ]
-  schedule:
-    - cron: "0 2 * * 1"
 
 jobs:
   ci:
@@ -19,36 +16,56 @@ jobs:
           - stable
           - beta
           - nightly
-          - '1.60.0'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup ${{ matrix.rust }} toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
 
       - name: Build (all features)
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features
+        run: cargo build --all-features
 
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
+        run: cargo build
 
       - name: Test (all features)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features
+        run: cargo test --all-features
 
       - name: Test
-        uses: actions-rs/cargo@v1
+        run: cargo test
+
+
+  msrv:
+    runs-on: ubuntu-latest
+    env:
+      MSRV: '1.60.0'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ${{ env.MSRV }} toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          command: test
+          toolchain: '${{ env.MSRV }}'
+          override: false
+
+      - name: Install cargo-hack
+        run: cargo +stable install --locked cargo-hack
+
+      - name: Install cargo-minimal-versions
+        run: cargo +stable install --locked cargo-minimal-versions
+
+      - name: Check minimal versions on stable
+        run: cargo +stable minimal-versions check
+
+      - name: Test minimal versions on stable
+        run: cargo +stable minimal-versions test
+
+      - name: Check minimal versions on MSRV
+        run: cargo +${{ env.MSRV }} minimal-versions check
+
+      - name: Test minimal versions on MSRV
+        run: cargo +${{ env.MSRV }} minimal-versions test
