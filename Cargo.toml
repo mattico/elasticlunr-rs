@@ -23,7 +23,7 @@ name = "bench"
 harness = false
 
 [dev-dependencies]
-criterion = "0.4.0"
+criterion = ">=0.4.0,<0.6.0"
 maplit = "1"
 
 [dependencies]
