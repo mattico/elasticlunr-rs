@@ -1,6 +1,6 @@
 [package]
 authors = ["Matt Ickstadt <mattico8@gmail.com>"]
-license = "MIT/Apache-2.0"
+license = "(MIT OR Apache-2.0) AND MIT"
 name = "elasticlunr-rs"
 version = "3.0.2"
 description = "A partial port of elasticlunr.js to Rust for generating static document search indexes"
