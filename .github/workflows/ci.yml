@@ -37,3 +37,35 @@ jobs:
 
       - name: Test
         run: cargo test
+
+
+  msrv:
+    runs-on: ubuntu-latest
+    env:
+      MSRV: '1.60.0'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ${{ env.MSRV }} toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: '${{ env.MSRV }}'
+          override: false
+
+      - name: Install cargo-hack
+        run: cargo +stable install --locked cargo-hack
+
+      - name: Install cargo-minimal-versions
+        run: cargo +stable install --locked cargo-minimal-versions
+
+      - name: Check minimal versions on stable
+        run: cargo +stable minimal-versions check
+
+      - name: Test minimal versions on stable
+        run: cargo +stable minimal-versions test
+
+      - name: Check minimal versions on MSRV
+        run: cargo +${{ env.MSRV }} minimal-versions check
+
+      - name: Test minimal versions on MSRV
+        run: cargo +${{ env.MSRV }} minimal-versions test
