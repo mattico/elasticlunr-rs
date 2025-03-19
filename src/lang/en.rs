@@ -515,7 +515,7 @@ impl PorterStemmer {
                 }
             }
             b'o' => {
-                if self.ends("ion") && (self.b[self.j - 1] == b's' || self.b[self.j - 1] == b't') {
+                if self.ends("ion") && self.j > 0 && (self.b[self.j - 1] == b's' || self.b[self.j - 1] == b't') {
                 } else if self.ends("ou") {
                 } else {
                     return;
@@ -672,6 +672,7 @@ mod tests {
             ("constance", "constanc"),
             ("constancy", "constanc"),
             ("constant", "constant"),
+            ("ion", "ion"),
             ("knack", "knack"),
             ("knackeries", "knackeri"),
             ("knacks", "knack"),
