@@ -316,6 +316,9 @@ impl PorterStemmer {
     /// plus -ation) maps to -ize etc. note that the string before the suffix
     /// must give m(z) > 0.
     fn step2(&mut self) {
+        if self.k < 2 {
+            return;
+        }
         match self.b[self.k - 2] {
             b'a' => {
                 if self.ends("ational") {
@@ -472,6 +475,9 @@ impl PorterStemmer {
 
     /// stem.step4() takes off -ant, -ence etc., in context <c>vcvc<v>.
     fn step4(&mut self) {
+        if self.k < 2 {
+            return;
+        }
         match self.b[self.k - 2] {
             b'a' => {
                 if self.ends("al") {
@@ -633,6 +639,22 @@ mod tests {
     #[test]
     fn test_stemmer() {
         let cases = [
+            ("activate", "activ"),
+            ("adjustable", "adjust"),
+            ("adjustment", "adjust"),
+            ("adoption", "adopt"),
+            ("airliner", "airlin"),
+            ("allowance", "allow"),
+            ("analogousli", "analog"),
+            ("angulariti", "angular"),
+            ("bleeding", "bleed"),
+            ("bowdlerize", "bowdler"),
+            ("by", "by"),
+            ("callousness", "callous"),
+            ("caresses", "caress"),
+            ("communism", "commun"),
+            ("conditional", "condit"),
+            ("conformabli", "conform"),
             ("consign", "consign"),
             ("consigned", "consign"),
             ("consigning", "consign"),
@@ -672,7 +694,30 @@ mod tests {
             ("constance", "constanc"),
             ("constancy", "constanc"),
             ("constant", "constant"),
+            ("controll", "control"),
+            ("decisiveness", "decis"),
+            ("defensible", "defens"),
+            ("dependent", "depend"),
+            ("differentli", "differ"),
+            ("digitizer", "digit"),
+            ("effective", "effect"),
+            ("eing", "e"),
+            ("electrical", "electr"),
+            ("electriciti", "electr"),
+            ("feudalism", "feudal"),
+            ("formaliti", "formal"),
+            ("formalize", "formal"),
+            ("formative", "form"),
+            ("goodness", "good"),
+            ("gyroscopic", "gyroscop"),
+            ("hesitanci", "hesit"),
+            ("homologou", "homolog"),
+            ("homologous", "homolog"),
+            ("hopeful", "hope"),
+            ("hopefulness", "hope"),
+            ("inference", "infer"),
             ("ion", "ion"),
+            ("irritant", "irrit"),
             ("knack", "knack"),
             ("knackeries", "knackeri"),
             ("knacks", "knack"),
@@ -713,8 +758,22 @@ mod tests {
             ("knot", "knot"),
             ("knots", "knot"),
             ("lay", "lay"),
+            ("operator", "oper"),
+            ("predication", "predic"),
+            ("radicalli", "radic"),
+            ("rational", "ration"),
+            ("relational", "relat"),
+            ("replacement", "replac"),
+            ("revival", "reviv"),
+            ("roll", "roll"),
+            ("sensibiliti", "sensibl"),
+            ("sensitiviti", "sensit"),
+            ("triplicate", "triplic"),
             ("try", "tri"),
-            ("by", "by"),
+            ("valenci", "valenc"),
+            ("vietnamization", "vietnam"),
+            ("vileli", "vile"),
+            ("young", "young"),
         ];
 
         let stemmer = Stemmer::new();

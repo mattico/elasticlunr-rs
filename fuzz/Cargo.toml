@@ -1,0 +1,21 @@
+[package]
+name = "elasticlunr-rs-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.elasticlunr-rs]
+path = ".."
+
+[[bin]]
+name = "fuzz_en"
+path = "fuzz_targets/fuzz_en.rs"
+test = false
+doc = false
+bench = false
