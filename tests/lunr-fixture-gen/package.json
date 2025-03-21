@@ -1,12 +1,18 @@
 {
   "name": "lunr-fixture-gen",
   "main": "index.js",
+  "private": true,
   "dependencies": {
     "@node-rs/jieba": "^1.10.3",
-    "lunr": "^2.3.9",
+    "elasticlunr": "github:weixsong/elasticlunr.js",
     "lunr-languages": "^1.14.0"
   },
   "scripts": {
-    "build": "node index.js"
+    "start": "node index.js"
+  },
+  "devDependencies": {
+    "@types/elasticlunr": "^0.9.9",
+    "@types/lunr": "^2.3.7",
+    "@types/node": "^18.19.80"
   }
 }
