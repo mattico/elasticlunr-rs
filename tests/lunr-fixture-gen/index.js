@@ -9,29 +9,35 @@ for (let file of fs.readdirSync("../data")) {
         let inp = fs.readFileSync(`../data/${code}.in.txt`);
         let outf = fs.openSync(`../data/${code}.out.txt`, 'w');
 
-        let pipeline = new lunr.Pipeline;
-        if (code !== "en") {
+        let pipeline;
+        let tokenizer;
+        if (code === "en") {
+            pipeline = new lunr.Pipeline();
+            pipeline.add(lunr.trimmer);
+            pipeline.add(lunr.stopWordFilter);
+            pipeline.add(lunr.stemmer);
+            tokenizer = lunr.tokenizer;
+        } else {
             if (code === 'ja') {
                 let TinySegmenter = require('lunr-languages/tinyseg');
                 TinySegmenter(lunr);
             }
             require(`lunr-languages/lunr.${code}.js`)(lunr);
 
-            let lang = lunr[code];
-            if (lang.trimmer) pipeline.add(lang.trimmer);
-            if (lang.stopWordFilter) pipeline.add(lang.stopWordFilter);
-            if (lang.stemmer) pipeline.add(lang.stemmer);
-        } else {
-            pipeline.add(lunr.trimmer);
-            pipeline.add(lunr.stopWordFilter);
-            pipeline.add(lunr.stemmer);
+            // Locale functions can do arbitrary things to load themselves (like replace the tokenizer), so we need to
+            // run them as they expect (as a lunr pipeline plugin) and use the final configuration after they're called.
+            lunr(function () {
+                this.use(lunr[code]);
+                pipeline = this.pipeline;
+                tokenizer = this.tokenizer;
+            });
         }
-        let tokens = lunr.tokenizer(inp);
+        let tokens = tokenizer(inp);
         tokens = pipeline.run(tokens);
 
         for (let tok of tokens) {
             tok = tok.toString();
-            if (tok && tok.length > 0)
+            if (tok)
                 fs.writeSync(outf, tok + '\n');
         }
         fs.closeSync(outf);
