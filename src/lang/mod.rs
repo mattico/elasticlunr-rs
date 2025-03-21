@@ -84,7 +84,6 @@ macro_rules! impl_language {
 
 impl_language! {
     (English, en),
-    (Arabic, ar, #[cfg(feature = "ar")]),
     (Chinese, zh, #[cfg(feature = "zh")]),
     (Danish, da, #[cfg(feature = "da")]),
     (Dutch, du, #[cfg(feature = "du")]),
