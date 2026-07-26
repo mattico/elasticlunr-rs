@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Fixed a panic (subtract with overflow) when the English stemmer was given the word "ion" ([#57](https://github.com/mattico/elasticlunr-rs/pull/57))
  - Fixed a panic (subtract with overflow) when the English stemmer was given a word ending in "eing" ([#58](https://github.com/mattico/elasticlunr-rs/pull/58))
 
+### Compatibility
+ - The token leak fix changes the generated index: terms no longer appear in
+   fields they were not in, and term/document frequencies in every field after
+   the first are lower. Search results and ranking will shift, and any test that
+   snapshots a generated index will need regenerating.
+
 ## [3.0.3] - 2025-03-16 [YANKED]
 This release was yanked because the rewritten English stemmer could panic on
 certain inputs. Use 3.0.2 or a later release instead.
