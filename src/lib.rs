@@ -14,7 +14,7 @@
 //!
 //! ## Example
 //!
-//! ```
+//! ```no_run
 //! use std::fs::File;
 //! use std::io::Write;
 //! use elasticlunr::Index;
@@ -23,7 +23,7 @@
 //! index.add_doc("1", &["This is a title", "This is body text!"]);
 //! // Add more docs...
 //! let mut file = File::create("out.json").unwrap();
-//! file.write_all(index.to_json_pretty().as_bytes());
+//! file.write_all(index.to_json_pretty().as_bytes()).unwrap();
 //! ```
 
 #[macro_use]
