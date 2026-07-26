@@ -1,1 +1,6 @@
 * text eol=lf
+
+# Take both sides when merging changelog entries instead of conflicting.
+# Union keeps every line from both sides in an arbitrary order, so re-read the
+# result after a merge to fix ordering and drop any duplicated entries.
+CHANGELOG.md merge=union

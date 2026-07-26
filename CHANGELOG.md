@@ -8,14 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
  - `Default` implementations for every `Language` type, delegating to their existing `new()`.
  - `TokenizerFn` type alias for the boxed tokenizer accepted by `IndexBuilder::add_field_with_tokenizer`.
+ - A `cargo-fuzz` target for the English pipeline ([#58](https://github.com/mattico/elasticlunr-rs/pull/58))
 
 ### Changed
  - Cleaned up all Clippy warnings.
 
 ### Fixed
  - Fixed tokens from earlier fields leaking into later fields' indices, inflating term and document frequencies ([#60](https://github.com/mattico/elasticlunr-rs/pull/60))
+ - Fixed a panic (subtract with overflow) when the English stemmer was given the word "ion" ([#57](https://github.com/mattico/elasticlunr-rs/pull/57))
+ - Fixed a panic (subtract with overflow) when the English stemmer was given a word ending in "eing" ([#58](https://github.com/mattico/elasticlunr-rs/pull/58))
 
-## [3.0.3] - 2025-03-16
+## [3.0.3] - 2025-03-16 [YANKED]
+This release was yanked because the rewritten English stemmer could panic on
+certain inputs. Use 3.0.2 or a later release instead.
+
 ### Changed
  - Rewrote the English stemmer for improved performance ([#48](https://github.com/mattico/elasticlunr-rs/pull/48))
  - Changed the rust-version in Cargo.toml to match the Minimum Supported Rust Version (1.60.0).
