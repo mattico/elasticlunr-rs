@@ -311,7 +311,6 @@ impl Index {
     {
         let mut doc = BTreeMap::new();
         doc.insert(self.ref_field.clone(), doc_ref.into());
-        let mut token_freq = BTreeMap::new();
 
         for (i, value) in data.into_iter().enumerate() {
             let field = &self.fields[i];
@@ -333,6 +332,7 @@ impl Index {
             self.document_store
                 .add_field_length(doc_ref, field, tokens.len());
 
+            let mut token_freq = BTreeMap::new();
             for token in tokens {
                 *token_freq.entry(token).or_insert(0u64) += 1;
             }
@@ -403,6 +403,29 @@ mod tests {
         idx.add_doc("1", &["", "test"]);
         assert_eq!(idx.index["body"].get_doc_frequency("test"), 1);
         assert_eq!(idx.index["body"].get_docs("test").unwrap()["1"], 1.);
+    }
+
+    #[test]
+    fn tokens_dont_leak_between_fields() {
+        let mut idx = Index::new(&["title", "body"]);
+
+        idx.add_doc("1", &["apple apple apple", "banana"]);
+        assert!(!idx.index["body"].has_token("appl"));
+        assert_eq!(idx.index["body"].get_doc_frequency("appl"), 0);
+        assert!(!idx.index["title"].has_token("banana"));
+        assert_eq!(idx.index["title"].get_doc_frequency("banana"), 0);
+    }
+
+    #[test]
+    fn term_frequency_is_counted_per_field() {
+        let mut idx = Index::new(&["title", "body"]);
+
+        idx.add_doc("1", &["apple apple apple", "apple"]);
+        assert_eq!(
+            idx.index["title"].get_docs("appl").unwrap()["1"],
+            3f64.sqrt()
+        );
+        assert_eq!(idx.index["body"].get_docs("appl").unwrap()["1"], 1.);
     }
 
     #[test]
