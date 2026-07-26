@@ -8,6 +8,12 @@ use rust_stemmers::Algorithm;
 #[derive(Clone)]
 pub struct Norwegian {}
 
+impl Default for Norwegian {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Norwegian {
     pub fn new() -> Self {
         Self {}

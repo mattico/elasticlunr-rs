@@ -8,6 +8,12 @@ use rust_stemmers::Algorithm;
 #[derive(Clone)]
 pub struct Romanian {}
 
+impl Default for Romanian {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Romanian {
     pub fn new() -> Self {
         Self {}

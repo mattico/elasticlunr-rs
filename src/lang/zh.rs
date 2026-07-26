@@ -6,6 +6,12 @@ pub struct Chinese {
     jieba: jieba_rs::Jieba,
 }
 
+impl Default for Chinese {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Chinese {
     pub fn new() -> Self {
         Self {

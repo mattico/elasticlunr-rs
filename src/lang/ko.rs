@@ -5,6 +5,12 @@ use crate::pipeline::{FnWrapper, Pipeline};
 pub struct Korean {
 }
 
+impl Default for Korean {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Korean {
     pub fn new() -> Self {
         Self { }

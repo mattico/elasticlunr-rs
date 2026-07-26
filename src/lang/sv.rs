@@ -8,6 +8,12 @@ use rust_stemmers::Algorithm;
 #[derive(Clone)]
 pub struct Swedish {}
 
+impl Default for Swedish {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Swedish {
     pub fn new() -> Self {
         Self {}

@@ -8,6 +8,12 @@ use rust_stemmers::Algorithm;
 #[derive(Clone)]
 pub struct Italian {}
 
+impl Default for Italian {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Italian {
     pub fn new() -> Self {
         Self {}

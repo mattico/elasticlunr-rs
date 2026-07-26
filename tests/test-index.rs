@@ -82,7 +82,7 @@ const DOCS_EN: &[[&str; 2]] = &[
 ];
 
 #[cfg(feature = "ja")]
-const DOCS_JA: &'static [[&'static str; 2]] = &[
+const DOCS_JA: &[[&str; 2]] = &[
     [
         "第1章",
         "吾輩は猫である。名前はまだ無い。",

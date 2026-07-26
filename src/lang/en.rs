@@ -19,6 +19,12 @@ pub struct English {
     stemmer: Stemmer,
 }
 
+impl Default for English {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl English {
     pub fn new() -> Self {
         let stemmer = Stemmer::new();
@@ -80,13 +86,13 @@ impl Stemmer {
     }
 }
 
-/// This stemmer implementation is taken directly from rust-stem
-/// (https://github.com/minhnhdo/rust-stem) which is licensed under the MIT
-/// License as follows:
-/// 
-/// The MIT License (MIT)
-///
-/// Copyright (c) 2013 Do Nhat Minh
+// This stemmer implementation is taken directly from rust-stem
+// (https://github.com/minhnhdo/rust-stem) which is licensed under the MIT
+// License as follows:
+//
+// The MIT License (MIT)
+//
+// Copyright (c) 2013 Do Nhat Minh
 
 /// Member b is a vector of bytes holding a word to be stemmed.
 /// The letters are in b[0], b[1] ... ending at b[z->k]. Member k is readjusted
@@ -105,7 +111,7 @@ impl PorterStemmer {
     fn new(word: &str) -> Result<PorterStemmer, &'static str> {
         let b = word.to_ascii_lowercase().into_bytes();
         let k = b.len();
-        Ok(PorterStemmer { b: b, k: k, j: 0 })
+        Ok(PorterStemmer { b, k, j: 0 })
     }
 
     /// stem.is_consonant(i) is true <=> stem[i] is a consonant
@@ -187,13 +193,7 @@ impl PorterStemmer {
     /// stem.double_consonant(i) is TRUE <=> i,(i-1) contain a double consonant.
     #[inline]
     fn double_consonant(&self, i: usize) -> bool {
-        if i < 1 {
-            false
-        } else if self.b[i] != self.b[i - 1] {
-            false
-        } else {
-            self.is_consonant(i)
-        }
+        i >= 1 && self.b[i] == self.b[i - 1] && self.is_consonant(i)
     }
 
     /// cvc(z, i) is TRUE <=> i-2,i-1,i has the form consonant - vowel - consonant
@@ -208,10 +208,7 @@ impl PorterStemmer {
         if i < 2 || !self.is_consonant(i) || self.is_consonant(i - 1) || !self.is_consonant(i - 2) {
             false
         } else {
-            match self.b[i] {
-                b'w' | b'x' | b'y' => false,
-                _ => true,
-            }
+            !matches!(self.b[i], b'w' | b'x' | b'y')
         }
     }
 
@@ -236,9 +233,7 @@ impl PorterStemmer {
     fn set_to(&mut self, s: &str) {
         let s = s.as_bytes();
         let len = s.len();
-        for i in 0..(len) {
-            self.b[self.j + i] = s[i];
-        }
+        self.b[self.j..self.j + len].copy_from_slice(s);
         self.k = self.j + len;
     }
 
@@ -315,6 +310,9 @@ impl PorterStemmer {
     /// stem.step2() maps double suffices to single ones. so -ization ( = -ize
     /// plus -ation) maps to -ize etc. note that the string before the suffix
     /// must give m(z) > 0.
+    // `ends` takes `&mut self`, and a pattern guard may not borrow the scrutinee
+    // mutably (E0510), so these arms cannot be folded into `match` guards.
+    #[allow(clippy::collapsible_match)]
     fn step2(&mut self) {
         if self.k < 2 {
             return;
@@ -327,7 +325,6 @@ impl PorterStemmer {
                 }
                 if self.ends("tional") {
                     self.r("tion");
-                    return;
                 }
             }
             b'c' => {
@@ -337,13 +334,11 @@ impl PorterStemmer {
                 }
                 if self.ends("anci") {
                     self.r("ance");
-                    return;
                 }
             }
             b'e' => {
                 if self.ends("izer") {
                     self.r("ize");
-                    return;
                 }
             }
             b'l' => {
@@ -370,7 +365,6 @@ impl PorterStemmer {
                 }
                 if self.ends("ousli") {
                     self.r("ous");
-                    return;
                 }
             }
             b'o' => {
@@ -384,7 +378,6 @@ impl PorterStemmer {
                 }
                 if self.ends("ator") {
                     self.r("ate");
-                    return;
                 }
             }
             b's' => {
@@ -402,7 +395,6 @@ impl PorterStemmer {
                 }
                 if self.ends("ousness") {
                     self.r("ous");
-                    return;
                 }
             }
             b't' => {
@@ -416,13 +408,11 @@ impl PorterStemmer {
                 }
                 if self.ends("biliti") {
                     self.r("ble");
-                    return;
                 }
             }
             b'g' => {
                 if self.ends("logi") {
                     self.r("log");
-                    return;
                 }
             } /*-DEPARTURE-*/
             /* To match the published algorithm, delete this line */
@@ -431,6 +421,7 @@ impl PorterStemmer {
     }
 
     /// stem.step3() deals with -ic-, -full, -ness etc. similar strategy to step2.
+    #[allow(clippy::collapsible_match)] // see step2
     fn step3(&mut self) {
         match self.b[self.k - 1] {
             b'e' => {
@@ -444,13 +435,11 @@ impl PorterStemmer {
                 }
                 if self.ends("alize") {
                     self.r("al");
-                    return;
                 }
             }
             b'i' => {
                 if self.ends("iciti") {
                     self.r("ic");
-                    return;
                 }
             }
             b'l' => {
@@ -460,13 +449,11 @@ impl PorterStemmer {
                 }
                 if self.ends("ful") {
                     self.r("");
-                    return;
                 }
             }
             b's' => {
                 if self.ends("ness") {
                     self.r("");
-                    return;
                 }
             }
             _ => (),
@@ -478,88 +465,33 @@ impl PorterStemmer {
         if self.k < 2 {
             return;
         }
-        match self.b[self.k - 2] {
-            b'a' => {
-                if self.ends("al") {
-                } else {
-                    return;
-                }
-            }
-            b'c' => {
-                if self.ends("ance") {
-                } else if self.ends("ence") {
-                } else {
-                    return;
-                }
-            }
-            b'e' => {
-                if self.ends("er") {
-                } else {
-                    return;
-                }
-            }
-            b'i' => {
-                if self.ends("ic") {
-                } else {
-                    return;
-                }
-            }
-            b'l' => {
-                if self.ends("able") {
-                } else if self.ends("ible") {
-                } else {
-                    return;
-                }
-            }
+        // NB: `ends` records the position of the match in `self.j` as a side
+        // effect, so these chains must stay short-circuiting and in order.
+        let matched = match self.b[self.k - 2] {
+            b'a' => self.ends("al"),
+            b'c' => self.ends("ance") || self.ends("ence"),
+            b'e' => self.ends("er"),
+            b'i' => self.ends("ic"),
+            b'l' => self.ends("able") || self.ends("ible"),
             b'n' => {
-                if self.ends("ant") {
-                } else if self.ends("ement") {
-                } else if self.ends("ment") {
-                } else if self.ends("ent") {
-                } else {
-                    return;
-                }
+                self.ends("ant") || self.ends("ement") || self.ends("ment") || self.ends("ent")
             }
+            /* takes care of -ous */
             b'o' => {
-                if self.ends("ion") && self.j > 0 && (self.b[self.j - 1] == b's' || self.b[self.j - 1] == b't') {
-                } else if self.ends("ou") {
-                } else {
-                    return;
-                }
-                /* takes care of -ous */
+                (self.ends("ion")
+                    && self.j > 0
+                    && (self.b[self.j - 1] == b's' || self.b[self.j - 1] == b't'))
+                    || self.ends("ou")
             }
-            b's' => {
-                if self.ends("ism") {
-                } else {
-                    return;
-                }
-            }
-            b't' => {
-                if self.ends("ate") {
-                } else if self.ends("iti") {
-                } else {
-                    return;
-                }
-            }
-            b'u' => {
-                if self.ends("ous") {
-                } else {
-                    return;
-                }
-            }
-            b'v' => {
-                if self.ends("ive") {
-                } else {
-                    return;
-                }
-            }
-            b'z' => {
-                if self.ends("ize") {
-                } else {
-                    return;
-                }
-            }
-            _ => return,
+            b's' => self.ends("ism"),
+            b't' => self.ends("ate") || self.ends("iti"),
+            b'u' => self.ends("ous"),
+            b'v' => self.ends("ive"),
+            b'z' => self.ends("ize"),
+            _ => false,
+        };
+        if !matched {
+            return;
         }
         if self.measure() > 1 {
             self.k = self.j
@@ -778,8 +710,67 @@ mod tests {
 
         let stemmer = Stemmer::new();
         for &(input, output) in cases.iter() {
-            let result = stemmer.stem(input.into()).unwrap();
+            let result = stemmer.stem(input).unwrap();
             assert_eq!(&result, output);
+        }
+    }
+
+    /// Each case here pins a specific branch of the Porter algorithm that
+    /// `test_stemmer` above leaves unexercised. Grouped by the rule they cover,
+    /// so a failure points straight at the responsible step.
+    #[test]
+    fn test_stemmer_branch_coverage() {
+        let cases = [
+            // cvc() must not restore a trailing 'e' when the final consonant is
+            // w, x or y. Without that exclusion these gain a spurious 'e'.
+            ("saying", "say"),
+            ("playing", "play"),
+            ("praying", "pray"),
+            ("buying", "buy"),
+            ("annoying", "annoy"),
+            ("employing", "employ"),
+            ("boxing", "box"),
+            ("snowing", "snow"),
+            ("flowing", "flow"),
+            // step1ab: -at / -bl / -iz gain an 'e'.
+            ("created", "creat"),
+            ("troubling", "troubl"),
+            ("sizing", "size"),
+            ("prizing", "prize"),
+            // step1ab: a doubled final l/s/z is *not* collapsed.
+            ("falling", "fall"),
+            ("filling", "fill"),
+            ("hissing", "hiss"),
+            ("fizzing", "fizz"),
+            // step1ab: doubled consonant otherwise collapses; cvc() restores 'e'.
+            ("matting", "mat"),
+            ("mating", "mate"),
+            ("shredded", "shred"),
+            // step1ab: cvc() true -> restore a trailing 'e' (the w/x/y cases
+            // above only cover the false branch).
+            ("hoping", "hope"),
+            ("hoped", "hope"),
+            ("filing", "file"),
+            ("coding", "code"),
+            // has_vowel() false: the stem left by -ed has no vowel at all.
+            ("bled", "bled"),
+            ("sled", "sled"),
+            // is_consonant() treats a leading 'y' as a consonant.
+            ("yielding", "yield"),
+            ("yearly", "yearli"),
+            // step1ab: -eed only shortens when the stem has measure > 0.
+            ("agreed", "agre"),
+            ("feed", "feed"),
+            // step2: the -logi -> -log rule (b'g' arm).
+            ("apology", "apolog"),
+            ("apologies", "apolog"),
+            ("archaeology", "archaeolog"),
+        ];
+
+        let stemmer = Stemmer::new();
+        for &(input, output) in cases.iter() {
+            let result = stemmer.stem(input).unwrap();
+            assert_eq!(&result, output, "stemming {:?}", input);
         }
     }
 }
