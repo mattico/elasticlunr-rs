@@ -3,67 +3,146 @@ name: CI
 on:
   push:
     branches: [ master ]
-    tags: [ '*' ]
-  workflow_dispatch:
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: '1'
 
 jobs:
-  ci:
-    runs-on: ubuntu-latest
+  test:
+    name: Test ${{ matrix.rust }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # Nightly regressions are upstream's problem, not a reason to block a PR.
+    continue-on-error: ${{ matrix.rust == 'nightly' }}
     strategy:
+      fail-fast: false
       matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
+        os: [ ubuntu-latest ]
+        rust: [ stable, beta, nightly ]
+        include:
+          - { os: windows-latest, rust: stable }
+          - { os: macos-latest, rust: stable }
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup ${{ matrix.rust }} toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-          override: true
 
-      - name: Build (all features)
-        run: cargo build --all-features
-
-      - name: Build
-        run: cargo build
+      - name: Test (no features)
+        run: cargo test
 
       - name: Test (all features)
         run: cargo test --all-features
 
-      - name: Test
-        run: cargo test
+  features:
+    name: Feature combinations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
 
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - uses: taiki-e/install-action@cargo-hack
+
+      # Each language feature must build on its own, not just in the
+      # --all-features union.
+      - name: Check each feature
+        run: cargo hack check --each-feature --all-targets
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: rustfmt
+        run: cargo fmt --all --check
+
+      # Not blocking yet: the tree still has a backlog of warnings. Reported so
+      # the backlog is visible, and made blocking once it is cleared.
+      - name: clippy
+        continue-on-error: true
+        run: cargo clippy --all-features --all-targets
+
+      - name: rustdoc
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --all-features --no-deps
+
+      - name: Check the published package builds
+        run: cargo package --all-features
+
+  fuzz:
+    name: Fuzz target builds
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+
+      # Just a compile check; the target bit-rots against the crate API long
+      # before anyone runs an actual fuzzing session.
+      - name: Check fuzz target
+        run: cargo check --manifest-path fuzz/Cargo.toml --all-targets
 
   msrv:
+    # NB: the `env` context is not available in a job-level `name`, so the
+    # version only appears in the step names below.
+    name: MSRV and minimal versions
     runs-on: ubuntu-latest
     env:
       MSRV: '1.60.0'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Setup ${{ env.MSRV }} toolchain
+      - name: Setup ${{ env.MSRV }} and stable toolchains
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          toolchain: '${{ env.MSRV }}'
+          # Last entry becomes the default, so `cargo` without a `+toolchain`
+          # is stable and `override: false` keeps it that way.
+          toolchain: '${{ env.MSRV }}, stable'
           override: false
 
-      - name: Install cargo-hack
-        run: cargo +stable install --locked cargo-hack
+      - uses: taiki-e/install-action@cargo-hack
+      - uses: taiki-e/install-action@cargo-minimal-versions
 
-      - name: Install cargo-minimal-versions
-        run: cargo +stable install --locked cargo-minimal-versions
-
+      # NB: there is deliberately no plain `cargo +MSRV check` here. With no
+      # committed lockfile that resolves to the newest semver-compatible deps,
+      # several of which (e.g. thiserror >=1.0.66) now require a newer rustc
+      # than the MSRV. minimal-versions is what actually pins the floor.
       - name: Check minimal versions on stable
         run: cargo +stable minimal-versions check
 
       - name: Test minimal versions on stable
         run: cargo +stable minimal-versions test
 
+      # NB: --all-features is deliberately omitted here. Some transitive deps
+      # of the lindera/jieba trees declare unbounded lower bounds that resolve
+      # to pre-1.0-era crates which no longer compile at all.
       - name: Check minimal versions on MSRV
         run: cargo +${{ env.MSRV }} minimal-versions check
 
