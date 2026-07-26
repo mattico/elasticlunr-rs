@@ -18,10 +18,6 @@ struct IndexItem {
 }
 
 impl IndexItem {
-    fn new() -> Self {
-        Default::default()
-    }
-
     fn serialize<S>(map: &BTreeMap<char, IndexItem>, ser: S) -> Result<S::Ok, S::Error>
     where
         S: ::serde::Serializer,
@@ -40,14 +36,11 @@ impl IndexItem {
     fn add_token(&mut self, doc_ref: &str, token: &str, term_freq: f64) {
         let mut iter = token.chars();
         if let Some(character) = iter.next() {
-            let mut item = self
-                .children
-                .entry(character)
-                .or_insert_with(IndexItem::new);
+            let mut item = self.children.entry(character).or_default();
 
             for character in iter {
                 let tmp = item;
-                item = tmp.children.entry(character).or_insert_with(IndexItem::new);
+                item = tmp.children.entry(character).or_default();
             }
 
             if !item.docs.contains_key(doc_ref) {
@@ -61,11 +54,7 @@ impl IndexItem {
     fn get_node(&self, token: &str) -> Option<&IndexItem> {
         let mut root = self;
         for ch in token.chars() {
-            if let Some(item) = root.children.get(&ch) {
-                root = item;
-            } else {
-                return None;
-            }
+            root = root.children.get(&ch)?;
         }
 
         Some(root)
@@ -297,7 +286,7 @@ mod tests {
         inverted_index.remove_token("123", "foo");
         assert_eq!(inverted_index.get_docs("foo"), Some(BTreeMap::new()));
         assert_eq!(inverted_index.get_doc_frequency("foo"), 0);
-        assert_eq!(inverted_index.has_token("foo"), true);
+        assert!(inverted_index.has_token("foo"));
     }
 
     #[test]

@@ -8,6 +8,12 @@ pub struct Japanese {
     tokenizer: Tokenizer,
 }
 
+impl Default for Japanese {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Japanese {
     pub fn new() -> Self {
         let config = TokenizerConfig {
@@ -37,7 +43,7 @@ impl Language for Japanese {
             .tokenize(text)
             .unwrap()
             .into_iter()
-            .filter_map(|tok| match tok.detail.get(0).map(|d| d.as_str()) {
+            .filter_map(|tok| match tok.detail.first().map(|d| d.as_str()) {
                 Some("助詞") | Some("助動詞") | Some("記号") | Some("UNK") => None,
                 _ => Some(tok.text.to_string()),
             })
@@ -67,7 +73,7 @@ mod tests {
 
     #[test]
     fn test_trimmer() {
-        let trimmer = RegexTrimmer::new("trimmer-ja".into(), WORD_CHARS);
+        let trimmer = RegexTrimmer::new("trimmer-ja", WORD_CHARS);
         assert_eq!(
             trimmer.filter("  こんにちは、世界！".to_string()),
             Some("こんにちは、世界".to_string())

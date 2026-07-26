@@ -12,14 +12,14 @@ fn write_output(lang: &dyn Language) {
         .join("tests")
         .join("data");
 
-    let input = base.join(&format!("{}.in.txt", code));
+    let input = base.join(format!("{}.in.txt", code));
     let mut input_str = String::new();
     File::open(&input)
         .unwrap()
         .read_to_string(&mut input_str)
         .unwrap();
 
-    let output = base.join(&format!("{}.out.txt", code));
+    let output = base.join(format!("{}.out.txt", code));
     let mut output = File::create(&output).unwrap();
 
     let pipeline = lang.make_pipeline();
@@ -36,14 +36,14 @@ fn compare_to_fixture(lang: &dyn Language) {
         .join("tests")
         .join("data");
 
-    let input = base.join(&format!("{}.in.txt", code));
+    let input = base.join(format!("{}.in.txt", code));
     let mut input_str = String::new();
     File::open(&input)
         .unwrap()
         .read_to_string(&mut input_str)
         .unwrap();
 
-    let output = base.join(&format!("{}.out.txt", code));
+    let output = base.join(format!("{}.out.txt", code));
     let mut output = BufReader::new(File::open(&output).unwrap()).lines();
 
     let pipeline = lang.make_pipeline();

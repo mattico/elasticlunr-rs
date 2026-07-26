@@ -8,6 +8,12 @@ use rust_stemmers::Algorithm;
 #[derive(Clone)]
 pub struct Turkish {}
 
+impl Default for Turkish {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Turkish {
     pub fn new() -> Self {
         Self {}

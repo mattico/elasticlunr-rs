@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+ - `Default` implementations for every `Language` type, delegating to their existing `new()`.
+ - `TokenizerFn` type alias for the boxed tokenizer accepted by `IndexBuilder::add_field_with_tokenizer`.
+
+### Changed
+ - Cleaned up all Clippy warnings.
+
 ### Fixed
  - Fixed tokens from earlier fields leaking into later fields' indices, inflating term and document frequencies ([#60](https://github.com/mattico/elasticlunr-rs/pull/60))
 

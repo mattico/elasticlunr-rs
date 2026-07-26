@@ -66,7 +66,7 @@ impl DocumentStore {
     pub fn add_field_length(&mut self, doc_ref: &str, field: &str, length: usize) {
         self.doc_info
             .entry(doc_ref.into())
-            .or_insert_with(BTreeMap::new)
+            .or_default()
             .insert(field.into(), length);
     }
 
@@ -103,8 +103,8 @@ mod tests {
 
         store.add_doc("1", doc);
         assert_eq!(store.len(), 1);
-        assert_eq!(store.is_stored(), false);
-        assert_eq!(store.has_doc("1"), true);
+        assert!(!store.is_stored());
+        assert!(store.has_doc("1"));
     }
 
     #[test]
@@ -116,21 +116,21 @@ mod tests {
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
         assert_eq!(store.len(), 2);
-        assert_eq!(store.is_stored(), false);
-        assert_eq!(store.has_doc("1"), true);
-        assert_eq!(store.has_doc("2"), true);
+        assert!(!store.is_stored());
+        assert!(store.has_doc("1"));
+        assert!(store.has_doc("2"));
     }
 
     #[test]
     fn is_stored_true() {
         let store = DocumentStore::new(true);
-        assert_eq!(store.is_stored(), true);
+        assert!(store.is_stored());
     }
 
     #[test]
     fn is_stored_false() {
         let store = DocumentStore::new(false);
-        assert_eq!(store.is_stored(), false);
+        assert!(!store.is_stored());
     }
 
     #[test]
@@ -142,7 +142,7 @@ mod tests {
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
         assert_eq!(store.len(), 2);
-        assert_eq!(store.is_stored(), false);
+        assert!(!store.is_stored());
         assert_eq!(store.get_doc("1").unwrap(), BTreeMap::new());
         assert_eq!(store.get_doc("2").unwrap(), BTreeMap::new());
     }
@@ -156,7 +156,7 @@ mod tests {
         store.add_doc("1", doc1);
         store.add_doc("2", doc2);
         assert_eq!(store.len(), 2);
-        assert_eq!(store.is_stored(), false);
+        assert!(!store.is_stored());
         assert_eq!(store.get_doc("6"), None);
         assert_eq!(store.get_doc("2").unwrap(), BTreeMap::new());
     }
@@ -171,7 +171,7 @@ mod tests {
         store.add_doc("2", doc2);
         store.remove_doc("1");
         assert_eq!(store.len(), 1);
-        assert_eq!(store.is_stored(), false);
+        assert!(!store.is_stored());
         assert_eq!(store.get_doc("2").unwrap(), BTreeMap::new());
         assert_eq!(store.get_doc("1"), None);
     }
@@ -186,7 +186,7 @@ mod tests {
         store.add_doc("2", doc2);
         store.remove_doc("8");
         assert_eq!(store.len(), 2);
-        assert_eq!(store.is_stored(), false);
+        assert!(!store.is_stored());
         assert_eq!(store.get_doc("2").unwrap(), BTreeMap::new());
         assert_eq!(store.get_doc("1").unwrap(), BTreeMap::new());
     }

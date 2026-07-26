@@ -50,7 +50,13 @@ use lang::English;
 pub use lang::Language;
 pub use pipeline::Pipeline;
 
-type Tokenizer = Option<Box<dyn Fn(&str) -> Vec<String>>>;
+/// A function that splits the text of a single field into tokens.
+///
+/// Used with [`IndexBuilder::add_field_with_tokenizer`] to override the
+/// [`Language`]'s default tokenizer for one field.
+pub type TokenizerFn = Box<dyn Fn(&str) -> Vec<String>>;
+
+type Tokenizer = Option<TokenizerFn>;
 
 /// A builder for an `Index` with custom parameters.
 ///
@@ -124,11 +130,7 @@ impl IndexBuilder {
     /// # Panics
     ///
     /// Panics if a field with the name already exists.
-    pub fn add_field_with_tokenizer(
-        mut self,
-        field: &str,
-        tokenizer: Box<dyn Fn(&str) -> Vec<String>>,
-    ) -> Self {
+    pub fn add_field_with_tokenizer(mut self, field: &str, tokenizer: TokenizerFn) -> Self {
         let field = field.into();
         if self.fields.contains(&field) {
             panic!("Duplicate fields in index: {}", field);
@@ -214,6 +216,9 @@ mod ser_lang {
     use serde::{Deserializer, Serializer};
     use std::fmt;
 
+    // `serde(with = ...)` hands us a reference to the field itself, which is a
+    // `Box<dyn Language>`, so the extra indirection is not ours to remove.
+    #[allow(clippy::borrowed_box)]
     pub fn serialize<S>(lang: &Box<dyn Language>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,

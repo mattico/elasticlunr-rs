@@ -8,6 +8,12 @@ use rust_stemmers::Algorithm;
 #[derive(Clone)]
 pub struct Russian {}
 
+impl Default for Russian {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Russian {
     pub fn new() -> Self {
         Self {}

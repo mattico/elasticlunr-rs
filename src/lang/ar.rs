@@ -7,6 +7,12 @@ use regex::Regex;
 /// Designed to be compatibile with the included Javascript implementation. See `js/lunr.ar.js`.
 pub struct Arabic {}
 
+impl Default for Arabic {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Arabic {
     pub fn new() -> Self {
         Self {}
