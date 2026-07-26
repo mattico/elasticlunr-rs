@@ -35,7 +35,7 @@ jobs:
           - { os: macos-latest, rust: stable }
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup ${{ matrix.rust }} toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -52,7 +52,7 @@ jobs:
     name: Feature combinations
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -69,7 +69,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -117,7 +117,7 @@ jobs:
     env:
       MSRV: '1.60.0'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup ${{ env.MSRV }} and stable toolchains
         uses: actions-rust-lang/setup-rust-toolchain@v1
