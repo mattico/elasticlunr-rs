@@ -854,13 +854,13 @@ mod tests {
             for p in prefixes {
                 for s in suffixes {
                     let word = format!("{p}{c}{s}");
-                    // A `None` result is fine; the failure this guards against is
-                    // `get()` panicking on a `b[..k]` that is no longer valid
-                    // UTF-8. `black_box` keeps the call from being optimized out.
-                    let stem = std::hint::black_box(stemmer.stem(&word));
-                    // Truncating mid-character is the only way a stem can gain a
-                    // replacement character, so this catches a lossy "fix" too.
-                    if let Some(stem) = stem {
+                    // The regression this guards against is `get()` panicking on
+                    // a `b[..k]` that is no longer valid UTF-8, so the call
+                    // itself is the assertion. The check below additionally
+                    // rejects a "fix" that truncates lossily rather than
+                    // panicking, since splitting a character mid-way is the only
+                    // way a stem can acquire a replacement character.
+                    if let Some(stem) = stemmer.stem(&word) {
                         assert!(
                             !stem.contains('\u{fffd}'),
                             "stemming {:?} produced {:?}",
