@@ -79,11 +79,11 @@ jobs:
       - name: rustfmt
         run: cargo fmt --all --check
 
-      # Not blocking yet: the tree still has a backlog of warnings. Reported so
-      # the backlog is visible, and made blocking once it is cleared.
       - name: clippy
-        continue-on-error: true
-        run: cargo clippy --all-features --all-targets
+        run: cargo clippy --all-features --all-targets -- -D warnings
+
+      - name: clippy (no features)
+        run: cargo clippy --all-targets -- -D warnings
 
       - name: rustdoc
         env:
