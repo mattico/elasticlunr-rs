@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Fixed tokens from earlier fields leaking into later fields' indices, inflating term and document frequencies ([#60](https://github.com/mattico/elasticlunr-rs/pull/60))
  - Fixed a panic (subtract with overflow) when the English stemmer was given the word "ion" ([#57](https://github.com/mattico/elasticlunr-rs/pull/57))
  - Fixed a panic (subtract with overflow) when the English stemmer was given a word ending in "eing" ([#58](https://github.com/mattico/elasticlunr-rs/pull/58))
+ - Fixed a panic when the English stemmer's doubled-consonant rule truncated a word in the middle of a multi-byte character, such as "त" in "aतed" ([#63](https://github.com/mattico/elasticlunr-rs/pull/63))
+ - Fixed the terminal "y" to "i" rule disagreeing with elasticlunr.js when the preceding character is itself a "y", so that "leeshyy" now stems to "leeshyi" ([#63](https://github.com/mattico/elasticlunr-rs/pull/63))
 
 ### Compatibility
  - The token leak fix changes the generated index: terms no longer appear in
