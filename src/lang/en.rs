@@ -191,9 +191,14 @@ impl PorterStemmer {
     }
 
     /// stem.double_consonant(i) is TRUE <=> i,(i-1) contain a double consonant.
+    ///
+    /// `b` holds arbitrary UTF-8, so restrict this to ASCII: two equal non-ASCII
+    /// bytes are usually the trailing continuation bytes of one multi-byte
+    /// character (e.g. `त` is `E0 A4 A4`), and step1ab would then chop `k` into
+    /// the middle of that character, leaving `b[..k]` invalid UTF-8.
     #[inline]
     fn double_consonant(&self, i: usize) -> bool {
-        i >= 1 && self.b[i] == self.b[i - 1] && self.is_consonant(i)
+        i >= 1 && self.b[i] == self.b[i - 1] && self.b[i].is_ascii() && self.is_consonant(i)
     }
 
     /// cvc(z, i) is TRUE <=> i-2,i-1,i has the form consonant - vowel - consonant
@@ -300,9 +305,21 @@ impl PorterStemmer {
         }
     }
 
-    /// stem.step1c() turns terminal y to i when there is another vowel in the stem.
+    /// stem.step1c() turns terminal y to i when the preceding character is not a
+    /// vowel.
+    ///
+    /// This deliberately tests `b[k-2]` against `aeiou` directly rather than
+    /// calling `is_consonant`. Index compatibility requires matching
+    /// elasticlunr.js, whose rule is the regex `^(.+?[^aeiou])y$` — a literal
+    /// character class, so it treats a preceding `y` as a non-vowel. Using
+    /// `is_consonant` instead applies the Porter "y is a vowel after a consonant"
+    /// rule and leaves such words unstemmed, e.g. `leeshyy` stayed `leeshyy`
+    /// where elasticlunr.js produces `leeshyi`.
     fn step1c(&mut self) {
-        if self.ends("y") && self.is_consonant(self.k - 2) && self.k > 2 {
+        if self.k > 2
+            && self.ends("y")
+            && !matches!(self.b[self.k - 2], b'a' | b'e' | b'i' | b'o' | b'u')
+        {
             self.b[self.k - 1] = b'i';
         }
     }
@@ -765,6 +782,15 @@ mod tests {
             ("apology", "apolog"),
             ("apologies", "apolog"),
             ("archaeology", "archaeolog"),
+            // step1c: the character before a terminal 'y' is tested against
+            // `aeiou` literally, as elasticlunr.js does. A preceding 'y' counts
+            // as a non-vowel here even though Porter's is_consonant() would call
+            // it a vowel, so these still take the y -> i rule.
+            ("leeshyy", "leeshyi"),
+            ("byy", "byi"),
+            // ...while a preceding real vowel still blocks it.
+            ("lay", "lay"),
+            ("stay", "stay"),
         ];
 
         let stemmer = Stemmer::new();
@@ -773,4 +799,78 @@ mod tests {
             assert_eq!(&result, output, "stemming {:?}", input);
         }
     }
+
+    /// The stemmer works on `b` as raw bytes, but tokens are arbitrary UTF-8.
+    /// No rule may truncate `b` in the middle of a multi-byte character.
+    ///
+    /// The `\u{0924}` cases are the regression: its UTF-8 encoding is
+    /// `E0 A4 A4`, whose last two bytes are equal, so `double_consonant` used to
+    /// treat them as a doubled consonant and drop one, leaving invalid UTF-8 for
+    /// `get()` to unwrap. Expected outputs match elasticlunr-rs 3.0.2, i.e. the
+    /// regex-based stemmer that preceded the rewrite in #48.
+    #[test]
+    fn test_stemmer_non_ascii_is_not_truncated_mid_character() {
+        let cases = [
+            // U+0924 DEVANAGARI TA = E0 A4 A4 (adjacent equal bytes).
+            ("a\u{0924}ed", "a\u{0924}"),
+            ("a\u{0924}ing", "a\u{0924}"),
+            ("ab\u{0924}ed", "ab\u{0924}"),
+            // U+0e01 THAI KO KAI = E0 B8 81 (no adjacent equal bytes).
+            ("a\u{0e01}ed", "a\u{0e01}"),
+            // Latin-1 and Cyrillic text that reaches the stemmer unchanged.
+            ("spatiëring", "spatiër"),
+            ("naïveté", "naïveté"),
+            ("café", "café"),
+            ("résumé", "résumé"),
+            ("a\u{0451}ed", "a\u{0451}"),
+        ];
+
+        let stemmer = Stemmer::new();
+        for &(input, output) in cases.iter() {
+            let result = stemmer.stem(input).unwrap();
+            assert_eq!(&result, output, "stemming {:?}", input);
+        }
+    }
+
+    /// Every rule must leave `b[..k]` on a character boundary, for any token the
+    /// pipeline can produce. Sweeps the characters most likely to break the
+    /// byte-level rules: those whose UTF-8 encoding contains adjacent equal bytes.
+    #[test]
+    fn test_stemmer_never_produces_invalid_utf8() {
+        let interesting: Vec<char> = (0x80u32..0x2FFFF)
+            .filter_map(char::from_u32)
+            .filter(|c| {
+                let mut buf = [0u8; 4];
+                c.encode_utf8(&mut buf).as_bytes().windows(2).any(|w| w[0] == w[1])
+            })
+            .collect();
+        assert!(!interesting.is_empty());
+
+        let prefixes = ["", "a", "ab", "abo", "i", "cons"];
+        let suffixes = ["", "ed", "ing", "s", "es", "ies", "eed", "ion", "ness", "e", "ly", "ll"];
+
+        let stemmer = Stemmer::new();
+        for c in interesting {
+            for p in prefixes {
+                for s in suffixes {
+                    let word = format!("{p}{c}{s}");
+                    // A `None` result is fine; the failure this guards against is
+                    // `get()` panicking on a `b[..k]` that is no longer valid
+                    // UTF-8. `black_box` keeps the call from being optimized out.
+                    let stem = std::hint::black_box(stemmer.stem(&word));
+                    // Truncating mid-character is the only way a stem can gain a
+                    // replacement character, so this catches a lossy "fix" too.
+                    if let Some(stem) = stem {
+                        assert!(
+                            !stem.contains('\u{fffd}'),
+                            "stemming {:?} produced {:?}",
+                            word,
+                            stem
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
+
